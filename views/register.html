@@ -122,10 +122,10 @@
                     `;
                     
                     // Stocker l'email pour la page OTP
-                    localStorage.setItem('pendingEmail', email);
+                    localStorage.setItem('pendingEmail', data.email);
                     
                     setTimeout(() => {
-                        window.location.href = `/verify-otp?email=${encodeURIComponent(email)}`;
+                        window.location.href = `/verify-otp?email=${encodeURIComponent(data.email)}`;
                     }, 2000);
                 } else {
                     resultDiv.innerHTML = `

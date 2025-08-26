@@ -32,31 +32,50 @@ class MessageSystem {
   setupSocketEvents() {
     if (!this.socket) return;
 
-    // Join user room
-    this.socket.emit('join', this.currentUser.id);
+    try {
+      // Join user room
+      this.socket.emit('join', this.currentUser.id);
 
-    // Listen for new messages
-    this.socket.on('newMessage', (message) => {
-      this.handleNewMessage(message);
+      // Listen for new messages
+      this.socket.on('newMessage', (message) => {
+        this.handleNewMessage(message);
+      });
+
+      // Listen for typing indicators
+      this.socket.on('userTyping', (data) => {
+        this.showTypingIndicator(data);
+      });
+
+      this.socket.on('userStoppedTyping', (data) => {
+        this.hideTypingIndicator(data);
     });
 
-    // Listen for typing indicators
-    this.socket.on('userTyping', (data) => {
-      this.showTypingIndicator(data);
-    });
+      // Listen for user status updates
+      this.socket.on('userOnline', (userId) => {
+        this.updateUserStatus(userId, true);
+      });
 
-    this.socket.on('userStoppedTyping', (data) => {
-      this.hideTypingIndicator(data);
-    });
+      this.socket.on('userOffline', (userId) => {
+        this.updateUserStatus(userId, false);
+      });
 
-    // Listen for user status updates
-    this.socket.on('userOnline', (userId) => {
-      this.updateUserStatus(userId, true);
-    });
+      // Gestion des erreurs de connexion
+      this.socket.on('connect_error', (error) => {
+        console.error('Socket.IO connection error:', error);
+        this.socket = null;
+      });
 
-    this.socket.on('userOffline', (userId) => {
-      this.updateUserStatus(userId, false);
-    });
+      this.socket.on('disconnect', (reason) => {
+        console.log('Socket.IO disconnected:', reason);
+        if (reason === 'io server disconnect') {
+          // Reconnexion automatique
+          this.socket.connect();
+        }
+      });
+    } catch (error) {
+      console.error('Error setting up socket events:', error);
+      this.socket = null;
+    }
   }
 
   setupEventListeners() {
@@ -94,13 +113,30 @@ class MessageSystem {
   async loadConversations() {
     try {
       const response = await apiRequest('/api/conversations', 'GET');
-      if (response.success) {
+      if (response && response.success) {
         this.conversations = response.data;
         this.displayConversations(this.conversations);
+      } else {
+        console.error('Invalid response format:', response);
+        this.showAlert('Format de réponse invalide du serveur', 'danger');
       }
     } catch (error) {
       console.error('Error loading conversations:', error);
-      this.showAlert('Erreur lors du chargement des conversations', 'danger');
+      this.showAlert('Erreur lors du chargement des conversations. Vérifiez votre connexion.', 'danger');
+      
+      // Fallback: afficher un message d'erreur dans l'interface
+      const conversationsContainer = document.getElementById('conversations');
+      if (conversationsContainer) {
+        conversationsContainer.innerHTML = `
+          <div class="text-center text-danger py-4">
+            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+            <p>Impossible de charger les conversations</p>
+            <button class="btn btn-outline-primary btn-sm" onclick="messageSystem.loadConversations()">
+              <i class="fas fa-redo me-2"></i>Réessayer
+            </button>
+          </div>
+        `;
+      }
     }
   }
 

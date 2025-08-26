@@ -6,17 +6,22 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const PendingUser = require('../models/PendingUser');
+const emailConfig = require('../config/email');
 
 // Configuration du transporteur email
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+let transporter = null;
+
+// Initialiser le transporteur email seulement si la configuration est valide
+if (emailConfig.isValid()) {
+  try {
+    transporter = nodemailer.createTransport(emailConfig.getTransporterConfig());
+    console.log('Transporteur email configuré avec succès');
+  } catch (error) {
+    console.error('Erreur lors de la configuration du transporteur email:', error);
   }
-});
+} else {
+  console.warn('Configuration email non valide. Les fonctionnalités d\'email seront désactivées.');
+}
 
 router.get('/current', async (req, res) => {
   try {
@@ -366,33 +371,62 @@ router.post('/forgot-password', async (req, res) => {
     const resetToken = user.generatePasswordResetToken();
     await user.save();
 
+    // Vérifier si le transporteur email est configuré
+    if (!transporter) {
+      return res.status(503).json({
+        success: false,
+        error: 'Service email non configuré. Veuillez contacter l\'administrateur.',
+        details: 'Pour configurer l\'email, créez un fichier .env avec les variables SMTP_HOST, SMTP_USER, SMTP_PASS, etc.'
+      });
+    }
+
     // Envoyer l'email de réinitialisation
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
 
     try {
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@example.com',
+        from: emailConfig.from,
         to: user.email,
-        subject: 'Réinitialisation de votre mot de passe',
+        subject: 'Réinitialisation de votre mot de passe - État Civil Tchad',
         html: `
-          <h2>Réinitialisation de mot de passe</h2>
-          <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous :</p>
-          <a href="${resetUrl}" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Réinitialiser mon mot de passe</a>
-          <p>Ce lien expirera dans 10 minutes.</p>
-          <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #667eea; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0;">Réinitialisation de mot de passe</h2>
+            </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 0 0 10px 10px;">
+              <p>Bonjour <strong>${user.name}</strong>,</p>
+              <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte État Civil Tchad.</p>
+              <p>Cliquez sur le bouton ci-dessous pour réinitialiser votre mot de passe :</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" style="background: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Réinitialiser mon mot de passe</a>
+              </div>
+              <p><strong>⚠️ Important :</strong> Ce lien expirera dans 10 minutes.</p>
+              <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email et votre mot de passe restera inchangé.</p>
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
+              <p style="color: #6c757d; font-size: 0.9em; text-align: center;">
+                État Civil Tchad - Système de gestion des actes civils<br>
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+              </p>
+            </div>
+          </div>
         `
       });
 
       res.json({
         success: true,
-        message: 'Email de réinitialisation envoyé'
+        message: 'Email de réinitialisation envoyé avec succès. Vérifiez votre boîte de réception et vos spams.',
+        data: {
+          email: user.email,
+          expiresIn: '10 minutes'
+        }
       });
 
     } catch (emailError) {
       console.error('Erreur envoi email:', emailError);
       res.status(500).json({
         success: false,
-        error: 'Erreur lors de l\'envoi de l\'email'
+        error: 'Erreur lors de l\'envoi de l\'email de réinitialisation',
+        details: 'Vérifiez la configuration SMTP ou contactez l\'administrateur.'
       });
     }
 
@@ -401,6 +435,37 @@ router.post('/forgot-password', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erreur lors de la demande de réinitialisation'
+    });
+  }
+});
+
+// Vérifier la validité du token de réinitialisation
+router.get('/verify-reset-token/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    const user = await User.findByPasswordResetToken(token);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        error: 'Token de réinitialisation invalide ou expiré'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Token valide',
+      data: {
+        email: user.email,
+        expiresIn: '10 minutes'
+      }
+    });
+
+  } catch (error) {
+    console.error('[VERIFY_RESET_TOKEN] Erreur:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la vérification du token'
     });
   }
 });

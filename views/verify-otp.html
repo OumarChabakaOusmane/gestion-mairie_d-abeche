@@ -204,9 +204,15 @@
         
         // Récupérer l'email depuis l'URL ou localStorage
         const urlParams = new URLSearchParams(window.location.search);
-        const email = urlParams.get('email') || localStorage.getItem('pendingEmail');
+        let email = urlParams.get('email') || localStorage.getItem('pendingEmail');
+        
+        // Debug: afficher l'email récupéré
+        console.log('Email récupéré:', email);
+        console.log('URL params:', window.location.search);
+        console.log('LocalStorage pendingEmail:', localStorage.getItem('pendingEmail'));
         
         if (!email) {
+            console.error('Aucun email trouvé, redirection vers register');
             window.location.href = '/register';
         }
         
@@ -292,6 +298,13 @@
             verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Vérification...';
             
             try {
+                // Validation de l'email
+                if (!email || typeof email !== 'string' || email.includes('[')) {
+                    throw new Error('Email invalide. Veuillez recommencer l\'inscription.');
+                }
+                
+                console.log('Envoi de la requête avec email:', email, 'et OTP:', otp);
+                
                 const response = await fetch('/api/auth/verify-otp', {
                     method: 'POST',
                     headers: {

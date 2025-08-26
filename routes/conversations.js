@@ -70,7 +70,7 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Récupérer les conversations
+// Récupérer les conversations de l'utilisateur connecté
 router.get('/user/:userId', 
   authMiddleware,
   validateObjectId('userId'),
@@ -96,5 +96,46 @@ router.get('/user/:userId',
     }
   }
 );
+
+// Récupérer toutes les conversations de l'utilisateur connecté (endpoint principal)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const currentUser = req.user._id;
+    
+    const conversations = await Conversation.find({
+      participants: currentUser
+    })
+    .populate('participants', 'name email')
+    .populate({
+      path: 'lastMessage',
+      select: 'content createdAt sender'
+    })
+    .sort({ updatedAt: -1 });
+
+    // Ajouter des informations supplémentaires
+    const conversationsWithDetails = conversations.map(conv => {
+      const otherParticipant = conv.participants.find(p => p._id.toString() !== currentUser.toString());
+      const lastMessage = conv.lastMessage;
+      
+      return {
+        ...conv.toObject(),
+        otherParticipant,
+        lastMessage,
+        unreadCount: 0 // À implémenter plus tard
+      };
+    });
+
+    res.json({
+      success: true,
+      data: conversationsWithDetails
+    });
+  } catch (err) {
+    console.error('[CONVERSATION] Erreur:', err);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur"
+    });
+  }
+});
 
 module.exports = router;
