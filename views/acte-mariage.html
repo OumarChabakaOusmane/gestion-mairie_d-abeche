@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Actes de Mariage - État Civil Tchad</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="common-styles"></style>
+  <style>
+    .form-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 2.5rem;
+      margin-top: 2rem;
+    }
+    
+    .form-header {
+      border-bottom: 3px solid #e74c3c;
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .form-icon {
+      font-size: 3rem;
+      color: #e74c3c;
+      margin-bottom: 1rem;
+    }
+    
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    
+    .step {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #dee2e6;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 10px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .step.active {
+      background: #e74c3c;
+      color: white;
+    }
+    
+    .step.completed {
+      background: #28a745;
+      color: white;
+    }
+    
+    .form-section {
+      display: none;
+      animation: fadeIn 0.5s;
+    }
+    
+    .form-section.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .btn-step {
+      border-radius: 25px;
+      padding: 10px 25px;
+      font-weight: 600;
+    }
+    
+    .witness-card {
+      border: 2px dashed #dee2e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: border-color 0.3s;
+    }
+    
+    .witness-card:hover {
+      border-color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  
+  <div class="main-content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="form-container">
+            <div class="form-header">
+              <i class="fas fa-heart form-icon"></i>
+              <h2 class="mb-0">Enregistrement d'un Acte de Mariage</h2>
+              <p class="text-muted mt-2">Union civile officielle</p>
+            </div>
+            
+            <!-- Indicateur d'étapes -->
+            <div class="step-indicator">
+              <div class="step active" id="step-1">1</div>
+              <div class="step" id="step-2">2</div>
+              <div class="step" id="step-3">3</div>
+              <div class="step" id="step-4">4</div>
+            </div>
+            
+            <form id="formMariage">
+              <!-- Étape 1: Informations générales -->
+              <div class="form-section active" id="section-1">
+                <h4 class="mb-4"><i class="fas fa-info-circle me-2"></i>Informations générales</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Date du mariage *</label>
+                    <input type="date" name="dateMariage" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Heure de la cérémonie</label>
+                    <input type="time" name="heureMariage" class="form-control">
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label">Lieu du mariage *</label>
+                    <input type="text" name="lieuMariage" class="form-control" placeholder="Ex: Église Sainte-Marie, N'Djaména" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Type de cérémonie</label>
+                    <select name="typeCeremonie" class="form-select">
+                      <option value="civile">Civile</option>
+                      <option value="religieuse">Religieuse</option>
+                      <option value="mixte">Civile et Religieuse</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Mairie d'enregistrement *</label>
+                    <input type="text" name="mairie" class="form-control" placeholder="Ex: Mairie de N'Djaména 1er Arrondissement" required>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Étape 2: Premier conjoint -->
+              <div class="form-section" id="section-2">
+                <h4 class="mb-4"><i class="fas fa-user me-2"></i>Premier conjoint</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Nom de famille *</label>
+                    <input type="text" name="nomConjoint1" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Prénom(s) *</label>
+                    <input type="text" name="prenomConjoint1" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Date de naissance *</label>
+                    <input type="date" name="dateNaissanceConjoint1" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Lieu de naissance *</label>
+                    <input type="text" name="lieuNaissanceConjoint1" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Nationalité</label>
+                    <input type="text" name="nationaliteConjoint1" class="form-control" value="Tchadienne">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Profession</label>
+                    <input type="text" name="professionConjoint1" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Situation matrimoniale antérieure</label>
+                    <select name="situationAnterieure1" class="form-select">
+                      <option value="celibataire">Célibataire</option>
+                      <option value="divorce">Divorcé(e)</option>
+                      <option value="veuf">Veuf/Veuve</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Adresse complète</label>
+                    <textarea name="adresseConjoint1" class="form-control" rows="2" placeholder="Rue, Quartier, Ville"></textarea>
+                  </div>
+                  <h6 class="mt-3">Parents du premier conjoint</h6>
+                  <div class="col-md-6">
+                    <label class="form-label">Nom et prénom du père</label>
+                    <input type="text" name="pereConjoint1" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Nom et prénom de la mère</label>
+                    <input type="text" name="mereConjoint1" class="form-control">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Étape 3: Deuxième conjoint -->
+              <div class="form-section" id="section-3">
+                <h4 class="mb-4"><i class="fas fa-user me-2"></i>Deuxième conjoint</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Nom de famille *</label>
+                    <input type="text" name="nomConjoint2" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Prénom(s) *</label>
+                    <input type="text" name="prenomConjoint2" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Date de naissance *</label>
+                    <input type="date" name="dateNaissanceConjoint2" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Lieu de naissance *</label>
+                    <input type="text" name="lieuNaissanceConjoint2" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Nationalité</label>
+                    <input type="text" name="nationaliteConjoint2" class="form-control" value="Tchadienne">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Profession</label>
+                    <input type="text" name="professionConjoint2" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Situation matrimoniale antérieure</label>
+                    <select name="situationAnterieure2" class="form-select">
+                      <option value="celibataire">Célibataire</option>
+                      <option value="divorce">Divorcé(e)</option>
+                      <option value="veuf">Veuf/Veuve</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Adresse complète</label>
+                    <textarea name="adresseConjoint2" class="form-control" rows="2" placeholder="Rue, Quartier, Ville"></textarea>
+                  </div>
+                  <h6 class="mt-3">Parents du deuxième conjoint</h6>
+                  <div class="col-md-6">
+                    <label class="form-label">Nom et prénom du père</label>
+                    <input type="text" name="pereConjoint2" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Nom et prénom de la mère</label>
+                    <input type="text" name="mereConjoint2" class="form-control">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Étape 4: Témoins -->
+              <div class="form-section" id="section-4">
+                <h4 class="mb-4"><i class="fas fa-users me-2"></i>Témoins</h4>
+                
+                <div class="witness-card">
+                  <h6><i class="fas fa-user-tie me-2"></i>Premier témoin</h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Nom et prénom *</label>
+                      <input type="text" name="temoin1" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Profession</label>
+                      <input type="text" name="professionTemoin1" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Date de naissance</label>
+                      <input type="date" name="dateNaissanceTemoin1" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Lieu de résidence</label>
+                      <input type="text" name="residenceTemoin1" class="form-control">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="witness-card">
+                  <h6><i class="fas fa-user-tie me-2"></i>Deuxième témoin</h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Nom et prénom *</label>
+                      <input type="text" name="temoin2" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Profession</label>
+                      <input type="text" name="professionTemoin2" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Date de naissance</label>
+                      <input type="date" name="dateNaissanceTemoin2" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Lieu de résidence</label>
+                      <input type="text" name="residenceTemoin2" class="form-control">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-4">
+                  <h6>Informations complémentaires</h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Régime matrimonial</label>
+                      <select name="regimeMatrimonial" class="form-select">
+                        <option value="communaute">Communauté de biens</option>
+                        <option value="separation">Séparation de biens</option>
+                        <option value="participation">Participation aux acquêts</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Contrat de mariage</label>
+                      <select name="contratMariage" class="form-select">
+                        <option value="non">Aucun</option>
+                        <option value="oui">Contrat notarié</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Observations</label>
+                      <textarea name="observations" class="form-control" rows="3" placeholder="Remarques particulières..."></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Boutons de navigation -->
+              <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-secondary btn-step" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                  <i class="fas fa-arrow-left me-2"></i>Précédent
+                </button>
+                <div class="ms-auto">
+                  <button type="button" class="btn btn-primary btn-step" id="nextBtn" onclick="changeStep(1)">
+                    Suivant<i class="fas fa-arrow-right ms-2"></i>
+                  </button>
+                  <button type="submit" class="btn btn-success btn-step" id="submitBtn" style="display: none;">
+                    <i class="fas fa-save me-2"></i>Enregistrer l'acte
+                  </button>
+                </div>
+              </div>
+            </form>
+            
+            <div id="result" class="mt-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/sidebar-template.js"></script>
+  <script>
+    let currentStep = 1;
+    const totalSteps = 4;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = checkAuth();
+      if (!token) return;
+      
+      document.getElementById('common-styles').textContent = commonCSS;
+      document.getElementById('sidebar-container').innerHTML = createSidebar('mariage');
+      
+      // Gérer la soumission du formulaire
+      document.getElementById('formMariage').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const mariageData = Object.fromEntries(formData);
+        
+        // Structurer les données selon le modèle
+        const acteData = {
+          type: 'mariage',
+          details: {
+            dateMariage: mariageData.dateMariage,
+            heureMariage: mariageData.heureMariage,
+            lieuMariage: mariageData.lieuMariage,
+            typeCeremonie: mariageData.typeCeremonie,
+            conjoint1: {
+              nom: mariageData.nomConjoint1,
+              prenom: mariageData.prenomConjoint1,
+              dateNaissance: mariageData.dateNaissanceConjoint1,
+              lieuNaissance: mariageData.lieuNaissanceConjoint1,
+              nationalite: mariageData.nationaliteConjoint1,
+              profession: mariageData.professionConjoint1,
+              situationAnterieure: mariageData.situationAnterieure1,
+              adresse: mariageData.adresseConjoint1,
+              pere: mariageData.pereConjoint1,
+              mere: mariageData.mereConjoint1
+            },
+            conjoint2: {
+              nom: mariageData.nomConjoint2,
+              prenom: mariageData.prenomConjoint2,
+              dateNaissance: mariageData.dateNaissanceConjoint2,
+              lieuNaissance: mariageData.lieuNaissanceConjoint2,
+              nationalite: mariageData.nationaliteConjoint2,
+              profession: mariageData.professionConjoint2,
+              situationAnterieure: mariageData.situationAnterieure2,
+              adresse: mariageData.adresseConjoint2,
+              pere: mariageData.pereConjoint2,
+              mere: mariageData.mereConjoint2
+            },
+            temoins: [
+              {
+                nom: mariageData.temoin1,
+                profession: mariageData.professionTemoin1,
+                dateNaissance: mariageData.dateNaissanceTemoin1,
+                residence: mariageData.residenceTemoin1
+              },
+              {
+                nom: mariageData.temoin2,
+                profession: mariageData.professionTemoin2,
+                dateNaissance: mariageData.dateNaissanceTemoin2,
+                residence: mariageData.residenceTemoin2
+              }
+            ],
+            regimeMatrimonial: mariageData.regimeMatrimonial,
+            contratMariage: mariageData.contratMariage,
+            observations: mariageData.observations
+          },
+          mairie: mariageData.mairie
+        };
+        
+        const result = await apiRequest('/api/actes', {
+          method: 'POST',
+          body: JSON.stringify(acteData)
+        });
+        
+        const resultDiv = document.getElementById('result');
+        if (result && result.success) {
+          resultDiv.innerHTML = `
+            <div class="alert alert-success alert-dismissible fade show">
+              <i class="fas fa-check-circle me-2"></i>
+              <strong>Succès!</strong> Acte de mariage enregistré avec succès.
+              <div class="mt-2">
+                <strong>Numéro d'acte:</strong> ${result.data.numeroActe || 'En cours de génération'}
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          `;
+          
+          // Réinitialiser le formulaire et revenir à l'étape 1
+          e.target.reset();
+          currentStep = 1;
+          showStep(currentStep);
+          
+          // Scroll vers le résultat
+          resultDiv.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          resultDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <strong>Erreur!</strong> ${result?.error || 'Erreur lors de l\'enregistrement'}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          `;
+        }
+      });
+    });
+    
+    function changeStep(direction) {
+      const newStep = currentStep + direction;
+      
+      if (newStep < 1 || newStep > totalSteps) return;
+      
+      // Validation avant de passer à l'étape suivante
+      if (direction > 0 && !validateCurrentStep()) {
+        return;
+      }
+      
+      currentStep = newStep;
+      showStep(currentStep);
+    }
+    
+    function showStep(step) {
+      // Masquer toutes les sections
+      document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      // Afficher la section courante
+      document.getElementById(`section-${step}`).classList.add('active');
+      
+      // Mettre à jour les indicateurs d'étapes
+      document.querySelectorAll('.step').forEach((stepEl, index) => {
+        stepEl.classList.remove('active', 'completed');
+        if (index + 1 < step) {
+          stepEl.classList.add('completed');
+        } else if (index + 1 === step) {
+          stepEl.classList.add('active');
+        }
+      });
+      
+      // Gérer les boutons
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      prevBtn.style.display = step === 1 ? 'none' : 'inline-block';
+      nextBtn.style.display = step === totalSteps ? 'none' : 'inline-block';
+      submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+    }
+    
+    function validateCurrentStep() {
+      const currentSection = document.getElementById(`section-${currentStep}`);
+      const requiredFields = currentSection.querySelectorAll('[required]');
+      
+      for (let field of requiredFields) {
+        if (!field.value.trim()) {
+          field.focus();
+          field.classList.add('is-invalid');
+          
+          // Retirer la classe après 3 secondes
+          setTimeout(() => {
+            field.classList.remove('is-invalid');
+          }, 3000);
+          
+          alert(`Veuillez remplir le champ: ${field.previousElementSibling.textContent}`);
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    // Validation en temps réel
+    document.addEventListener('input', (e) => {
+      if (e.target.hasAttribute('required') && e.target.value.trim()) {
+        e.target.classList.remove('is-invalid');
+        e.target.classList.add('is-valid');
+      }
+    });
+  </script>
+</body>
+</html>

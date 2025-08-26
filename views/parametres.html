@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres - État Civil Tchad</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="common-styles"></style>
+  <style>
+    .page-container {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      margin-top: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .settings-section {
+      margin-bottom: 40px;
+      padding: 25px;
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      background: #fafafa;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .settings-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    
+    .settings-section h4 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    
+    .form-control, .form-select {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 12px 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    }
+    
+    .btn {
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-check-input:checked {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    
+    .form-switch .form-check-input {
+      width: 3rem;
+      height: 1.5rem;
+    }
+    
+    .alert {
+      border: none;
+      border-radius: 8px;
+      padding: 15px 20px;
+    }
+    
+    .settings-tabs {
+      border-bottom: 2px solid #e9ecef;
+      margin-bottom: 30px;
+    }
+    
+    .settings-tabs .nav-link {
+      border: none;
+      color: #6c757d;
+      font-weight: 500;
+      padding: 15px 20px;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.3s ease;
+    }
+    
+    .settings-tabs .nav-link.active {
+      background: #007bff;
+      color: white;
+      border-bottom: 3px solid #0056b3;
+    }
+    
+    .settings-tabs .nav-link:hover:not(.active) {
+      background: #f8f9fa;
+      color: #007bff;
+    }
+    
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 0 auto 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .profile-avatar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(0,123,255,0.3);
+    }
+    
+    .security-item {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background: white;
+    }
+    
+    .security-item:hover {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+    }
+    
+    .theme-option {
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .theme-option:hover {
+      border-color: #007bff;
+      transform: translateY(-2px);
+    }
+    
+    .theme-option.active {
+      border-color: #007bff;
+      background: #f8f9ff;
+    }
+    
+    .theme-preview {
+      width: 60px;
+      height: 40px;
+      border-radius: 6px;
+      margin: 0 auto 10px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .theme-light .theme-preview {
+      background: linear-gradient(to bottom, #ffffff 50%, #f8f9fa 50%);
+    }
+    
+    .theme-dark .theme-preview {
+      background: linear-gradient(to bottom, #343a40 50%, #212529 50%);
+    }
+    
+    .theme-system .theme-preview {
+      background: linear-gradient(45deg, #ffffff 25%, #343a40 25%, #343a40 50%, #ffffff 50%);
+    }
+    
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 15px;
+      display: none;
+    }
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+    <div class="page-container">
+      <h2 class="mb-4"><i class="fas fa-cog me-2"></i> Paramètres</h2>
+      
+      <!-- Navigation par onglets -->
+      <ul class="nav nav-tabs settings-tabs" id="settingsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
+            <i class="fas fa-user me-2"></i>Profil
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+            <i class="fas fa-shield-alt me-2"></i>Sécurité
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+            <i class="fas fa-bell me-2"></i>Notifications
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab">
+            <i class="fas fa-palette me-2"></i>Apparence
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab">
+            <i class="fas fa-cogs me-2"></i>Système
+          </button>
+        </li>
+      </ul>
+
+      <!-- Contenu des onglets -->
+      <div class="tab-content" id="settingsTabContent">
+        
+        <!-- Onglet Profil -->
+        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+          <div class="settings-section">
+            <div class="text-center mb-4">
+              <div class="profile-avatar" id="profileAvatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('avatarInput').click()">
+                <i class="fas fa-camera me-2"></i>Changer la photo
+              </button>
+              <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <form id="profileForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Prénom</label>
+                  <input type="text" class="form-control" name="firstName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Nom</label>
+                  <input type="text" class="form-control" name="lastName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" name="email" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Téléphone</label>
+                  <input type="tel" class="form-control" name="phone">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Poste</label>
+                  <input type="text" class="form-control" name="position">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Département</label>
+                  <select class="form-select" name="department">
+                    <option value="">Sélectionner...</option>
+                    <option value="administration">Administration</option>
+                    <option value="etat-civil">État Civil</option>
+                    <option value="archives">Archives</option>
+                    <option value="it">Informatique</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Biographie</label>
+                  <textarea class="form-control" name="bio" rows="3" placeholder="Quelques mots sur vous..."></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <span class="loading-spinner"></span>
+                    <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                  </button>
+                </div>
+              </div>
+              <div class="success-message" id="profileSuccess">Profil mis à jour avec succès !</div>
+              <div class="error-message" id="profileError"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Onglet Sécurité -->
+        <div class="tab-pane fade" id="security" role="tabpanel">
+          <div class="settings-section">
+            <h4><i class="fas fa-lock me-2"></i>Changer le mot de passe</h4>
+            <form id="passwordForm">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Mot de passe actuel</label>
+                  <input type="password" class="form-control" name="currentPassword" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Nouveau mot de passe</label>
+                  <input type="password" class="form-control" name="newPassword" required>
+                  <div class="form-text">Au moins 8 caractères avec majuscules, minuscules et chiffres</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Confirmer le nouveau mot de passe</label>
+                  <input type="password" class="form-control" name="confirmPassword" required>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <span class="loading-spinner"></span>
+                    <i class="fas fa-key me-2"></i>Changer le mot de passe
+                  </button>
+                </div>
+              </div>
+              <div class="success-message" id="passwordSuccess">Mot de passe changé avec succès !</div>
+              <div class="error-message" id="passwordError"></div>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h4><i class="fas fa-shield-alt me-2"></i>Sécurité du compte</h4>
+            
+            <div class="security-item">
+              <div>
+                <strong>Authentification à deux facteurs</strong>
+                <p class="text-muted mb-0">Ajoutez une couche de sécurité supplémentaire</p>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+              </div>
+            </div>
+
+            <div class="security-item">
+              <div>
+                <strong>Sessions actives</strong>
+                <p class="text-muted mb-0">Gérez vos connexions actives</p>
+              </div>
+              <button class="btn btn-outline-danger btn-sm" onclick="viewActiveSessions()">
+                <i class="fas fa-eye me-2"></i>Voir les sessions
+              </button>
+            </div>
+
+            <div class="security-item">
+              <div>
+                <strong>Journal d'activité</strong>
+                <p class="text-muted mb-0">Consultez l'historique de vos connexions</p>
+              </div>
+              <button class="btn btn-outline-info btn-sm" onclick="viewActivityLog()">
+                <i class="fas fa-history me-2"></i>Voir l'historique
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Onglet Notifications -->
+        <div class="tab-pane fade" id="notifications" role="tabpanel">
+          <div class="settings-section">
+            <h4><i class="fas fa-envelope me-2"></i>Notifications par email</h4>
+            <form id="emailNotificationsForm">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="emailNewMessages" name="emailNewMessages">
+                <label class="form-check-label" for="emailNewMessages">
+                  <strong>Nouveaux messages</strong>
+                  <p class="text-muted mb-0">Recevoir un email pour chaque nouveau message</p>
+                </label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="emailNewDocuments" name="emailNewDocuments">
+                <label class="form-check-label" for="emailNewDocuments">
+                  <strong>Nouveaux documents</strong>
+                  <p class="text-muted mb-0">Notification lors de l'ajout de nouveaux documents</p>
+                </label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="emailSystemUpdates" name="emailSystemUpdates">
+                <label class="form-check-label" for="emailSystemUpdates">
+                  <strong>Mises à jour système</strong>
+                  <p class="text-muted mb-0">Informations importantes sur le système</p>
+                </label>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h4><i class="fas fa-desktop me-2"></i>Notifications dans l'application</h4>
+            <form id="appNotificationsForm">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="appSounds" name="appSounds">
+                <label class="form-check-label" for="appSounds">
+                  <strong>Sons de notification</strong>
+                  <p class="text-muted mb-0">Jouer un son pour les notifications importantes</p>
+                </label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="appPopups" name="appPopups">
+                <label class="form-check-label" for="appPopups">
+                  <strong>Notifications popup</strong>
+                  <p class="text-muted mb-0">Afficher des popups pour les événements importants</p>
+                </label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="appBadges" name="appBadges">
+                <label class="form-check-label" for="appBadges">
+                  <strong>Badges de notification</strong>
+                  <p class="text-muted mb-0">Afficher des compteurs sur les éléments de navigation</p>
+                </label>
+              </div>
+            </form>
+
+            <button type="button" class="btn btn-primary" onclick="saveNotificationSettings()">
+              <span class="loading-spinner"></span>
+              <i class="fas fa-save me-2"></i>Enregistrer les préférences
+            </button>
+            <div class="success-message" id="notificationSuccess">Préférences de notification sauvegardées !</div>
+            <div class="error-message" id="notificationError"></div>
+          </div>
+        </div>
+
+        <!-- Onglet Apparence -->
+        <div class="tab-pane fade" id="appearance" role="tabpanel">
+          <div class="settings-section">
+            <h4><i class="fas fa-palette me-2"></i>Thème de l'interface</h4>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <div class="theme-option theme-light" data-theme="light">
+                  <div class="theme-preview"></div>
+                  <h6>Thème Clair</h6>
+                  <p class="text-muted small">Interface claire et lumineuse</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="theme-option theme-dark" data-theme="dark">
+                  <div class="theme-preview"></div>
+                  <h6>Thème Sombre</h6>
+                  <p class="text-muted small">Interface sombre pour les yeux</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="theme-option theme-system" data-theme="system">
+                  <div class="theme-preview"></div>
+                  <h6>Thème Système</h6>
+                  <p class="text-muted small">Suit les préférences du système</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h4><i class="fas fa-cog me-2"></i>Préférences d'affichage</h4>
+            <form id="displayForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Langue de l'interface</label>
+                  <select class="form-select" name="language">
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Format de date</label>
+                  <select class="form-select" name="dateFormat">
+                    <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+                    <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                    <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Fuseau horaire</label>
+                  <select class="form-select" name="timezone">
+                    <option value="Africa/Ndjamena">N'Djamena (WAT)</option>
+                    <option value="UTC">UTC</option>
+                    <option value="Europe/Paris">Paris (CET)</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Éléments par page</label>
+                  <select class="form-select" name="itemsPerPage">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="compactMode" name="compactMode">
+                    <label class="form-check-label" for="compactMode">
+                      <strong>Mode compact</strong>
+                      <p class="text-muted mb-0">Réduire l'espacement pour afficher plus d'informations</p>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <span class="loading-spinner"></span>
+                    <i class="fas fa-save me-2"></i>Appliquer les modifications
+                  </button>
+                </div>
+              </div>
+              <div class="success-message" id="displaySuccess">Préférences d'affichage sauvegardées !</div>
+              <div class="error-message" id="displayError"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Onglet Système -->
+        <div class="tab-pane fade" id="system" role="tabpanel">
+          <div class="settings-section">
+            <h4><i class="fas fa-download me-2"></i>Sauvegarde et export</h4>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-body text-center">
+                    <i class="fas fa-database fa-2x text-primary mb-3"></i>
+                    <h6>Exporter mes données</h6>
+                    <p class="text-muted small">Télécharger toutes vos données personnelles</p>
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportUserData()">
+                      <i class="fas fa-download me-2"></i>Exporter
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-body text-center">
+                    <i class="fas fa-file-archive fa-2x text-info mb-3"></i>
+                    <h6>Sauvegarde automatique</h6>
+                    <p class="text-muted small">Configuration de la sauvegarde automatique</p>
+                    <div class="form-check form-switch d-flex justify-content-center">
+                      <input class="form-check-input" type="checkbox" id="autoBackup">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h4><i class="fas fa-trash-alt me-2"></i>Zone de danger</h4>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Attention !</strong> Ces actions sont irréversibles.
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button class="btn btn-outline-warning" onclick="clearCache()">
+                <i class="fas fa-broom me-2"></i>Vider le cache
+              </button>
+              <button class="btn btn-outline-danger" onclick="deleteAccount()">
+                <i class="fas fa-user-times me-2"></i>Supprimer mon compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/sidebar-template.js"></script>
+  <script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = checkAuth();
+      if (!token) return;
+      
+      document.getElementById('common-styles').textContent = commonCSS;
+      document.getElementById('sidebar-container').innerHTML = createSidebar('parametres');
+      
+      await loadUserData();
+      setupEventListeners();
+    });
+
+    async function loadUserData() {
+      try {
+        const response = await apiRequest('/api/users/me', 'GET');
+        if (response.success) {
+          currentUser = response.data;
+          populateUserData(currentUser);
+        }
+      } catch (error) {
+        showMessage('Erreur lors du chargement des données utilisateur', 'error');
+      }
+    }
+
+    function populateUserData(user) {
+      // Profil
+      const profileForm = document.getElementById('profileForm');
+      const nameParts = user.name ? user.name.split(' ') : ['', ''];
+      profileForm.firstName.value = nameParts[0] || '';
+      profileForm.lastName.value = nameParts.slice(1).join(' ') || '';
+      profileForm.email.value = user.email || '';
+      profileForm.phone.value = user.phone || '';
+      profileForm.position.value = user.position || '';
+      profileForm.department.value = user.department || '';
+      profileForm.bio.value = user.bio || '';
+
+      // Avatar
+      const avatar = document.getElementById('profileAvatar');
+      if (user.name) {
+        avatar.textContent = user.name.charAt(0).toUpperCase();
+      }
+
+      // Notifications
+      const settings = user.settings || {};
+      document.getElementById('emailNewMessages').checked = settings.emailNewMessages || false;
+      document.getElementById('emailNewDocuments').checked = settings.emailNewDocuments || false;
+      document.getElementById('emailSystemUpdates').checked = settings.emailSystemUpdates || false;
+      document.getElementById('appSounds').checked = settings.appSounds || false;
+      document.getElementById('appPopups').checked = settings.appPopups || false;
+      document.getElementById('appBadges').checked = settings.appBadges || false;
+
+      // Apparence
+      const currentTheme = settings.theme || 'light';
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.theme === currentTheme) {
+          option.classList.add('active');
+        }
+      });
+
+      // Affichage
+      const displayForm = document.getElementById('displayForm');
+      displayForm.language.value = settings.language || 'fr';
+      displayForm.dateFormat.value = settings.dateFormat || 'dd/mm/yyyy';
+      displayForm.timezone.value = settings.timezone || 'Africa/Ndjamena';
+      displayForm.itemsPerPage.value = settings.itemsPerPage || '25';
+      document.getElementById('compactMode').checked = settings.compactMode || false;
+
+      // Sécurité
+      document.getElementById('twoFactorAuth').checked = settings.twoFactorAuth || false;
+      document.getElementById('autoBackup').checked = settings.autoBackup || false;
+    }
+
+    function setupEventListeners() {
+      // Profil
+      document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
+      
+      // Mot de passe
+      document.getElementById('passwordForm').addEventListener('submit', handlePasswordChange);
+      
+      // Thèmes
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', () => selectTheme(option.dataset.theme));
+      });
+      
+      // Affichage
+      document.getElementById('displayForm').addEventListener('submit', handleDisplaySettings);
+      
+      // Avatar
+      document.getElementById('avatarInput').addEventListener('change', handleAvatarUpload);
+    }
+
+    async function handleProfileUpdate(e) {
+      e.preventDefault();
+      const button = e.target.querySelector('button[type="submit"]');
+      const spinner = button.querySelector('.loading-spinner');
+      
+      try {
+        spinner.style.display = 'inline-block';
+        button.disabled = true;
+
+        const formData = new FormData(e.target);
+        const userData = {
+          name: `${formData.get('firstName')} ${formData.get('lastName')}`.trim(),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          position: formData.get('position'),
+          department: formData.get('department'),
+          bio: formData.get('bio')
+        };
+
+        const response = await apiRequest('/api/users/me', 'PUT', userData);
+        if (response.success) {
+          showMessage('Profil mis à jour avec succès !', 'success', 'profileSuccess');
+          currentUser = { ...currentUser, ...userData };
+          
+          // Update avatar
+          const avatar = document.getElementById('profileAvatar');
+          avatar.textContent = userData.name.charAt(0).toUpperCase();
+        }
+      } catch (error) {
+        showMessage(error.message || 'Erreur lors de la mise à jour', 'error', 'profileError');
+      } finally {
+        spinner.style.display = 'none';
+        button.disabled = false;
+      }
+    }
+
+    async function handlePasswordChange(e) {
+      e.preventDefault();
+      const button = e.target.querySelector('button[type="submit"]');
+      const spinner = button.querySelector('.loading-spinner');
+      
+      try {
+        const formData = new FormData(e.target);
+        const passwords = {
+          currentPassword: formData.get('currentPassword'),
+          newPassword: formData.get('newPassword'),
+          confirmPassword: formData.get('confirmPassword')
+        };
+
+        if (passwords.newPassword !== passwords.confirmPassword) {
+          throw new Error('Les mots de passe ne correspondent pas');
+        }
+
+        if (passwords.newPassword.length < 8) {
+          throw new Error('Le mot de passe doit contenir au moins 8 caractères');
+        }
+
+        spinner.style.display = 'inline-block';
+        button.disabled = true;
+
+        const response = await apiRequest('/api/users/me/password', 'PUT', {
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword
+        });
+
+        if (response.success) {
+          showMessage('Mot de passe changé avec succès !', 'success', 'passwordSuccess');
+          e.target.reset();
+        }
+      } catch (error) {
+        showMessage(error.message || 'Erreur lors du changement', 'error', 'passwordError');
+      } finally {
+        spinner.style.display = 'none';
+        button.disabled = false;
+      }
+    }
+
+    function selectTheme(theme) {
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
+      
+      applyTheme(theme);
+      saveThemePreference(theme);
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+      }
+    }
+
+    async function saveThemePreference(theme) {
+      try {
+        await apiRequest('/api/users/me/settings', 'PUT', {
+          settings: { theme }
+        });
+      } catch (error) {
+        console.error('Error saving theme preference:', error);
+      }
+    }
+
+    async function handleDisplaySettings(e) {
+      e.preventDefault();
+      const button = e.target.querySelector('button[type="submit"]');
+      const spinner = button.querySelector('.loading-spinner');
+      
+      try {
+        spinner.style.display = 'inline-block';
+        button.disabled = true;
+
+        const formData = new FormData(e.target);
+        const settings = {
+          language: formData.get('language'),
+          dateFormat: formData.get('dateFormat'),
+          timezone: formData.get('timezone'),
+          itemsPerPage: formData.get('itemsPerPage'),
+          compactMode: formData.get('compactMode') === 'on'
+        };
+
+        const response = await apiRequest('/api/users/me/settings', 'PUT', { settings });
+        if (response.success) {
+          showMessage('Préférences d\'affichage sauvegardées !', 'success', 'displaySuccess');
+        }
+      } catch (error) {
+        showMessage(error.message || 'Erreur lors de la sauvegarde', 'error', 'displayError');
+      } finally {
+        spinner.style.display = 'none';
+        button.disabled = false;
+      }
+    }
+
+    async function saveNotificationSettings() {
+      const button = event.target;
+      const spinner = button.querySelector('.loading-spinner');
+      
+      try {
+        spinner.style.display = 'inline-block';
+        button.disabled = true;
+
+        const settings = {
+          emailNewMessages: document.getElementById('emailNewMessages').checked,
+          emailNewDocuments: document.getElementById('emailNewDocuments').checked,
+          emailSystemUpdates: document.getElementById('emailSystemUpdates').checked,
+          appSounds: document.getElementById('appSounds').checked,
+          appPopups: document.getElementById('appPopups').checked,
+          appBadges: document.getElementById('appBadges').checked
+        };
+
+        const response = await apiRequest('/api/users/me/settings', 'PUT', { settings });
+        if (response.success) {
+          showMessage('Préférences de notification sauvegardées !', 'success', 'notificationSuccess');
+        }
+      } catch (error) {
+        showMessage(error.message || 'Erreur lors de la sauvegarde', 'error', 'notificationError');
+      } finally {
+        spinner.style.display = 'none';
+        button.disabled = false;
+      }
+    }
+
+    async function handleAvatarUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Le fichier est trop volumineux (max 5MB)');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        const response = await fetch('/api/users/me/avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          // Update avatar display
+          const avatar = document.getElementById('profileAvatar');
+          avatar.innerHTML = `<img src="${result.data.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        }
+      } catch (error) {
+        alert('Erreur lors du téléchargement de l\'avatar');
+      }
+    }
+
+    // Utility functions
+    function showMessage(message, type, elementId = null) {
+      if (elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = message;
+          element.style.display = 'block';
+          setTimeout(() => element.style.display = 'none', 5000);
+        }
+      } else {
+        // Show global alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+      }
+    }
+
+    // Security functions
+    function viewActiveSessions() {
+      // Placeholder for active sessions modal
+      alert('Fonctionnalité à venir : Gestion des sessions actives');
+    }
+
+    function viewActivityLog() {
+      // Placeholder for activity log modal
+      alert('Fonctionnalité à venir : Journal d\'activité');
+    }
+
+    function exportUserData() {
+      // Placeholder for data export
+      alert('Fonctionnalité à venir : Export des données utilisateur');
+    }
+
+    function clearCache() {
+      if (confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+      }
+    }
+
+    function deleteAccount() {
+      const confirmation = prompt('Pour supprimer votre compte, tapez "SUPPRIMER" :');
+      if (confirmation === 'SUPPRIMER') {
+        alert('Fonctionnalité à venir : Suppression de compte');
+      }
+    }
+  </script>
+</body>
+</html>

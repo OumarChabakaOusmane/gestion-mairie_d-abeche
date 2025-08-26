@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messagerie - État Civil Tchad</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="common-styles"></style>
+  <style>
+    .page-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .messages-container {
+      display: flex;
+      height: 70vh;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .conversations-list {
+      width: 350px;
+      border-right: 1px solid #dee2e6;
+      background: #f8f9fa;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .conversation-item {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+    
+    .conversation-item:hover {
+      background: #e9ecef;
+      transform: translateY(-1px);
+    }
+    
+    .conversation-item.active {
+      background: #007bff;
+      color: white;
+      border-color: #0056b3;
+    }
+    
+    .conversation-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+    
+    .conversation-header {
+      padding: 20px;
+      border-bottom: 1px solid #dee2e6;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: between;
+    }
+    
+    .messages-list {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+    
+    .message-item {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .message-item.own {
+      justify-content: flex-end;
+    }
+    
+    .message-content {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      position: relative;
+    }
+    
+    .message-item.own .message-content {
+      background: #007bff;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message-item:not(.own) .message-content {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-bottom-left-radius: 4px;
+    }
+    
+    .message-time {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+    
+    .message-input {
+      padding: 20px;
+      border-top: 1px solid #dee2e6;
+      background: white;
+    }
+    
+    .message-input form {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .message-input input {
+      flex: 1;
+      border-radius: 25px;
+      padding: 12px 20px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .message-input button {
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .online-indicator {
+      width: 10px;
+      height: 10px;
+      background: #28a745;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 8px;
+    }
+    
+    .typing-indicator {
+      display: none;
+      padding: 10px 15px;
+      font-style: italic;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6c757d;
+      text-align: center;
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #007bff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    
+    .conversation-info {
+      flex: 1;
+    }
+    
+    .conversation-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .conversation-preview {
+      font-size: 0.9rem;
+      color: #6c757d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .conversation-time {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+    
+    .unread-count {
+      background: #dc3545;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      min-width: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  
+  <div class="main-content">
+    <div class="page-container">
+      <h2 class="mb-4"><i class="fas fa-envelope me-2"></i> Messagerie</h2>
+      
+      <div class="messages-container">
+        <div class="conversations-list">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Conversations</h5>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+          
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchConversations" placeholder="Rechercher...">
+          </div>
+          
+          <div id="conversations">
+            <!-- Conversations will be loaded here -->
+          </div>
+        </div>
+        
+        <div class="conversation-view">
+          <div class="conversation-header" id="conversationHeader">
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <h5>Sélectionnez une conversation</h5>
+              <p>Choisissez une conversation pour commencer à discuter</p>
+            </div>
+          </div>
+          
+          <div class="messages-list" id="messagesList">
+            <!-- Messages will be loaded here -->
+          </div>
+          
+          <div class="typing-indicator" id="typingIndicator">
+            <i class="fas fa-circle"></i>
+            <i class="fas fa-circle"></i>
+            <i class="fas fa-circle"></i>
+            <span class="ms-2">En train d'écrire...</span>
+          </div>
+          
+          <div class="message-input" id="messageInputContainer" style="display: none;">
+            <form id="messageForm">
+              <input type="text" class="form-control" id="messageInput" placeholder="Écrire un message..." required>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Nouveau Message -->
+  <div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Nouveau message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="newMessageForm">
+            <div class="mb-3">
+              <label class="form-label">Destinataire</label>
+              <select class="form-select" id="recipientSelect" required>
+                <option value="">Sélectionner un utilisateur...</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Sujet</label>
+              <input type="text" class="form-control" id="messageSubject" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Message</label>
+              <textarea class="form-control" id="messageContent" rows="4" required></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane me-2"></i>Envoyer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/js/sidebar-template.js"></script>
+  <script src="/js/messagerie.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = checkAuth();
+      if (!token) return;
+      
+      document.getElementById('common-styles').textContent = commonCSS;
+      document.getElementById('sidebar-container').innerHTML = createSidebar('messagerie');
+      
+      // Initialize messaging system
+      if (window.MessageSystem) {
+        window.messageSystem = new MessageSystem();
+      }
+    });
+  </script>
+</body>
+</html>

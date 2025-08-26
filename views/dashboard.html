@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord - État Civil Tchad</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="common-styles"></style>
+  <style>
+    .dashboard-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .dashboard-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    /* Enhanced Stat Cards */
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: none;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card.births {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+    }
+    
+    .stat-card.marriages {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+    }
+    
+    .stat-card.deaths {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+    
+    .stat-card.documents {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+    }
+    
+    .stat-icon {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 3rem;
+      opacity: 0.3;
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+    
+    .stat-label {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    
+    .progress-custom {
+      height: 8px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    
+    .progress-bar-custom {
+      height: 100%;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      border: 1px solid #f0f0f0;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .chart-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .chart-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-chart {
+      padding: 8px 16px;
+      border: 1px solid #dee2e6;
+      background: white;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-chart:hover, .btn-chart.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+    
+    .activity-item {
+      padding: 15px;
+      border-left: 4px solid #007bff;
+      background: #f8f9ff;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .activity-item:hover {
+      background: #e3f2fd;
+      transform: translateX(5px);
+    }
+    
+    .activity-time {
+      font-size: 0.875rem;
+      color: #6c757d;
+      margin-bottom: 5px;
+    }
+    
+    .activity-description {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    
+    .quick-actions {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      border: 1px solid #f0f0f0;
+    }
+    
+    .quick-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+      border: 2px solid #f0f0f0;
+      border-radius: 12px;
+      background: white;
+      text-decoration: none;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      height: 120px;
+    }
+    
+    .quick-action-btn:hover {
+      border-color: #007bff;
+      color: #007bff;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,123,255,0.15);
+    }
+    
+    .quick-action-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    
+    .export-section {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 15px;
+      padding: 25px;
+      color: white;
+      text-align: center;
+    }
+    
+    .export-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 25px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .export-btn:hover {
+      background: white;
+      color: #f5576c;
+      transform: translateY(-2px);
+    }
+    
+    .loading-skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 8px;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .metric-trend {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.875rem;
+      margin-top: 5px;
+    }
+    
+    .trend-up {
+      color: #28a745;
+    }
+    
+    .trend-down {
+      color: #dc3545;
+    }
+    
+    .trend-neutral {
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+    <div class="dashboard-header">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="mb-2">Tableau de Bord</h1>
+          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil - <span id="currentDate"></span></p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-light btn-sm" onclick="refreshDashboard()">
+              <i class="fas fa-sync-alt me-2"></i>Actualiser
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="exportDashboard()">
+              <i class="fas fa-download me-2"></i>Exporter
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Statistiques principales -->
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card births">
+          <div class="stat-icon">
+            <i class="fas fa-baby"></i>
+          </div>
+          <div class="stat-number" id="births-count">0</div>
+          <div class="stat-label">Naissances enregistrées</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="births-progress" style="width: 0%"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="births-goal">Objectif: 1,500</small>
+            <div class="metric-trend trend-up" id="births-trend">
+              <i class="fas fa-arrow-up"></i>
+              <span>+12%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card marriages">
+          <div class="stat-icon">
+            <i class="fas fa-ring"></i>
+          </div>
+          <div class="stat-number" id="marriages-count">0</div>
+          <div class="stat-label">Mariages célébrés</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="marriages-progress" style="width: 0%"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="marriages-goal">Objectif: 600</small>
+            <div class="metric-trend trend-up" id="marriages-trend">
+              <i class="fas fa-arrow-up"></i>
+              <span>+8%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card deaths">
+          <div class="stat-icon">
+            <i class="fas fa-cross"></i>
+          </div>
+          <div class="stat-number" id="deaths-count">0</div>
+          <div class="stat-label">Décès enregistrés</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="deaths-progress" style="width: 0%"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="deaths-goal">Objectif: 400</small>
+            <div class="metric-trend trend-down" id="deaths-trend">
+              <i class="fas fa-arrow-down"></i>
+              <span>-3%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card documents">
+          <div class="stat-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div class="stat-number" id="documents-count">0</div>
+          <div class="stat-label">Documents traités</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="documents-progress" style="width: 0%"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" id="documents-goal">Ce mois</small>
+            <div class="metric-trend trend-up" id="documents-trend">
+              <i class="fas fa-arrow-up"></i>
+              <span>+25%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques et analyses -->
+    <div class="row mb-4">
+      <div class="col-lg-8">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h5 class="chart-title">Évolution mensuelle</h5>
+            <div class="chart-controls">
+              <button class="btn-chart active" data-period="6months">6 mois</button>
+              <button class="btn-chart" data-period="1year">1 an</button>
+              <button class="btn-chart" data-period="2years">2 ans</button>
+            </div>
+          </div>
+          <canvas id="evolutionChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h5 class="chart-title">Répartition par type</h5>
+          </div>
+          <canvas id="distributionChart" width="200" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activités récentes et actions rapides -->
+    <div class="row mb-4">
+      <div class="col-lg-8">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h5 class="chart-title">Activités récentes</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="viewAllActivities()">
+              Voir tout
+            </button>
+          </div>
+          <div id="recentActivities">
+            <!-- Activités chargées dynamiquement -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="quick-actions">
+          <h5 class="mb-4">Actions rapides</h5>
+          <div class="row g-3">
+            <div class="col-6">
+              <a href="/naissance" class="quick-action-btn">
+                <div class="quick-action-icon">
+                  <i class="fas fa-baby"></i>
+                </div>
+                <span>Nouvelle naissance</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="/mariage" class="quick-action-btn">
+                <div class="quick-action-icon">
+                  <i class="fas fa-ring"></i>
+                </div>
+                <span>Nouveau mariage</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="/deces" class="quick-action-btn">
+                <div class="quick-action-icon">
+                  <i class="fas fa-cross"></i>
+                </div>
+                <span>Nouveau décès</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a href="/documents" class="quick-action-btn">
+                <div class="quick-action-icon">
+                  <i class="fas fa-file-upload"></i>
+                </div>
+                <span>Télécharger</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section export et rapports -->
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h5 class="chart-title">Statistiques par région</h5>
+          </div>
+          <canvas id="regionChart" width="300" height="200"></canvas>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="export-section">
+          <h5 class="mb-3">Rapports et exports</h5>
+          <p class="mb-4 opacity-75">Générez des rapports détaillés et exportez vos données</p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <button class="export-btn" onclick="exportToPDF()">
+              <i class="fas fa-file-pdf me-2"></i>PDF
+            </button>
+            <button class="export-btn" onclick="exportToExcel()">
+              <i class="fas fa-file-excel me-2"></i>Excel
+            </button>
+            <button class="export-btn" onclick="exportToCSV()">
+              <i class="fas fa-file-csv me-2"></i>CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/sidebar-template.js"></script>
+  <script>
+    let dashboardData = {
+      stats: { births: 0, marriages: 0, deaths: 0, documents: 0 },
+      charts: { evolution: null, distribution: null, region: null },
+      activities: []
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = checkAuth();
+      if (!token) return;
+      
+      document.getElementById('common-styles').textContent = commonCSS;
+      document.getElementById('sidebar-container').innerHTML = createSidebar('dashboard');
+      
+      // Set current date
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      await initializeDashboard();
+    });
+
+    async function initializeDashboard() {
+      try {
+        showLoadingState();
+        await Promise.all([
+          loadStatistics(),
+          loadRecentActivities(),
+          initializeCharts()
+        ]);
+        hideLoadingState();
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        showError('Erreur lors du chargement du tableau de bord');
+      }
+    }
+
+    async function loadStatistics() {
+      try {
+        const response = await apiRequest('/api/dashboard/stats', 'GET');
+        if (response.success) {
+          dashboardData.stats = response.data;
+          updateStatCards();
+        }
+      } catch (error) {
+        console.error('Error loading statistics:', error);
+        // Use mock data for demo
+        dashboardData.stats = {
+          births: 1247,
+          marriages: 423,
+          deaths: 156,
+          documents: 2891
+        };
+        updateStatCards();
+      }
+    }
+
+    function updateStatCards() {
+      const stats = dashboardData.stats;
+      
+      // Update numbers with animation
+      animateNumber('births-count', stats.births);
+      animateNumber('marriages-count', stats.marriages);
+      animateNumber('deaths-count', stats.deaths);
+      animateNumber('documents-count', stats.documents);
+      
+      // Update progress bars
+      updateProgress('births-progress', stats.births, 1500);
+      updateProgress('marriages-progress', stats.marriages, 600);
+      updateProgress('deaths-progress', stats.deaths, 400);
+      updateProgress('documents-progress', stats.documents, 3000);
+    }
+
+    function animateNumber(elementId, targetValue) {
+      const element = document.getElementById(elementId);
+      const startValue = 0;
+      const duration = 2000;
+      const startTime = Date.now();
+      
+      function update() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+        
+        element.textContent = currentValue.toLocaleString('fr-FR');
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      update();
+    }
+
+    function updateProgress(elementId, current, target) {
+      const percentage = Math.min((current / target) * 100, 100);
+      const element = document.getElementById(elementId);
+      
+      setTimeout(() => {
+        element.style.width = percentage + '%';
+      }, 500);
+    }
+
+    async function loadRecentActivities() {
+      try {
+        const response = await apiRequest('/api/dashboard/activities', 'GET');
+        if (response.success) {
+          dashboardData.activities = response.data;
+        } else {
+          // Mock data for demo
+          dashboardData.activities = [
+            { type: 'birth', description: 'Naissance de MAHAMAT Ahmed', time: '2 heures', user: 'Marie Dupont' },
+            { type: 'marriage', description: 'Mariage de HASSAN Fatima et IBRAHIM Omar', time: '4 heures', user: 'Jean Martin' },
+            { type: 'document', description: 'Document téléchargé: Acte_Naissance_001.pdf', time: '6 heures', user: 'Système' },
+            { type: 'birth', description: 'Naissance de KHADIJA Aisha', time: '1 jour', user: 'Sophie Bernard' },
+            { type: 'death', description: 'Décès de MOUSSA Ibrahim', time: '2 jours', user: 'Pierre Dubois' }
+          ];
+        }
+        displayRecentActivities();
+      } catch (error) {
+        console.error('Error loading activities:', error);
+      }
+    }
+
+    function displayRecentActivities() {
+      const container = document.getElementById('recentActivities');
+      
+      if (dashboardData.activities.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center py-4">Aucune activité récente</p>';
+        return;
+      }
+      
+      container.innerHTML = dashboardData.activities.map(activity => {
+        const iconClass = getActivityIcon(activity.type);
+        const borderColor = getActivityColor(activity.type);
+        
+        return `
+          <div class="activity-item" style="border-left-color: ${borderColor}">
+            <div class="activity-time">
+              <i class="${iconClass} me-2"></i>Il y a ${activity.time}
+            </div>
+            <div class="activity-description">${activity.description}</div>
+            <small class="text-muted">Par ${activity.user}</small>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getActivityIcon(type) {
+      const icons = {
+        birth: 'fas fa-baby',
+        marriage: 'fas fa-ring',
+        death: 'fas fa-cross',
+        document: 'fas fa-file-alt'
+      };
+      return icons[type] || 'fas fa-info-circle';
+    }
+
+    function getActivityColor(type) {
+      const colors = {
+        birth: '#3498db',
+        marriage: '#2ecc71',
+        death: '#e74c3c',
+        document: '#f39c12'
+      };
+      return colors[type] || '#6c757d';
+    }
+
+    async function initializeCharts() {
+      initEvolutionChart();
+      initDistributionChart();
+      initRegionChart();
+    }
+
+    function initEvolutionChart() {
+      const ctx = document.getElementById('evolutionChart').getContext('2d');
+      
+      dashboardData.charts.evolution = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
+          datasets: [{
+            label: 'Naissances',
+            data: [120, 135, 142, 158, 167, 180],
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            tension: 0.4
+          }, {
+            label: 'Mariages',
+            data: [45, 52, 48, 61, 58, 67],
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            tension: 0.4
+          }, {
+            label: 'Décès',
+            data: [28, 32, 25, 29, 31, 27],
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function initDistributionChart() {
+      const ctx = document.getElementById('distributionChart').getContext('2d');
+      
+      dashboardData.charts.distribution = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Naissances', 'Mariages', 'Décès'],
+          datasets: [{
+            data: [1247, 423, 156],
+            backgroundColor: ['#3498db', '#2ecc71', '#e74c3c'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    function initRegionChart() {
+      const ctx = document.getElementById('regionChart').getContext('2d');
+      
+      dashboardData.charts.region = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['N\'Djamena', 'Moundou', 'Sarh', 'Abéché', 'Doba'],
+          datasets: [{
+            label: 'Actes enregistrés',
+            data: [856, 234, 189, 167, 145],
+            backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Chart controls
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-chart')) {
+        document.querySelectorAll('.btn-chart').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const period = e.target.dataset.period;
+        updateEvolutionChart(period);
+      }
+    });
+
+    function updateEvolutionChart(period) {
+      // Mock data update based on period
+      const chart = dashboardData.charts.evolution;
+      
+      if (period === '1year') {
+        chart.data.labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        chart.data.datasets[0].data = [120, 135, 142, 158, 167, 180, 195, 203, 187, 176, 164, 159];
+      } else if (period === '2years') {
+        chart.data.labels = ['2023 S1', '2023 S2', '2024 S1', '2024 S2'];
+        chart.data.datasets[0].data = [890, 945, 1023, 1087];
+      } else {
+        chart.data.labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'];
+        chart.data.datasets[0].data = [120, 135, 142, 158, 167, 180];
+      }
+      
+      chart.update();
+    }
+
+    // Dashboard functions
+    async function refreshDashboard() {
+      const btn = event.target;
+      const icon = btn.querySelector('i');
+      
+      icon.classList.add('fa-spin');
+      btn.disabled = true;
+      
+      try {
+        await initializeDashboard();
+        showSuccess('Tableau de bord actualisé');
+      } catch (error) {
+        showError('Erreur lors de l\'actualisation');
+      } finally {
+        icon.classList.remove('fa-spin');
+        btn.disabled = false;
+      }
+    }
+
+    function exportDashboard() {
+      const options = [
+        { text: 'Exporter en PDF', action: () => exportToPDF() },
+        { text: 'Exporter en Excel', action: () => exportToExcel() },
+        { text: 'Exporter en CSV', action: () => exportToCSV() }
+      ];
+      
+      showExportMenu(options);
+    }
+
+    function exportToPDF() {
+      showSuccess('Export PDF en cours...');
+      // Implementation would go here
+    }
+
+    function exportToExcel() {
+      showSuccess('Export Excel en cours...');
+      // Implementation would go here
+    }
+
+    function exportToCSV() {
+      showSuccess('Export CSV en cours...');
+      // Implementation would go here
+    }
+
+    function viewAllActivities() {
+      window.location.href = '/rapports';
+    }
+
+    // Utility functions
+    function showLoadingState() {
+      document.querySelectorAll('.stat-number').forEach(el => {
+        el.classList.add('loading-skeleton');
+        el.style.height = '40px';
+      });
+    }
+
+    function hideLoadingState() {
+      document.querySelectorAll('.stat-number').forEach(el => {
+        el.classList.remove('loading-skeleton');
+        el.style.height = 'auto';
+      });
+    }
+
+    function showSuccess(message) {
+      showAlert(message, 'success');
+    }
+
+    function showError(message) {
+      showAlert(message, 'danger');
+    }
+
+    function showAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.body.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    function showExportMenu(options) {
+      const menu = document.createElement('div');
+      menu.className = 'dropdown-menu show position-fixed';
+      menu.style.cssText = 'top: 60px; right: 20px; z-index: 9999;';
+      
+      menu.innerHTML = options.map(option => 
+        `<button class="dropdown-item" onclick="${option.action.toString().match(/=> (.+)/)[1]}; this.parentElement.remove();">${option.text}</button>`
+      ).join('');
+      
+      document.body.appendChild(menu);
+      
+      // Close menu when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', () => menu.remove(), { once: true });
+      }, 100);
+    }
+  </script>
+</body>
+</html>
