@@ -45,7 +45,7 @@
           <div class="form-container">
             <div class="form-header d-flex align-items-center">
               <i class="fas fa-baby-carriage form-icon"></i>
-              <h2>Enregistrement d'un Acte de Naissance</h2>
+              <h2 id="pageTitle">Enregistrement d'un Acte de Naissance</h2>
             </div>
           
           <form id="formNaissance">
@@ -145,7 +145,7 @@
               
               <div class="col-12">
                 <label class="form-label">Mairie</label>
-                <input type="text" name="mairie" class="form-control" placeholder="Ex: Mairie de N'Djaména" required>
+                <input type="text" name="mairie" class="form-control" placeholder="Ex: Mairie d'abeche 1er Arrondissement" required>
               </div>
               
               <div class="col-12 mt-4">
@@ -169,6 +169,9 @@
   <script src="/js/sidebar-template.js"></script>
   <script>
     // Initialiser la page
+    let isEditMode = false;
+    let editActeId = null;
+    
     document.addEventListener('DOMContentLoaded', () => {
       // Vérifier l'authentification
       const token = checkAuth();
@@ -180,28 +183,154 @@
       // Injecter la sidebar
       document.getElementById('sidebar-container').innerHTML = createSidebar('naissance');
       
+      // Vérifier si on est en mode édition
+      const urlParams = new URLSearchParams(window.location.search);
+      editActeId = urlParams.get('edit');
+      
+      if (editActeId) {
+        isEditMode = true;
+        document.getElementById('pageTitle').textContent = 'Modification d\'un Acte de Naissance';
+        loadActeForEdit(editActeId);
+      }
+      
       // Gérer le formulaire
-      document.getElementById('formNaissance').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const acteData = Object.fromEntries(formData);
-        
-        const result = await apiRequest('/api/actes', {
-          method: 'POST',
-          body: JSON.stringify({
-            type: 'naissance',
-            details: acteData,
-            mairie: acteData.mairie
-          })
+      document.getElementById('formNaissance').addEventListener('submit', handleFormSubmit);
+    });
+    
+    async function loadActeForEdit(acteId) {
+      try {
+        const response = await fetch(`/api/actes/${acteId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         });
         
-        if (result) {
-          alert('Acte de naissance enregistré avec succès');
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement de l\'acte');
+        }
+        
+        const result = await response.json();
+        if (result.success && result.data) {
+          populateForm(result.data);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors du chargement des données de l\'acte');
+      }
+    }
+    
+    function populateForm(acte) {
+      const details = acte.details;
+      
+      // Informations de l'enfant
+      if (details.nom) document.querySelector('input[name="nom"]').value = details.nom;
+      if (details.prenom) document.querySelector('input[name="prenom"]').value = details.prenom;
+      if (details.sexe) document.querySelector('select[name="sexe"]').value = details.sexe;
+      if (details.dateNaissance) document.querySelector('input[name="dateNaissance"]').value = details.dateNaissance.split('T')[0];
+      if (details.heureNaissance) document.querySelector('input[name="heureNaissance"]').value = details.heureNaissance;
+      if (details.lieuNaissance) document.querySelector('input[name="lieuNaissance"]').value = details.lieuNaissance;
+      if (details.adresse) document.querySelector('input[name="adresse"]').value = details.adresse;
+      
+      // Informations du père
+      if (details.pere) document.querySelector('input[name="pere"]').value = details.pere;
+      if (details.prenomPere) document.querySelector('input[name="prenomPere"]').value = details.prenomPere;
+      if (details.dateNaissancePere) document.querySelector('input[name="dateNaissancePere"]').value = details.dateNaissancePere.split('T')[0];
+      if (details.lieuNaissancePere) document.querySelector('input[name="lieuNaissancePere"]').value = details.lieuNaissancePere;
+      if (details.professionPere) document.querySelector('input[name="professionPere"]').value = details.professionPere;
+      
+      // Informations de la mère
+      if (details.mere) document.querySelector('input[name="mere"]').value = details.mere;
+      if (details.prenomMere) document.querySelector('input[name="prenomMere"]').value = details.prenomMere;
+      if (details.dateNaissanceMere) document.querySelector('input[name="dateNaissanceMere"]').value = details.dateNaissanceMere.split('T')[0];
+      if (details.lieuNaissanceMere) document.querySelector('input[name="lieuNaissanceMere"]').value = details.lieuNaissanceMere;
+      if (details.professionMere) document.querySelector('input[name="professionMere"]').value = details.professionMere;
+      
+      // Mairie
+      if (acte.mairie) document.querySelector('input[name="mairie"]').value = acte.mairie;
+    }
+    
+    function showError(message) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Erreur !</strong> ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const acteData = Object.fromEntries(formData);
+      
+      const url = isEditMode ? `/api/actes/${editActeId}` : '/api/actes';
+      const method = isEditMode ? 'PUT' : 'POST';
+      
+      const result = await apiRequest(url, {
+        method: method,
+        body: JSON.stringify({
+          type: 'naissance',
+          details: acteData,
+          mairie: acteData.mairie
+        })
+      });
+      
+      if (result) {
+        const resultDiv = document.getElementById('result');
+        const successMessage = isEditMode ? 'Acte de naissance modifié avec succès !' : 'Acte de naissance enregistré avec succès !';
+        
+        resultDiv.innerHTML = `
+          <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>${successMessage}</strong>
+            <div class="mt-3">
+              <strong>Numéro d'acte:</strong> ${result.data.numeroActe}
+            </div>
+            <div class="mt-3">
+              <button onclick="downloadPDF('${result.data._id}')" class="btn btn-danger">
+                <i class="fas fa-file-pdf me-2"></i>Télécharger le PDF
+              </button>
+              <button onclick="window.print()" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-print me-2"></i>Imprimer
+              </button>
+              ${isEditMode ? '<a href="/dashboard" class="btn btn-secondary ms-2"><i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord</a>' : ''}
+            </div>
+          </div>
+        `;
+        
+        // En mode édition, ne pas réinitialiser le formulaire
+        if (!isEditMode) {
           e.target.reset();
         }
+      }
+    }
+    
+    async function downloadPDF(acteId) {
+      const token = checkAuth();
+      if (!token) return;
+      
+      const response = await fetch(`/api/actes/${acteId}/pdf`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-    });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `acte-${acteId}.pdf`;
+        a.click();
+      } else {
+        console.error('Erreur lors du téléchargement du PDF');
+      }
+    }
   </script>
 </body>
 </html>

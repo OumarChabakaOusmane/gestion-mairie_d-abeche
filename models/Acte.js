@@ -21,7 +21,7 @@ const ActeSchema = new mongoose.Schema({
   numeroActe: {
   type: String,
   unique: true,
-  required: true // Ajouter ceci
+  
 }
 });
 

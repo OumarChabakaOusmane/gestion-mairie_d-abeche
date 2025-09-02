@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tableau de bord - État Civil Tchad</title>
+  <title>Tableau de bord - État Civil Abéché</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style id="common-styles"></style>
@@ -26,7 +26,13 @@
       right: 0;
       bottom: 0;
       background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-      animation: float 20s ease-in-out infinite;
+      animation: float 30s ease-in-out infinite;
+      will-change: transform;
+      animation-play-state: running;
+    }
+    
+    .dashboard-header:not(.visible)::before {
+      animation-play-state: paused;
     }
     
     @keyframes float {
@@ -40,7 +46,7 @@
       border-radius: 20px;
       padding: 2rem;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
       border: none;
       margin-bottom: 2rem;
       position: relative;
@@ -49,6 +55,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      will-change: transform;
+      backface-visibility: hidden;
     }
     
     .stat-card:hover {
@@ -114,73 +122,6 @@
       width: 0%;
     }
     
-    .chart-container {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      border: 1px solid #f0f0f0;
-    }
-    
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .chart-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #2c3e50;
-    }
-    
-    .chart-controls {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .btn-chart {
-      padding: 8px 16px;
-      border: 1px solid #dee2e6;
-      background: white;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-chart:hover, .btn-chart.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-    
-    .activity-item {
-      padding: 15px;
-      border-left: 4px solid #007bff;
-      background: #f8f9ff;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 15px;
-      transition: all 0.3s ease;
-    }
-    
-    .activity-item:hover {
-      background: #e3f2fd;
-      transform: translateX(5px);
-    }
-    
-    .activity-time {
-      font-size: 0.875rem;
-      color: #6c757d;
-      margin-bottom: 5px;
-    }
-    
-    .activity-description {
-      font-weight: 500;
-      color: #2c3e50;
-    }
-    
     .quick-actions {
       background: white;
       border-radius: 15px;
@@ -216,35 +157,12 @@
       margin-bottom: 10px;
     }
     
-    .export-section {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      border-radius: 15px;
-      padding: 25px;
-      color: white;
-      text-align: center;
-    }
-    
-    .export-btn {
-      background: rgba(255,255,255,0.2);
-      border: 2px solid rgba(255,255,255,0.3);
-      color: white;
-      padding: 12px 25px;
-      border-radius: 25px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-    
-    .export-btn:hover {
-      background: white;
-      color: #f5576c;
-      transform: translateY(-2px);
-    }
-    
     .loading-skeleton {
       background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
       background-size: 200% 100%;
-      animation: loading 1.5s infinite;
+      animation: loading 2s infinite;
       border-radius: 8px;
+      will-change: background-position;
     }
     
     @keyframes loading {
@@ -271,6 +189,20 @@
     .trend-neutral {
       color: #6c757d;
     }
+    
+    /* Optimisation: Réduire les animations sur les appareils moins performants */
+    @media (prefers-reduced-motion: reduce) {
+      .dashboard-header::before {
+        animation: none;
+      }
+      .loading-skeleton {
+        animation: none;
+        background: #e0e0e0;
+      }
+      .stat-card {
+        transition: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -279,16 +211,43 @@
   <div class="main-content">
     <div class="dashboard-header">
       <div class="row align-items-center">
-        <div class="col-md-8">
-          <h1 class="mb-2">Tableau de Bord</h1>
-          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil - <span id="currentDate"></span></p>
+        <div class="col-md-4">
+          <h1 class="mb-2">Tableau de Bord d'Abéché</h1>
+          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span></p>
+        </div>
+        <div class="col-md-4">
+          <div class="search-container">
+            <div class="input-group">
+              <input type="text" class="form-control" id="globalSearch" placeholder="Rechercher dans tous les actes..." style="background: rgba(255,255,255,0.9); border: none;">
+              <button class="btn btn-light" type="button" id="searchBtn">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="col-md-4 text-end">
-          <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-light btn-sm" onclick="refreshDashboard()">
+          <div class="d-flex gap-2 justify-content-end align-items-center">
+            <!-- Sélecteur de langue -->
+            <div class="dropdown">
+              <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
+                <i class="fas fa-globe me-1"></i><span id="currentLang">FR</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')"><i class="fas fa-flag me-2"></i>Français</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')"><i class="fas fa-flag me-2"></i>العربية</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')"><i class="fas fa-flag me-2"></i>English</a></li>
+              </ul>
+            </div>
+            
+            <!-- Toggle mode sombre -->
+            <button class="btn btn-outline-light btn-sm" id="themeToggle">
+              <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            
+            <button class="btn btn-light btn-sm" id="refreshBtn">
               <i class="fas fa-sync-alt me-2"></i>Actualiser
             </button>
-            <button class="btn btn-outline-light btn-sm" onclick="exportDashboard()">
+            <button class="btn btn-outline-light btn-sm" id="exportBtn">
               <i class="fas fa-download me-2"></i>Exporter
             </button>
           </div>
@@ -341,7 +300,7 @@
       <div class="col-lg-3 col-md-6">
         <div class="stat-card deaths">
           <div class="stat-icon">
-            <i class="fas fa-cross"></i>
+            <i class="fas fa-skull"></i>
           </div>
           <div class="stat-number" id="deaths-count">0</div>
           <div class="stat-label">Décès enregistrés</div>
@@ -379,121 +338,29 @@
       </div>
     </div>
 
-    <!-- Graphiques et analyses -->
+    <!-- Gestion d'actes -->
     <div class="row mb-4">
-      <div class="col-lg-8">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h5 class="chart-title">Évolution mensuelle</h5>
-            <div class="chart-controls">
-              <button class="btn-chart active" data-period="6months">6 mois</button>
-              <button class="btn-chart" data-period="1year">1 an</button>
-              <button class="btn-chart" data-period="2years">2 ans</button>
-            </div>
-          </div>
-          <canvas id="evolutionChart" width="400" height="200"></canvas>
-        </div>
-      </div>
-      
-      <div class="col-lg-4">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h5 class="chart-title">Répartition par type</h5>
-          </div>
-          <canvas id="distributionChart" width="200" height="200"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activités récentes et actions rapides -->
-    <div class="row mb-4">
-      <div class="col-lg-8">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h5 class="chart-title">Activités récentes</h5>
-            <button class="btn btn-sm btn-outline-primary" onclick="viewAllActivities()">
-              Voir tout
-            </button>
-          </div>
-          <div id="recentActivities">
-            <!-- Activités chargées dynamiquement -->
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-lg-4">
+      <div class="col-lg-12">
         <div class="quick-actions">
-          <h5 class="mb-4">Actions rapides</h5>
-          <div class="row g-3">
-            <div class="col-6">
-              <a href="/naissance" class="quick-action-btn">
-                <div class="quick-action-icon">
-                  <i class="fas fa-baby"></i>
-                </div>
-                <span>Nouvelle naissance</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="/mariage" class="quick-action-btn">
-                <div class="quick-action-icon">
-                  <i class="fas fa-ring"></i>
-                </div>
-                <span>Nouveau mariage</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="/deces" class="quick-action-btn">
-                <div class="quick-action-icon">
-                  <i class="fas fa-cross"></i>
-                </div>
-                <span>Nouveau décès</span>
-              </a>
-            </div>
-            <div class="col-6">
-              <a href="/documents" class="quick-action-btn">
-                <div class="quick-action-icon">
-                  <i class="fas fa-file-upload"></i>
-                </div>
-                <span>Télécharger</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section export et rapports -->
-    <div class="row">
-      <div class="col-lg-6">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h5 class="chart-title">Statistiques par région</h5>
-          </div>
-          <canvas id="regionChart" width="300" height="200"></canvas>
-        </div>
-      </div>
-      
-      <div class="col-lg-6">
-        <div class="export-section">
-          <h5 class="mb-3">Rapports et exports</h5>
-          <p class="mb-4 opacity-75">Générez des rapports détaillés et exportez vos données</p>
-          <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <button class="export-btn" onclick="exportToPDF()">
-              <i class="fas fa-file-pdf me-2"></i>PDF
-            </button>
-            <button class="export-btn" onclick="exportToExcel()">
-              <i class="fas fa-file-excel me-2"></i>Excel
-            </button>
-            <button class="export-btn" onclick="exportToCSV()">
-              <i class="fas fa-file-csv me-2"></i>CSV
-            </button>
-          </div>
+          <h5 class="mb-4">Gestion d'actes</h5>
+          <table class="table table-striped" id="actesTable">
+            <thead>
+              <tr>
+                <th scope="col">Numéro</th>
+                <th scope="col">Type</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Date</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/js/sidebar-template.js"></script>
   <script>
     let dashboardData = {
@@ -501,6 +368,129 @@
       charts: { evolution: null, distribution: null, region: null },
       activities: []
     };
+
+    // Fonctions pour le changement de langue
+    const translations = {
+      fr: {
+        title: 'Tableau de Bord d\'Abéché',
+        subtitle: 'Vue d\'ensemble des activités d\'état civil d\'Abéché',
+        births: 'Naissances enregistrées',
+        marriages: 'Mariages célébrés',
+        deaths: 'Décès enregistrés',
+        documents: 'Documents traités',
+        refresh: 'Actualiser',
+        export: 'Exporter',
+        search: 'Rechercher dans tous les actes...'
+      },
+      ar: {
+        title: 'لوحة تحكم أبشي',
+        subtitle: 'نظرة عامة على أنشطة الأحوال المدنية في أبشي',
+        births: 'المواليد المسجلة',
+        marriages: 'الزيجات المحتفل بها',
+        deaths: 'الوفيات المسجلة',
+        documents: 'الوثائق المعالجة',
+        refresh: 'تحديث',
+        export: 'تصدير',
+        search: 'البحث في جميع السجلات...'
+      },
+      en: {
+        title: 'Abéché Dashboard',
+        subtitle: 'Overview of civil status activities in Abéché',
+        births: 'Registered births',
+        marriages: 'Celebrated marriages',
+        deaths: 'Registered deaths',
+        documents: 'Processed documents',
+        refresh: 'Refresh',
+        export: 'Export',
+        search: 'Search in all records...'
+      }
+    };
+    
+    function changeLanguage(lang) {
+      localStorage.setItem('selectedLanguage', lang);
+      document.getElementById('currentLang').textContent = lang.toUpperCase();
+      
+      const t = translations[lang];
+      if (t) {
+        document.querySelector('h1').textContent = t.title;
+        document.querySelector('.opacity-75').innerHTML = t.subtitle + ' - <span id="currentDate"></span>';
+        document.getElementById('globalSearch').placeholder = t.search;
+        
+        // Mettre à jour les labels des statistiques
+        const birthsLabel = document.querySelector('.births .stat-label');
+        const marriagesLabel = document.querySelector('.marriages .stat-label');
+        const deathsLabel = document.querySelector('.deaths .stat-label');
+        const documentsLabel = document.querySelector('.documents .stat-label');
+        
+        if (birthsLabel) birthsLabel.textContent = t.births;
+        if (marriagesLabel) marriagesLabel.textContent = t.marriages;
+        if (deathsLabel) deathsLabel.textContent = t.deaths;
+        if (documentsLabel) documentsLabel.textContent = t.documents;
+        
+        // Mettre à jour les boutons
+        const refreshBtn = document.querySelector('button[onclick="refreshDashboard(event)"]');
+        const exportBtn = document.querySelector('button[onclick="exportDashboard()"]');
+        
+        if (refreshBtn) refreshBtn.innerHTML = `<i class="fas fa-sync-alt me-2"></i>${t.refresh}`;
+        if (exportBtn) exportBtn.innerHTML = `<i class="fas fa-download me-2"></i>${t.export}`;
+        
+        // Remettre la date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        // Appliquer la direction RTL pour l'arabe
+        if (lang === 'ar') {
+          document.body.style.direction = 'rtl';
+          document.body.style.textAlign = 'right';
+        } else {
+          document.body.style.direction = 'ltr';
+          document.body.style.textAlign = 'left';
+        }
+      }
+      
+      showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
+    }
+    
+    // Fonctions pour le toggle de thème
+    function toggleTheme() {
+      const currentTheme = document.body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('selectedTheme', newTheme);
+      
+      const themeIcon = document.getElementById('themeIcon');
+      if (themeIcon) {
+        if (newTheme === 'dark') {
+          themeIcon.className = 'fas fa-sun';
+        } else {
+          themeIcon.className = 'fas fa-moon';
+        }
+      }
+      
+      showSuccess(`Mode ${newTheme === 'dark' ? 'sombre' : 'clair'} activé`);
+    }
+    
+    // Initialiser les préférences
+    function initializePreferences() {
+      // Charger le thème sauvegardé
+      const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+      document.body.setAttribute('data-theme', savedTheme);
+      const themeIcon = document.getElementById('themeIcon');
+      if (themeIcon) {
+        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+      
+      // Charger la langue sauvegardée
+      const savedLang = localStorage.getItem('selectedLanguage') || 'fr';
+      if (savedLang !== 'fr') {
+        changeLanguage(savedLang);
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const token = checkAuth();
@@ -517,21 +507,58 @@
         day: 'numeric'
       });
       
+      // Initialiser les préférences au chargement
+      initializePreferences();
+      
       await initializeDashboard();
+      loadRecentActes();
+      
+      // Ajouter les event listeners
+      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
+      document.getElementById('exportBtn').addEventListener('click', exportDashboard);
     });
 
     async function initializeDashboard() {
       try {
         showLoadingState();
-        await Promise.all([
-          loadStatistics(),
-          loadRecentActivities(),
-          initializeCharts()
-        ]);
+        
+        // Limiter les requêtes simultanées pour éviter la surcharge
+        const requestQueue = [];
+        const maxConcurrentRequests = 2;
+        let activeRequests = 0;
+        
+        const executeRequest = async (requestFn) => {
+          return new Promise((resolve, reject) => {
+            const execute = async () => {
+              if (activeRequests >= maxConcurrentRequests) {
+                setTimeout(execute, 100);
+                return;
+              }
+              
+              activeRequests++;
+              try {
+                const result = await requestFn();
+                resolve(result);
+              } catch (error) {
+                reject(error);
+              } finally {
+                activeRequests--;
+              }
+            };
+            execute();
+          });
+        };
+        
+        // Charger les données de manière séquentielle pour éviter la surcharge
+        await executeRequest(() => loadStatistics());
+        await executeRequest(() => loadRecentActivities());
+        
         hideLoadingState();
       } catch (error) {
         console.error('Error initializing dashboard:', error);
         showError('Erreur lors du chargement du tableau de bord');
+        hideLoadingState();
       }
     }
 
@@ -573,23 +600,35 @@
 
     function animateNumber(elementId, targetValue) {
       const element = document.getElementById(elementId);
-      const startValue = 0;
-      const duration = 2000;
+      if (!element) return;
+      
+      // Annuler l'animation précédente si elle existe
+      if (element.animationId) {
+        cancelAnimationFrame(element.animationId);
+      }
+      
+      const startValue = parseInt(element.textContent.replace(/\D/g, '')) || 0;
+      const duration = Math.min(2000, Math.abs(targetValue - startValue) * 2); // Durée adaptative
       const startTime = Date.now();
       
       function update() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+        
+        // Utiliser easing pour une animation plus fluide
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * easeProgress);
         
         element.textContent = currentValue.toLocaleString('fr-FR');
         
         if (progress < 1) {
-          requestAnimationFrame(update);
+          element.animationId = requestAnimationFrame(update);
+        } else {
+          delete element.animationId;
         }
       }
       
-      update();
+      element.animationId = requestAnimationFrame(update);
     }
 
     function updateProgress(elementId, current, target) {
@@ -616,193 +655,268 @@
             { type: 'death', description: 'Décès de MOUSSA Ibrahim', time: '2 jours', user: 'Pierre Dubois' }
           ];
         }
-        displayRecentActivities();
       } catch (error) {
         console.error('Error loading activities:', error);
       }
     }
 
-    function displayRecentActivities() {
-      const container = document.getElementById('recentActivities');
+    async function loadRecentActes() {
+      try {
+        const response = await apiRequest('/api/actes', 'GET');
+        if (response.success) {
+          displayActes(response.data);
+        } else {
+          // Mock data for demo
+          const mockActes = [
+            { _id: '1', numeroActe: 'N001', type: 'naissance', nom: 'MAHAMAT Ahmed', dateEnregistrement: '2023-02-15' },
+            { _id: '2', numeroActe: 'M002', type: 'mariage', nom: 'HASSAN Fatima et IBRAHIM Omar', dateEnregistrement: '2023-03-01' },
+            { _id: '3', numeroActe: 'D003', type: 'deces', nom: 'MOUSSA Ibrahim', dateEnregistrement: '2023-04-10' }
+          ];
+          displayActes(mockActes);
+        }
+      } catch (error) {
+        console.error('Error loading actes:', error);
+        // Afficher données mock en cas d'erreur
+        const mockActes = [
+          { _id: '1', numeroActe: 'N001', type: 'naissance', nom: 'MAHAMAT Ahmed', dateEnregistrement: '2023-02-15' },
+          { _id: '2', numeroActe: 'M002', type: 'mariage', nom: 'HASSAN Fatima et IBRAHIM Omar', dateEnregistrement: '2023-03-01' },
+          { _id: '3', numeroActe: 'D003', type: 'deces', nom: 'MOUSSA Ibrahim', dateEnregistrement: '2023-04-10' }
+        ];
+        displayActes(mockActes);
+      }
+    }
+
+    function displayActes(actes) {
+      const tbody = document.querySelector('#actesTable tbody');
+      if (!tbody) return;
       
-      if (dashboardData.activities.length === 0) {
-        container.innerHTML = '<p class="text-muted text-center py-4">Aucune activité récente</p>';
+      if (actes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
         return;
       }
       
-      container.innerHTML = dashboardData.activities.map(activity => {
-        const iconClass = getActivityIcon(activity.type);
-        const borderColor = getActivityColor(activity.type);
+      tbody.innerHTML = actes.map(acte => {
+        const typeLabel = getTypeLabel(acte.type);
+        const formattedDate = new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR');
+        
+        // Extraire le nom selon le type d'acte
+        let nomComplet = '';
+        if (acte.details) {
+          if (acte.type === 'naissance' || acte.type === 'deces') {
+            nomComplet = `${acte.details.prenom || ''} ${acte.details.nom || ''}`.trim();
+          } else if (acte.type === 'mariage') {
+            nomComplet = `${acte.details.conjoint1 || ''} et ${acte.details.conjointe2 || ''}`.trim();
+          }
+        }
+        
+        // Fallback si pas de details
+        if (!nomComplet && acte.nom) {
+          nomComplet = acte.nom;
+        }
         
         return `
-          <div class="activity-item" style="border-left-color: ${borderColor}">
-            <div class="activity-time">
-              <i class="${iconClass} me-2"></i>Il y a ${activity.time}
-            </div>
-            <div class="activity-description">${activity.description}</div>
-            <small class="text-muted">Par ${activity.user}</small>
-          </div>
+          <tr>
+            <td>${acte.numeroActe || 'N/A'}</td>
+            <td><span class="badge bg-${getTypeBadgeColor(acte.type)}">${typeLabel}</span></td>
+            <td>${nomComplet || 'Non renseigné'}</td>
+            <td>${formattedDate}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-1" onclick="viewActe('${acte._id}')">
+                <i class="fas fa-eye"></i> Voir
+              </button>
+              <button class="btn btn-sm btn-secondary me-1" onclick="editActe('${acte._id}')">
+                <i class="fas fa-edit"></i> Modifier
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteActe('${acte._id}', '${acte.numeroActe}')">
+                <i class="fas fa-trash"></i> Supprimer
+              </button>
+            </td>
+          </tr>
         `;
       }).join('');
     }
 
-    function getActivityIcon(type) {
-      const icons = {
-        birth: 'fas fa-baby',
-        marriage: 'fas fa-ring',
-        death: 'fas fa-cross',
-        document: 'fas fa-file-alt'
+    function getTypeLabel(type) {
+      const labels = {
+        naissance: 'Naissance',
+        mariage: 'Mariage',
+        deces: 'Décès'
       };
-      return icons[type] || 'fas fa-info-circle';
+      return labels[type] || type;
     }
 
-    function getActivityColor(type) {
+    function getTypeBadgeColor(type) {
       const colors = {
-        birth: '#3498db',
-        marriage: '#2ecc71',
-        death: '#e74c3c',
-        document: '#f39c12'
+        naissance: 'primary',
+        mariage: 'success',
+        deces: 'danger'
       };
-      return colors[type] || '#6c757d';
+      return colors[type] || 'secondary';
     }
 
-    async function initializeCharts() {
-      initEvolutionChart();
-      initDistributionChart();
-      initRegionChart();
-    }
-
-    function initEvolutionChart() {
-      const ctx = document.getElementById('evolutionChart').getContext('2d');
-      
-      dashboardData.charts.evolution = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
-          datasets: [{
-            label: 'Naissances',
-            data: [120, 135, 142, 158, 167, 180],
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            tension: 0.4
-          }, {
-            label: 'Mariages',
-            data: [45, 52, 48, 61, 58, 67],
-            borderColor: '#2ecc71',
-            backgroundColor: 'rgba(46, 204, 113, 0.1)',
-            tension: 0.4
-          }, {
-            label: 'Décès',
-            data: [28, 32, 25, 29, 31, 27],
-            borderColor: '#e74c3c',
-            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+    async function viewActe(id) {
+      try {
+        const response = await apiRequest(`/api/actes/${id}`, 'GET');
+        if (response.success) {
+          // Afficher les détails de l'acte dans une modal ou rediriger
+          showActeDetails(response.data);
         }
-      });
-    }
-
-    function initDistributionChart() {
-      const ctx = document.getElementById('distributionChart').getContext('2d');
-      
-      dashboardData.charts.distribution = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Naissances', 'Mariages', 'Décès'],
-          datasets: [{
-            data: [1247, 423, 156],
-            backgroundColor: ['#3498db', '#2ecc71', '#e74c3c'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      });
-    }
-
-    function initRegionChart() {
-      const ctx = document.getElementById('regionChart').getContext('2d');
-      
-      dashboardData.charts.region = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['N\'Djamena', 'Moundou', 'Sarh', 'Abéché', 'Doba'],
-          datasets: [{
-            label: 'Actes enregistrés',
-            data: [856, 234, 189, 167, 145],
-            backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    }
-
-    // Chart controls
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('btn-chart')) {
-        document.querySelectorAll('.btn-chart').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        
-        const period = e.target.dataset.period;
-        updateEvolutionChart(period);
+      } catch (error) {
+        console.error('Error viewing acte:', error);
+        showError('Erreur lors de la consultation de l\'acte');
       }
-    });
+    }
 
-    function updateEvolutionChart(period) {
-      // Mock data update based on period
-      const chart = dashboardData.charts.evolution;
+    async function editActe(id) {
+      // Rediriger vers la page d'édition appropriée
+      try {
+        const response = await apiRequest(`/api/actes/${id}`, 'GET');
+        if (response.success) {
+          const acte = response.data;
+          const editUrl = `/${acte.type}?edit=${id}`;
+          window.location.href = editUrl;
+        }
+      } catch (error) {
+        console.error('Error loading acte for edit:', error);
+        showError('Erreur lors du chargement de l\'acte');
+      }
+    }
+
+    async function deleteActe(id, numeroActe) {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numeroActe} ?`)) {
+        return;
+      }
       
-      if (period === '1year') {
-        chart.data.labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-        chart.data.datasets[0].data = [120, 135, 142, 158, 167, 180, 195, 203, 187, 176, 164, 159];
-      } else if (period === '2years') {
-        chart.data.labels = ['2023 S1', '2023 S2', '2024 S1', '2024 S2'];
-        chart.data.datasets[0].data = [890, 945, 1023, 1087];
+      try {
+        const response = await apiRequest(`/api/actes/${id}`, { method: 'DELETE' });
+        if (response.success) {
+          showSuccess(`Acte ${numeroActe} supprimé avec succès`);
+          loadRecentActes(); // Recharger la liste
+        } else {
+          showError('Erreur lors de la suppression de l\'acte');
+        }
+      } catch (error) {
+        console.error('Error deleting acte:', error);
+        showError('Erreur lors de la suppression de l\'acte');
+      }
+    }
+
+    function showActeDetails(acte) {
+      // Créer une modal simple pour afficher les détails
+      let modalHtml = `
+        <div class="modal fade" id="acteModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Détails de l'acte ${acte.numeroActe || 'N/A'}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <p><strong>Type:</strong> ${getTypeLabel(acte.type)}</p>
+                <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
+                <p><strong>Date d'enregistrement:</strong> ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}</p>
+                <p><strong>Mairie:</strong> ${acte.mairie || 'Non renseigné'}</p>
+                <hr>
+      `;
+      
+      if (acte.details) {
+        if (acte.type === 'naissance') {
+          modalHtml += `
+            <h6><strong>Informations de naissance</strong></h6>
+            <p><strong>Nom:</strong> ${acte.details.nom || 'Non renseigné'}</p>
+            <p><strong>Prénom:</strong> ${acte.details.prenom || 'Non renseigné'}</p>
+            <p><strong>Date de naissance:</strong> ${acte.details.dateNaissance ? new Date(acte.details.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
+            <p><strong>Lieu de naissance:</strong> ${acte.details.lieuNaissance || 'Non renseigné'}</p>
+            <p><strong>Sexe:</strong> ${acte.details.sexe === 'M' ? 'Masculin' : acte.details.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</p>
+            <p><strong>Heure de naissance:</strong> ${acte.details.heureNaissance || 'Non renseigné'}</p>
+            <hr>
+            <h6><strong>Filiation</strong></h6>
+            <p><strong>Père:</strong> ${acte.details.prenomPere || ''} ${acte.details.pere || acte.details.nomPere || 'Non renseigné'}</p>
+            <p><strong>Mère:</strong> ${acte.details.prenomMere || ''} ${acte.details.mere || acte.details.nomMere || 'Non renseigné'}</p>
+            <p><strong>Adresse des parents:</strong> ${acte.details.adresse || 'Non renseigné'}</p>
+          `;
+        } else if (acte.type === 'mariage') {
+          modalHtml += `
+            <h6><strong>Informations de mariage</strong></h6>
+            <p><strong>Époux:</strong> ${acte.details.conjoint1 || acte.details.nomEpoux || 'Non renseigné'}</p>
+            <p><strong>Épouse:</strong> ${acte.details.conjointe2 || acte.details.nomEpouse || 'Non renseigné'}</p>
+            <p><strong>Date de mariage:</strong> ${acte.details.dateMariage ? new Date(acte.details.dateMariage).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
+            <p><strong>Lieu de mariage:</strong> ${acte.details.lieuMariage || 'Non renseigné'}</p>
+            <p><strong>Heure de mariage:</strong> ${acte.details.heureMariage || 'Non renseigné'}</p>
+          `;
+        } else if (acte.type === 'deces') {
+          modalHtml += `
+            <h6><strong>Informations de décès</strong></h6>
+            <p><strong>Nom:</strong> ${acte.details.nom || 'Non renseigné'}</p>
+            <p><strong>Prénom:</strong> ${acte.details.prenom || 'Non renseigné'}</p>
+            <p><strong>Date de décès:</strong> ${acte.details.dateDeces ? new Date(acte.details.dateDeces).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
+            <p><strong>Lieu de décès:</strong> ${acte.details.lieuDeces || 'Non renseigné'}</p>
+            <p><strong>Âge au décès:</strong> ${acte.details.age || 'Non renseigné'}</p>
+            <p><strong>Sexe:</strong> ${acte.details.sexe === 'M' ? 'Masculin' : acte.details.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</p>
+            <p><strong>Cause du décès:</strong> ${acte.details.cause || 'Non renseigné'}</p>
+            <hr>
+            <h6><strong>Déclarant</strong></h6>
+            <p><strong>Nom du déclarant:</strong> ${acte.details.nomDeclarant || 'Non renseigné'}</p>
+            <p><strong>Lien avec le défunt:</strong> ${acte.details.lienDeclarant || 'Non renseigné'}</p>
+          `;
+        }
       } else {
-        chart.data.labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'];
-        chart.data.datasets[0].data = [120, 135, 142, 158, 167, 180];
+        modalHtml += `<p class="text-muted">Aucun détail disponible pour cet acte.</p>`;
       }
       
-      chart.update();
+      modalHtml += `
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary" onclick="downloadActePdf('${acte._id}')">
+                  <i class="fas fa-download"></i> Télécharger PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Supprimer l'ancienne modal si elle existe
+      const existingModal = document.getElementById('acteModal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Ajouter la nouvelle modal
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Afficher la modal
+      const modal = new bootstrap.Modal(document.getElementById('acteModal'));
+      modal.show();
+    }
+
+    async function downloadActePdf(id) {
+      const token = checkAuth();
+      if (!token) return;
+      
+      const url = `/api/actes/${id}/pdf`;
+      const headers = new Headers({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+      
+      const response = await fetch(url, { headers });
+      if (response.ok) {
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `acte_${id}.pdf`;
+        link.click();
+      } else {
+        console.error('Error downloading PDF:', response.statusText);
+        showError('Erreur lors du téléchargement du PDF');
+      }
     }
 
     // Dashboard functions
-    async function refreshDashboard() {
-      const btn = event.target;
+    async function refreshDashboard(event) {
+      const btn = event.target.closest('button');
       const icon = btn.querySelector('i');
       
       icon.classList.add('fa-spin');
@@ -810,9 +924,11 @@
       
       try {
         await initializeDashboard();
-        showSuccess('Tableau de bord actualisé');
+        await loadRecentActes();
+        showSuccess('Tableau de bord actualisé avec succès');
       } catch (error) {
-        showError('Erreur lors de l\'actualisation');
+        console.error('Erreur actualisation:', error);
+        showError('Erreur lors de l\'actualisation du tableau de bord');
       } finally {
         icon.classList.remove('fa-spin');
         btn.disabled = false;
@@ -820,32 +936,152 @@
     }
 
     function exportDashboard() {
-      const options = [
-        { text: 'Exporter en PDF', action: () => exportToPDF() },
-        { text: 'Exporter en Excel', action: () => exportToExcel() },
-        { text: 'Exporter en CSV', action: () => exportToCSV() }
-      ];
+      const menu = document.createElement('div');
+      menu.className = 'dropdown-menu show position-fixed';
+      menu.style.cssText = 'top: 60px; right: 20px; z-index: 9999; min-width: 200px;';
       
-      showExportMenu(options);
+      menu.innerHTML = `
+        <button class="dropdown-item" onclick="exportToPDF(); this.parentElement.remove();">
+          <i class="fas fa-file-pdf me-2"></i>Exporter en PDF
+        </button>
+        <button class="dropdown-item" onclick="exportToExcel(); this.parentElement.remove();">
+          <i class="fas fa-file-excel me-2"></i>Exporter en Excel
+        </button>
+        <button class="dropdown-item" onclick="exportToCSV(); this.parentElement.remove();">
+          <i class="fas fa-file-csv me-2"></i>Exporter en CSV
+        </button>
+      `;
+      
+      document.body.appendChild(menu);
+      
+      // Fermer le menu en cliquant ailleurs
+      setTimeout(() => {
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target)) {
+            menu.remove();
+          }
+        }, { once: true });
+      }, 100);
     }
 
-    function exportToPDF() {
-      showSuccess('Export PDF en cours...');
-      // Implementation would go here
+    async function exportToPDF() {
+      try {
+        showSuccess('Génération du PDF en cours...');
+        
+        // Collecter les données du dashboard
+        const stats = dashboardData.stats;
+        const currentDate = new Date().toLocaleDateString('fr-FR');
+        
+        // Créer le contenu PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // En-tête
+        doc.setFontSize(20);
+        doc.text('Rapport du Tableau de Bord', 20, 20);
+        doc.setFontSize(12);
+        doc.text(`État Civil d'Abéché - ${currentDate}`, 20, 30);
+        
+        // Statistiques
+        doc.setFontSize(16);
+        doc.text('Statistiques', 20, 50);
+        doc.setFontSize(12);
+        doc.text(`Naissances: ${stats.births || 0}`, 20, 65);
+        doc.text(`Mariages: ${stats.marriages || 0}`, 20, 75);
+        doc.text(`Décès: ${stats.deaths || 0}`, 20, 85);
+        doc.text(`Documents: ${stats.documents || 0}`, 20, 95);
+        
+        // Télécharger
+        doc.save(`rapport-dashboard-${currentDate.replace(/\//g, '-')}.pdf`);
+        showSuccess('PDF exporté avec succès');
+        
+      } catch (error) {
+        console.error('Erreur export PDF:', error);
+        showError('Erreur lors de l\'export PDF. Veuillez réessayer.');
+      }
     }
 
-    function exportToExcel() {
-      showSuccess('Export Excel en cours...');
-      // Implementation would go here
+    async function exportToExcel() {
+      try {
+        showSuccess('Génération du fichier Excel en cours...');
+        
+        // Préparer les données
+        const stats = dashboardData.stats;
+        const currentDate = new Date().toLocaleDateString('fr-FR');
+        
+        // Créer les données pour Excel
+        const data = [
+          ['Rapport du Tableau de Bord'],
+          [`État Civil d'Abéché - ${currentDate}`],
+          [''],
+          ['Type', 'Nombre'],
+          ['Naissances', stats.births || 0],
+          ['Mariages', stats.marriages || 0],
+          ['Décès', stats.deaths || 0],
+          ['Documents', stats.documents || 0]
+        ];
+        
+        // Créer le CSV (format compatible Excel)
+        const csvContent = data.map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        // Télécharger
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `rapport-dashboard-${currentDate.replace(/\//g, '-')}.csv`;
+        link.click();
+        
+        showSuccess('Fichier Excel exporté avec succès');
+        
+      } catch (error) {
+        console.error('Erreur export Excel:', error);
+        showError('Erreur lors de l\'export Excel. Veuillez réessayer.');
+      }
     }
 
-    function exportToCSV() {
-      showSuccess('Export CSV en cours...');
-      // Implementation would go here
-    }
-
-    function viewAllActivities() {
-      window.location.href = '/rapports';
+    async function exportToCSV() {
+      try {
+        showSuccess('Génération du fichier CSV en cours...');
+        
+        // Récupérer les actes depuis le tableau
+        const tableRows = document.querySelectorAll('#actesTable tbody tr');
+        const csvData = [];
+        
+        // En-têtes
+        csvData.push(['Numéro', 'Type', 'Nom', 'Date']);
+        
+        // Données des actes
+        tableRows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 4) {
+            csvData.push([
+              cells[0].textContent.trim(),
+              cells[1].textContent.trim().replace(/\s+/g, ' '),
+              cells[2].textContent.trim(),
+              cells[3].textContent.trim()
+            ]);
+          }
+        });
+        
+        // Créer le CSV
+        const csvContent = csvData.map(row => 
+          row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+        ).join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        // Télécharger
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `actes-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`;
+        link.click();
+        
+        showSuccess('Fichier CSV exporté avec succès');
+        
+      } catch (error) {
+        console.error('Erreur export CSV:', error);
+        showError('Erreur lors de l\'export CSV. Veuillez réessayer.');
+      }
     }
 
     // Utility functions
@@ -882,23 +1118,6 @@
       
       document.body.appendChild(alertDiv);
       setTimeout(() => alertDiv.remove(), 5000);
-    }
-
-    function showExportMenu(options) {
-      const menu = document.createElement('div');
-      menu.className = 'dropdown-menu show position-fixed';
-      menu.style.cssText = 'top: 60px; right: 20px; z-index: 9999;';
-      
-      menu.innerHTML = options.map(option => 
-        `<button class="dropdown-item" onclick="${option.action.toString().match(/=> (.+)/)[1]}; this.parentElement.remove();">${option.text}</button>`
-      ).join('');
-      
-      document.body.appendChild(menu);
-      
-      // Close menu when clicking outside
-      setTimeout(() => {
-        document.addEventListener('click', () => menu.remove(), { once: true });
-      }, 100);
     }
   </script>
 </body>

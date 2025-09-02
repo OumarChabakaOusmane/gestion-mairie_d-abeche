@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Actes de Mariage - État Civil Tchad</title>
+  <title id="pageTitle">Actes de Mariage - État Civil Tchad</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style id="common-styles"></style>
@@ -353,7 +353,22 @@
     let currentStep = 1;
     const totalSteps = 4;
     
-    document.addEventListener('DOMContentLoaded', () => {
+    // Variables pour le mode édition
+    let isEditMode = false;
+    let editActeId = null;
+    
+    // Vérifier si on est en mode édition
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      editActeId = urlParams.get('edit');
+      
+      if (editActeId) {
+        isEditMode = true;
+        document.getElementById('pageTitle').textContent = 'Modification d\'un Acte de Mariage - État Civil Tchad';
+        document.querySelector('.form-header h2').textContent = 'Modification d\'un Acte de Mariage';
+        loadActeForEdit(editActeId);
+      }
+      
       const token = checkAuth();
       if (!token) return;
       
@@ -456,6 +471,91 @@
         }
       });
     });
+    
+    // Charger les données de l'acte pour modification
+    async function loadActeForEdit(id) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Session expirée. Veuillez vous reconnecter.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const response = await fetch(`/api/actes/${id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            populateForm(result.data);
+          } else {
+            alert('Erreur lors du chargement de l\'acte: ' + result.error);
+          }
+        } else {
+          alert('Erreur lors du chargement de l\'acte');
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors du chargement de l\'acte');
+      }
+    }
+    
+    // Remplir le formulaire avec les données existantes
+    function populateForm(acte) {
+      if (!acte || !acte.details) return;
+      
+      const details = acte.details;
+      
+      // Informations générales
+      if (acte.numeroActe) document.getElementById('numeroActe').value = acte.numeroActe;
+      if (acte.dateEnregistrement) {
+        document.getElementById('dateEnregistrement').value = acte.dateEnregistrement.split('T')[0];
+      }
+      if (acte.mairie) document.getElementById('mairie').value = acte.mairie;
+      
+      // Époux (Conjoint 1)
+      if (details.conjoint1) document.getElementById('conjoint1').value = details.conjoint1;
+      if (details.dateNaissanceConjoint1) {
+        document.getElementById('dateNaissanceConjoint1').value = details.dateNaissanceConjoint1.split('T')[0];
+      }
+      if (details.lieuNaissanceConjoint1) document.getElementById('lieuNaissanceConjoint1').value = details.lieuNaissanceConjoint1;
+      if (details.professionConjoint1) document.getElementById('professionConjoint1').value = details.professionConjoint1;
+      if (details.pereConjoint1) document.getElementById('pereConjoint1').value = details.pereConjoint1;
+      if (details.mereConjoint1) document.getElementById('mereConjoint1').value = details.mereConjoint1;
+      
+      // Épouse (Conjointe 2)
+      if (details.conjointe2) document.getElementById('conjointe2').value = details.conjointe2;
+      if (details.dateNaissanceConjointe2) {
+        document.getElementById('dateNaissanceConjointe2').value = details.dateNaissanceConjointe2.split('T')[0];
+      }
+      if (details.lieuNaissanceConjointe2) document.getElementById('lieuNaissanceConjointe2').value = details.lieuNaissanceConjointe2;
+      if (details.professionConjointe2) document.getElementById('professionConjointe2').value = details.professionConjointe2;
+      if (details.pereConjointe2) document.getElementById('pereConjointe2').value = details.pereConjointe2;
+      if (details.mereConjointe2) document.getElementById('mereConjointe2').value = details.mereConjointe2;
+      
+      // Mariage
+      if (details.dateMariage) {
+        document.getElementById('dateMariage').value = details.dateMariage.split('T')[0];
+      }
+      if (details.lieuMariage) document.getElementById('lieuMariage').value = details.lieuMariage;
+      if (details.regimeMatrimonial) document.getElementById('regimeMatrimonial').value = details.regimeMatrimonial;
+      
+      // Témoins
+      if (details.temoin1) document.getElementById('temoin1').value = details.temoin1;
+      if (details.temoin2) document.getElementById('temoin2').value = details.temoin2;
+      if (details.temoin3) document.getElementById('temoin3').value = details.temoin3;
+      if (details.temoin4) document.getElementById('temoin4').value = details.temoin4;
+      
+      // Informations complémentaires
+      if (details.observations) document.getElementById('observations').value = details.observations;
+      if (details.officierEtatCivil) document.getElementById('officierEtatCivil').value = details.officierEtatCivil;
+    }
     
     function changeStep(direction) {
       const newStep = currentStep + direction;

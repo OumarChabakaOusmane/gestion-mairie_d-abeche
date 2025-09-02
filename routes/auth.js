@@ -398,9 +398,11 @@ router.post('/forgot-password', async (req, res) => {
               <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte État Civil Tchad.</p>
               <p>Cliquez sur le bouton ci-dessous pour réinitialiser votre mot de passe :</p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" style="background: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Réinitialiser mon mot de passe</a>
+                <a href="${resetUrl}" style="background-color: #dc3545 !important; color: white !important; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; border: none; cursor: pointer;">Réinitialiser mon mot de passe</a>
               </div>
               <p><strong>⚠️ Important :</strong> Ce lien expirera dans 10 minutes.</p>
+              <p>Si le bouton ne fonctionne pas, cliquez directement sur ce lien :</p>
+              <p><a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a></p>
               <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email et votre mot de passe restera inchangé.</p>
               <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
               <p style="color: #6c757d; font-size: 0.9em; text-align: center;">

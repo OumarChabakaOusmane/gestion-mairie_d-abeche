@@ -3,7 +3,11 @@ function createSidebar(activePage = '') {
   return `
     <div class="sidebar">
       <div class="text-center mb-4">
-        <h4><i class="fas fa-landmark me-2"></i> État Civil Tchad</h4>
+        <div class="d-flex align-items-center justify-content-center mb-2">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCA0MCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iIzAwMjY4RiIvPgogIDxyZWN0IHk9IjgiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjRkZEMTAwIi8+CiAgPHJlY3QgeT0iMTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjQ0UxMTI2Ii8+Cjwvc3ZnPgo=" alt="Drapeau du Tchad" class="me-2" style="width: 40px; height: 24px;">
+          <i class="fas fa-landmark me-2"></i>
+        </div>
+        <h4>État Civil Tchad</h4>
       </div>
       <ul class="nav flex-column">
         <li class="nav-item">
@@ -23,7 +27,7 @@ function createSidebar(activePage = '') {
         </li>
         <li class="nav-item">
           <a class="nav-link ${activePage === 'deces' ? 'active' : ''}" href="/deces">
-            <i class="fas fa-cross me-2"></i> Actes de Décès
+            <i class="fas fa-skull me-2"></i> Actes de Décès
           </a>
         </li>
         <li class="nav-item">

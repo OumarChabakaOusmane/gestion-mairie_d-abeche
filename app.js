@@ -53,14 +53,22 @@ app.use('/api/messagerie', authMiddleware, require('./routes/messagerie'));
 app.use('/api/calendrier', authMiddleware, require('./routes/calendrier'));
 app.use('/api/rapports', authMiddleware, require('./routes/rapports'));
 
-// Servir les fichiers HTML
-app.get('/', (req, res) => res.redirect('/dashboard'));
+// Page d'accueil
+app.get('/', (req, res) => {
+  const filePath = path.join(__dirname, 'views', 'index.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    // Si pas de page d'accueil, rediriger vers login
+    res.redirect('/login');
+  }
+});
 
 // Routes pour les pages HTML
 const htmlPages = [
   'dashboard', 'naissance', 'mariage', 'deces', 'calendrier',
   'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
-  'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed', 'reset-password'
+  'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];
 
 htmlPages.forEach(page => {
@@ -72,6 +80,21 @@ htmlPages.forEach(page => {
       res.status(404).send('Page non trouvée');
     }
   });
+});
+
+// Route spéciale pour reset-password avec token
+app.get('/reset-password/:token', (req, res) => {
+  const filePath = path.join(__dirname, 'views', 'reset-password.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('Page non trouvée');
+  }
+});
+
+// Route pour reset-password sans token (redirection vers forgot-password)
+app.get('/reset-password', (req, res) => {
+  res.redirect('/forgot-password');
 });
 
 // Route pour les fichiers uploadés
@@ -111,30 +134,93 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Configuration Socket.IO
+// Configuration Socket.IO avec protections
+const connectedUsers = new Map(); // Tracker les connexions
+
 io.on('connection', (socket) => {
   console.log('Nouvelle connexion Socket.IO:', socket.id);
   
+  // Limiter le nombre de connexions par IP
+  const clientIP = socket.handshake.address;
+  const userConnections = connectedUsers.get(clientIP) || [];
+  
+  if (userConnections.length >= 5) { // Max 5 connexions par IP
+    console.warn(`Trop de connexions pour IP ${clientIP}`);
+    socket.disconnect(true);
+    return;
+  }
+  
+  userConnections.push(socket.id);
+  connectedUsers.set(clientIP, userConnections);
+  
+  // Timeout de connexion inactive (30 minutes)
+  const inactivityTimeout = setTimeout(() => {
+    console.log(`Déconnexion pour inactivité: ${socket.id}`);
+    socket.disconnect(true);
+  }, 30 * 60 * 1000);
+  
+  // Nettoyer le timeout sur activité
+  const resetTimeout = () => {
+    clearTimeout(inactivityTimeout);
+  };
+  
   // Rejoindre une conversation
   socket.on('join-conversation', (conversationId) => {
+    resetTimeout();
+    if (typeof conversationId !== 'string' || conversationId.length > 50) {
+      socket.emit('error', 'ID de conversation invalide');
+      return;
+    }
     socket.join(conversationId);
     console.log(`Socket ${socket.id} a rejoint la conversation ${conversationId}`);
   });
   
   // Quitter une conversation
   socket.on('leave-conversation', (conversationId) => {
+    resetTimeout();
     socket.leave(conversationId);
     console.log(`Socket ${socket.id} a quitté la conversation ${conversationId}`);
   });
   
-  // Nouveau message
+  // Nouveau message avec validation
   socket.on('new-message', (data) => {
+    resetTimeout();
+    
+    // Validation des données
+    if (!data || !data.conversationId || !data.message) {
+      socket.emit('error', 'Données de message invalides');
+      return;
+    }
+    
+    // Limiter la taille du message
+    if (data.message.length > 1000) {
+      socket.emit('error', 'Message trop long');
+      return;
+    }
+    
     socket.to(data.conversationId).emit('message-received', data);
   });
   
   // Déconnexion
   socket.on('disconnect', () => {
+    clearTimeout(inactivityTimeout);
+    
+    // Nettoyer les connexions trackées
+    const userConnections = connectedUsers.get(clientIP) || [];
+    const updatedConnections = userConnections.filter(id => id !== socket.id);
+    
+    if (updatedConnections.length === 0) {
+      connectedUsers.delete(clientIP);
+    } else {
+      connectedUsers.set(clientIP, updatedConnections);
+    }
+    
     console.log('Déconnexion Socket.IO:', socket.id);
+  });
+  
+  // Gérer les erreurs Socket.IO
+  socket.on('error', (error) => {
+    console.error('Erreur Socket.IO:', error);
   });
 });
 

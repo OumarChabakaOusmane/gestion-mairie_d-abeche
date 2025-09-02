@@ -10,17 +10,17 @@ async function createAdmin() {
     console.log('Connecté à MongoDB');
 
     // Supprimer l'admin existant s'il y en a un
-    await User.deleteOne({ email: 'admin@tchad.gov.td' });
+    await User.deleteOne({ email: 'admin@test.com' });
     console.log('Ancien administrateur supprimé (si existant)');
 
-    // Créer le hash du mot de passe (mot de passe simple à retenir)
+    // Créer le hash du mot de passe
     const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash('123456', saltRounds);
+    const hashedPassword = await bcrypt.hash('password123', saltRounds);
 
     // Créer l'utilisateur administrateur
     const admin = new User({
-      name: 'Administrateur Principal',
-      email: 'admin@tchad.gov.td',
+      name: 'Administrateur Test',
+      email: 'admin@test.com',
       password: hashedPassword,
       role: 'admin',
       isEmailConfirmed: true, // Confirmer l'email directement
@@ -33,8 +33,8 @@ async function createAdmin() {
     await admin.save();
     
     console.log('✅ Administrateur créé avec succès !');
-    console.log('📧 Email: admin@tchad.gov.td');
-    console.log('🔑 Mot de passe: 123456');
+    console.log('📧 Email: admin@test.com');
+    console.log('🔑 Mot de passe: password123');
     console.log('👤 Rôle: Administrateur');
     console.log('\nVous pouvez maintenant vous connecter avec ces identifiants.');
 

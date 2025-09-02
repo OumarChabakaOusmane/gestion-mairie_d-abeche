@@ -1,5 +1,9 @@
 class Dashboard {
   constructor() {
+    this.retryCount = 0;
+    this.maxRetries = 3;
+    this.isLoading = false;
+    this.abortController = null;
     this.init();
   }
 
@@ -14,15 +18,37 @@ class Dashboard {
   }
 
   async loadData() {
+    // Éviter les appels multiples simultanés
+    if (this.isLoading) {
+      console.warn('Load already in progress');
+      return;
+    }
+
+    // Limiter les tentatives
+    if (this.retryCount >= this.maxRetries) {
+      throw new Error('Trop de tentatives échouées');
+    }
+
+    this.isLoading = true;
+    
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Authentication required');
+
+      // Annuler la requête précédente si elle existe
+      if (this.abortController) {
+        this.abortController.abort();
+      }
+      this.abortController = new AbortController();
 
       const response = await fetch('/api/actes', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        signal: this.abortController.signal,
+        // Timeout de 10 secondes
+        timeout: 10000
       });
 
       if (!response.ok) {
@@ -34,8 +60,17 @@ class Dashboard {
       if (!success) throw new Error(error);
 
       this.updateDashboard(data);
+      this.retryCount = 0; // Reset sur succès
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request aborted');
+        return;
+      }
+      
+      this.retryCount++;
       throw error;
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -124,11 +159,33 @@ class Dashboard {
   }
 
   setupEventListeners() {
+    // Nettoyer les anciens listeners
+    this.cleanup();
+    
     // Refresh button
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => this.loadData());
+      this.refreshHandler = () => this.loadData();
+      refreshBtn.addEventListener('click', this.refreshHandler);
     }
+  }
+
+  cleanup() {
+    // Nettoyer les event listeners
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn && this.refreshHandler) {
+      refreshBtn.removeEventListener('click', this.refreshHandler);
+    }
+    
+    // Annuler les requêtes en cours
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+  }
+
+  // Méthode pour nettoyer avant destruction
+  destroy() {
+    this.cleanup();
   }
 }
 
