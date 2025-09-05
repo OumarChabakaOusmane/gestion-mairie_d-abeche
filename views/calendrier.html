@@ -308,25 +308,48 @@
     async function loadEvents() {
       try {
         const result = await apiRequest('/api/calendrier');
-        if (result && result.success) {
-          allEvents = result.data.map(event => ({
-            id: event.id || Math.random().toString(36),
-            title: event.title,
-            start: event.start,
-            backgroundColor: event.color,
-            borderColor: event.color,
-            extendedProps: {
-              type: getEventType(event.title),
-              details: event.details || {}
-            }
-          }));
-          
-          updateCalendarEvents();
-          updateStats();
+        
+        if (!result) {
+          throw new Error('Aucune réponse du serveur');
         }
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Erreur lors du chargement des événements');
+        }
+        
+        if (!Array.isArray(result.data)) {
+          console.warn('Les données reçues ne sont pas un tableau:', result);
+          allEvents = [];
+        } else {
+          allEvents = result.data
+            .filter(event => event && event.title && event.start) // Filtrer les événements invalides
+            .map(event => ({
+              id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
+              title: event.title || 'Sans titre',
+              start: event.start,
+              backgroundColor: event.color || getTypeColor(getEventType(event.title)),
+              borderColor: event.color || getTypeColor(getEventType(event.title)),
+              extendedProps: {
+                type: getEventType(event.title),
+                numeroActe: event.extendedProps?.numeroActe || 'N/A',
+                details: event.extendedProps?.details || {}
+              }
+            }));
+        }
+        
+        updateCalendarEvents();
+        updateStats();
+        
       } catch (error) {
         console.error('Erreur lors du chargement des événements:', error);
-        showNotification('Erreur lors du chargement des événements', 'error');
+        showNotification(
+          'Impossible de charger les événements. Veuillez réessayer plus tard.', 
+          'error'
+        );
+        
+        // Données de démonstration en cas d'échec
+        allEvents = [];
+        updateCalendarEvents();
       }
     }
     

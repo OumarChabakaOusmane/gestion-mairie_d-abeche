@@ -1,22 +1,38 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const logger = require('../config/logger');
 
 // Middleware d'authentification de base
 const authenticate = async (req, res, next) => {
   try {
+    // Vérifier le header d'autorisation
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      logger.warn('Tentative d\'accès non autorisé - Token manquant');
       return res.status(401).json({
         success: false,
         error: 'Token d\'authentification requis'
       });
     }
 
+    // Extraire et vérifier le token
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    let decoded;
+    
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      logger.warn('Token JWT invalide', { error: jwtError.message });
+      return res.status(401).json({
+        success: false,
+        error: 'Token invalide ou expiré'
+      });
+    }
 
+    // Récupérer l'utilisateur
+    const user = await User.findById(decoded.id);
     if (!user) {
+      logger.warn(`Utilisateur non trouvé - ID: ${decoded.id}`);
       return res.status(401).json({
         success: false,
         error: 'Utilisateur non trouvé'
@@ -25,28 +41,42 @@ const authenticate = async (req, res, next) => {
 
     // Vérifier si l'email est confirmé
     if (!user.isEmailConfirmed) {
+      logger.warn(`Tentative de connexion avec email non confirmé - ID: ${user._id}`);
       return res.status(401).json({
         success: false,
-        error: 'Email non confirmé'
+        error: 'Veuillez confirmer votre adresse email avant de continuer'
       });
     }
 
     // Vérifier si le compte est verrouillé
     if (user.isLocked) {
+      logger.warn(`Tentative de connexion à un compte verrouillé - ID: ${user._id}`);
       return res.status(423).json({
         success: false,
-        error: 'Compte temporairement verrouillé'
+        error: 'Compte temporairement verrouillé. Veuillez réessayer plus tard.'
       });
     }
 
-    req.user = user;
+    // Ajouter l'utilisateur et le token à la requête
+    req.user = { id: user._id.toString(), role: user.role, email: user.email };
     req.token = token;
+    
+    // Journaliser l'accès réussi
+    logger.info(`Accès autorisé - ID: ${user._id}, Email: ${user.email}`);
+    
     next();
-  } catch (err) {
-    console.error('[AUTH] Erreur:', err);
-    res.status(401).json({
+  } catch (error) {
+    logger.error('Erreur d\'authentification', { 
+      error: error.message,
+      stack: error.stack,
+      url: req.originalUrl,
+      method: req.method
+    });
+    
+    res.status(500).json({
       success: false,
-      error: 'Token invalide'
+      error: 'Erreur d\'authentification',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -55,16 +85,18 @@ const authenticate = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
+      logger.warn('Tentative d\'accès non autorisé - Utilisateur non authentifié');
       return res.status(401).json({
         success: false,
-        error: 'Authentification requise'
+        error: 'Non autorisé - Veuillez vous connecter'
       });
     }
 
     if (!roles.includes(req.user.role)) {
+      logger.warn(`Tentative d\'accès non autorisé - Rôle insuffisant - ID: ${req.user.id}, Rôle: ${req.user.role}`);
       return res.status(403).json({
         success: false,
-        error: 'Accès non autorisé pour ce rôle'
+        error: 'Accès refusé - Droits insuffisants'
       });
     }
 
@@ -76,22 +108,21 @@ const authorize = (...roles) => {
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next();
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
+      
+      if (user && user.isEmailConfirmed && !user.isLocked) {
+        req.user = { id: user._id.toString(), role: user.role, email: user.email };
+        req.token = token;
+      }
     }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (user && user.isEmailConfirmed && !user.isLocked) {
-      req.user = user;
-      req.token = token;
-    }
-
+    
     next();
-  } catch (err) {
-    // En cas d'erreur, on continue sans utilisateur
+  } catch (error) {
+    // En cas d'erreur, on continue sans authentification
     next();
   }
 };

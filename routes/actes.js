@@ -476,6 +476,64 @@ Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`
   doc.text('Signature et cachet', { align: 'right' });
 }
 
+// Récupérer les actes récents
+router.get('/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    
+    // Récupérer les actes récents de tous les types
+    const recentActes = await Acte.find()
+      .sort({ dateEnregistrement: -1 })
+      .limit(limit)
+      .select('type numeroActe nom prenom dateEnregistrement')
+      .lean();
+
+    // Formater la réponse
+    const formattedActes = recentActes.map(acte => ({
+      id: acte._id,
+      type: acte.type,
+      numeroActe: acte.numeroActe,
+      nom: acte.nom,
+      prenom: acte.prenom,
+      date: acte.dateEnregistrement,
+      timeAgo: formatTimeAgo(acte.dateEnregistrement)
+    }));
+
+    res.json({
+      success: true,
+      data: formattedActes
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des actes récents:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération des actes récents',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Fonction utilitaire pour formater la date
+function formatTimeAgo(date) {
+  if (!date) return 'Inconnu';
+  
+  const now = new Date();
+  const diffMs = now - new Date(date);
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMins < 1) return 'À l\'instant';
+  if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
+  if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
+  if (diffDays < 30) return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+  
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `Il y a ${diffMonths} mois`;
+  
+  return `Il y a ${Math.floor(diffMonths / 12)} an${Math.floor(diffMonths / 12) > 1 ? 's' : ''}`;
+}
+
 // Mettre à jour un acte
 router.put('/:id', validateActeInput, async (req, res) => {
   try {

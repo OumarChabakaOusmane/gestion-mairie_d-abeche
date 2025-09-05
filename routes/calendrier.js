@@ -1,47 +1,39 @@
 // routes/calendrier.js
 const express = require('express');
 const router = express.Router();
-const Acte = require('../models/Acte');
+const logger = require('../config/logger');
 
-router.get('/', async (req, res) => {
+// Route de test minimale
+router.get('/', async (req, res, next) => {  
   try {
-    const actes = await Acte.find().sort({ dateEnregistrement: -1 });
+    logger.info('Test de la route /api/calendrier');
     
-    const events = actes.map(acte => {
-      let title, date;
-      
-      switch(acte.type) {
-        case 'naissance':
-          title = `Naissance: ${acte.details.prenom} ${acte.details.nom}`;
-          date = acte.details.dateNaissance;
-          break;
-        case 'mariage':
-          title = `Mariage: ${acte.details.conjoint1} & ${acte.details.conjoint2}`;
-          date = acte.details.dateMariage;
-          break;
-        case 'deces':
-          title = `Décès: ${acte.details.prenom} ${acte.details.nom}`;
-          date = acte.details.dateDeces;
-          break;
-      }
-
-      return {
-        title,
-        start: date,
-        color: acte.type === 'naissance' ? '#3498db' : 
-              acte.type === 'mariage' ? '#2ecc71' : '#e74c3c'
-      };
-    });
-
-    res.json({ 
+    // Réponse de test simple
+    res.json({
       success: true,
-      data: events 
+      data: [
+        {
+          id: 'test-1',
+          title: 'Test Événement',
+          start: new Date().toISOString(),
+          color: '#3498db',
+          extendedProps: {
+            type: 'test',
+            numeroActe: 'TEST-001',
+            details: { test: true }
+          }
+        }
+      ]
     });
-  } catch (err) {
-    res.status(500).json({ 
-      success: false,
-      error: err.message 
+    
+  } catch (error) {
+    logger.error('Erreur dans la route de test:', {
+      message: error.message,
+      stack: error.stack
     });
+    
+    // Utilisation de next pour passer à la gestion d'erreur
+    next(error);
   }
 });
 

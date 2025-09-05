@@ -1,12 +1,45 @@
 const mongoose = require('mongoose');
 
-const MessageSchema = new mongoose.Schema({
-  sender: { type: String, required: true },
-  recipient: { type: String, required: true },
-  subject: { type: String, required: true },
-  body: { type: String, required: true },
-  read: { type: Boolean, default: false },
-  sentAt: { type: Date, default: Date.now }
+const messageSchema = new mongoose.Schema({
+  conversation: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation',
+    required: true
+  },
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  readAt: {
+    type: Date
+  }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('Message', MessageSchema);
+// Index pour les requêtes fréquentes
+messageSchema.index({ conversation: 1, createdAt: 1 });
+messageSchema.index({ sender: 1, createdAt: 1 });
+
+// Méthode pour marquer un message comme lu
+messageSchema.methods.markAsRead = async function() {
+  if (!this.read) {
+    this.read = true;
+    this.readAt = new Date();
+    await this.save();
+  }
+};
+
+const Message = mongoose.model('Message', messageSchema);
+
+module.exports = Message;

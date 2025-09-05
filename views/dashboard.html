@@ -80,7 +80,17 @@
     }
     
     .stat-card.documents {
-      background: linear-gradient(135deg, #f39c12, #e67e22);
+      background: linear-gradient(135deg, #1abc9c, #16a085);
+      color: white;
+    }
+    
+    .stat-card.divorces {
+      background: linear-gradient(135deg, #f39c12, #d35400);
+      color: white;
+    }
+    
+    .stat-card.engagements {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
       color: white;
     }
     
@@ -203,6 +213,94 @@
         transition: none;
       }
     }
+    
+    /* Styles pour le tableau de bord */
+    .main-content {
+      padding: 1rem;
+    }
+    
+    .dashboard-header {
+      padding: 1rem 0;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+    }
+    
+    .stat-card {
+      height: 160px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    
+    .stat-card .stat-number {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+    }
+    
+    .stat-card .stat-icon {
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      opacity: 0.8;
+    }
+    
+    /* Réduire l'espacement des cartes de statistiques */
+    .row {
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Style pour la section de gestion des actes */
+    .quick-actions {
+      margin-top: 1.5rem;
+    }
+    
+    .quick-actions h5 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #495057;
+    }
+    
+    /* Améliorer la table des actes */
+    #actesTable {
+      font-size: 0.875rem;
+    }
+    
+    #actesTable th {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    #actesTable td {
+      vertical-align: middle;
+    }
+    
+    /* Réduire la hauteur des lignes du tableau */
+    .table > :not(caption) > * > * {
+      padding: 0.5rem;
+    }
+    
+    /* Boutons d'action plus compacts */
+    .btn-action {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      margin-right: 0.25rem;
+    }
+    
+    /* Ajustements pour les petits écrans */
+    @media (max-width: 992px) {
+      .stat-card {
+        height: auto;
+        min-height: 120px;
+      }
+      
+      .dashboard-header h1 {
+        font-size: 1.5rem;
+      }
+      
+      .stat-card .stat-number {
+        font-size: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -263,16 +361,9 @@
             <i class="fas fa-baby"></i>
           </div>
           <div class="stat-number" id="births-count">0</div>
-          <div class="stat-label">Naissances enregistrées</div>
+          <div class="stat-label">Naissances</div>
           <div class="progress-custom">
             <div class="progress-bar-custom" id="births-progress" style="width: 0%"></div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted" id="births-goal">Objectif: 1,500</small>
-            <div class="metric-trend trend-up" id="births-trend">
-              <i class="fas fa-arrow-up"></i>
-              <span>+12%</span>
-            </div>
           </div>
         </div>
       </div>
@@ -283,16 +374,9 @@
             <i class="fas fa-ring"></i>
           </div>
           <div class="stat-number" id="marriages-count">0</div>
-          <div class="stat-label">Mariages célébrés</div>
+          <div class="stat-label">Mariages</div>
           <div class="progress-custom">
             <div class="progress-bar-custom" id="marriages-progress" style="width: 0%"></div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted" id="marriages-goal">Objectif: 600</small>
-            <div class="metric-trend trend-up" id="marriages-trend">
-              <i class="fas fa-arrow-up"></i>
-              <span>+8%</span>
-            </div>
           </div>
         </div>
       </div>
@@ -300,19 +384,12 @@
       <div class="col-lg-3 col-md-6">
         <div class="stat-card deaths">
           <div class="stat-icon">
-            <i class="fas fa-skull"></i>
+            <i class="fas fa-cross"></i>
           </div>
           <div class="stat-number" id="deaths-count">0</div>
-          <div class="stat-label">Décès enregistrés</div>
+          <div class="stat-label">Décès</div>
           <div class="progress-custom">
             <div class="progress-bar-custom" id="deaths-progress" style="width: 0%"></div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted" id="deaths-goal">Objectif: 400</small>
-            <div class="metric-trend trend-down" id="deaths-trend">
-              <i class="fas fa-arrow-down"></i>
-              <span>-3%</span>
-            </div>
           </div>
         </div>
       </div>
@@ -323,16 +400,38 @@
             <i class="fas fa-file-alt"></i>
           </div>
           <div class="stat-number" id="documents-count">0</div>
-          <div class="stat-label">Documents traités</div>
+          <div class="stat-label">Documents</div>
           <div class="progress-custom">
             <div class="progress-bar-custom" id="documents-progress" style="width: 0%"></div>
           </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted" id="documents-goal">Ce mois</small>
-            <div class="metric-trend trend-up" id="documents-trend">
-              <i class="fas fa-arrow-up"></i>
-              <span>+25%</span>
-            </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Deuxième rangée de cartes -->
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card divorces">
+          <div class="stat-icon">
+            <i class="fas fa-heart-broken"></i>
+          </div>
+          <div class="stat-number" id="divorces-count">0</div>
+          <div class="stat-label">Divorces</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="divorces-progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card engagements">
+          <div class="stat-icon">
+            <i class="fas fa-handshake"></i>
+          </div>
+          <div class="stat-number" id="engagements-count">0</div>
+          <div class="stat-label">Engagements</div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom" id="engagements-progress" style="width: 0%"></div>
           </div>
         </div>
       </div>
@@ -364,7 +463,7 @@
   <script src="/js/sidebar-template.js"></script>
   <script>
     let dashboardData = {
-      stats: { births: 0, marriages: 0, deaths: 0, documents: 0 },
+      stats: { naissances: 0, mariages: 0, deces: 0, documents: 0 },
       charts: { evolution: null, distribution: null, region: null },
       activities: []
     };
@@ -374,10 +473,10 @@
       fr: {
         title: 'Tableau de Bord d\'Abéché',
         subtitle: 'Vue d\'ensemble des activités d\'état civil d\'Abéché',
-        births: 'Naissances enregistrées',
-        marriages: 'Mariages célébrés',
-        deaths: 'Décès enregistrés',
-        documents: 'Documents traités',
+        naissances: 'Naissances',
+        mariages: 'Mariages',
+        deces: 'Décès',
+        documents: 'Documents',
         refresh: 'Actualiser',
         export: 'Exporter',
         search: 'Rechercher dans tous les actes...'
@@ -385,10 +484,10 @@
       ar: {
         title: 'لوحة تحكم أبشي',
         subtitle: 'نظرة عامة على أنشطة الأحوال المدنية في أبشي',
-        births: 'المواليد المسجلة',
-        marriages: 'الزيجات المحتفل بها',
-        deaths: 'الوفيات المسجلة',
-        documents: 'الوثائق المعالجة',
+        naissances: 'المواليد',
+        mariages: 'الزيجات',
+        deces: 'الوفيات',
+        documents: 'الوثائق',
         refresh: 'تحديث',
         export: 'تصدير',
         search: 'البحث في جميع السجلات...'
@@ -396,10 +495,10 @@
       en: {
         title: 'Abéché Dashboard',
         subtitle: 'Overview of civil status activities in Abéché',
-        births: 'Registered births',
-        marriages: 'Celebrated marriages',
-        deaths: 'Registered deaths',
-        documents: 'Processed documents',
+        naissances: 'Births',
+        mariages: 'Marriages',
+        deces: 'Deaths',
+        documents: 'Documents',
         refresh: 'Refresh',
         export: 'Export',
         search: 'Search in all records...'
@@ -417,14 +516,14 @@
         document.getElementById('globalSearch').placeholder = t.search;
         
         // Mettre à jour les labels des statistiques
-        const birthsLabel = document.querySelector('.births .stat-label');
-        const marriagesLabel = document.querySelector('.marriages .stat-label');
-        const deathsLabel = document.querySelector('.deaths .stat-label');
+        const naissancesLabel = document.querySelector('.births .stat-label');
+        const mariagesLabel = document.querySelector('.marriages .stat-label');
+        const decesLabel = document.querySelector('.deaths .stat-label');
         const documentsLabel = document.querySelector('.documents .stat-label');
         
-        if (birthsLabel) birthsLabel.textContent = t.births;
-        if (marriagesLabel) marriagesLabel.textContent = t.marriages;
-        if (deathsLabel) deathsLabel.textContent = t.deaths;
+        if (naissancesLabel) naissancesLabel.textContent = t.naissances;
+        if (mariagesLabel) mariagesLabel.textContent = t.mariages;
+        if (decesLabel) decesLabel.textContent = t.deces;
         if (documentsLabel) documentsLabel.textContent = t.documents;
         
         // Mettre à jour les boutons
@@ -552,7 +651,6 @@
         
         // Charger les données de manière séquentielle pour éviter la surcharge
         await executeRequest(() => loadStatistics());
-        await executeRequest(() => loadRecentActivities());
         
         hideLoadingState();
       } catch (error) {
@@ -564,140 +662,97 @@
 
     async function loadStatistics() {
       try {
-        const response = await apiRequest('/api/dashboard/stats', 'GET');
-        if (response.success) {
-          dashboardData.stats = response.data;
+        const response = await apiRequest('/api/dashboard/stats');
+        if (response && response.success) {
+          dashboardData.stats = {
+            naissances: response.data.naissances || 0,
+            mariages: response.data.mariages || 0,
+            deces: response.data.deces || 0,
+            documents: response.data.total || 0,
+            divorces: response.data.divorces || 0,
+            engagements: response.data.engagements || 0
+          };
           updateStatCards();
+        } else {
+          throw new Error(response?.error || 'Erreur inconnue');
         }
       } catch (error) {
-        console.error('Error loading statistics:', error);
-        // Use mock data for demo
-        dashboardData.stats = {
-          births: 1247,
-          marriages: 423,
-          deaths: 156,
-          documents: 2891
-        };
-        updateStatCards();
+        console.error('Erreur lors du chargement des statistiques:', error);
+        showError('Impossible de charger les statistiques. Utilisation des données en cache.');
       }
     }
 
     function updateStatCards() {
-      const stats = dashboardData.stats;
+      const stats = dashboardData.stats || {};
       
-      // Update numbers with animation
-      animateNumber('births-count', stats.births);
-      animateNumber('marriages-count', stats.marriages);
-      animateNumber('deaths-count', stats.deaths);
-      animateNumber('documents-count', stats.documents);
-      
-      // Update progress bars
-      updateProgress('births-progress', stats.births, 1500);
-      updateProgress('marriages-progress', stats.marriages, 600);
-      updateProgress('deaths-progress', stats.deaths, 400);
-      updateProgress('documents-progress', stats.documents, 3000);
-    }
-
-    function animateNumber(elementId, targetValue) {
-      const element = document.getElementById(elementId);
-      if (!element) return;
-      
-      // Annuler l'animation précédente si elle existe
-      if (element.animationId) {
-        cancelAnimationFrame(element.animationId);
-      }
-      
-      const startValue = parseInt(element.textContent.replace(/\D/g, '')) || 0;
-      const duration = Math.min(2000, Math.abs(targetValue - startValue) * 2); // Durée adaptative
-      const startTime = Date.now();
-      
-      function update() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Utiliser easing pour une animation plus fluide
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-        const currentValue = Math.floor(startValue + (targetValue - startValue) * easeProgress);
-        
-        element.textContent = currentValue.toLocaleString('fr-FR');
-        
-        if (progress < 1) {
-          element.animationId = requestAnimationFrame(update);
-        } else {
-          delete element.animationId;
-        }
-      }
-      
-      element.animationId = requestAnimationFrame(update);
-    }
-
-    function updateProgress(elementId, current, target) {
-      const percentage = Math.min((current / target) * 100, 100);
-      const element = document.getElementById(elementId);
-      
-      setTimeout(() => {
-        element.style.width = percentage + '%';
-      }, 500);
-    }
-
-    async function loadRecentActivities() {
-      try {
-        const response = await apiRequest('/api/dashboard/activities', 'GET');
-        if (response.success) {
-          dashboardData.activities = response.data;
-        } else {
-          // Mock data for demo
-          dashboardData.activities = [
-            { type: 'birth', description: 'Naissance de MAHAMAT Ahmed', time: '2 heures', user: 'Marie Dupont' },
-            { type: 'marriage', description: 'Mariage de HASSAN Fatima et IBRAHIM Omar', time: '4 heures', user: 'Jean Martin' },
-            { type: 'document', description: 'Document téléchargé: Acte_Naissance_001.pdf', time: '6 heures', user: 'Système' },
-            { type: 'birth', description: 'Naissance de KHADIJA Aisha', time: '1 jour', user: 'Sophie Bernard' },
-            { type: 'death', description: 'Décès de MOUSSA Ibrahim', time: '2 jours', user: 'Pierre Dubois' }
-          ];
-        }
-      } catch (error) {
-        console.error('Error loading activities:', error);
-      }
+      // Mettre à jour les compteurs avec animation
+      if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
+      if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
+      if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
+      if (stats.divorces !== undefined) animateNumber('divorces-count', stats.divorces);
+      if (stats.engagements !== undefined) animateNumber('engagements-count', stats.engagements);
+      if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
     }
 
     async function loadRecentActes() {
       try {
-        const response = await apiRequest('/api/actes', 'GET');
-        if (response.success) {
+        const response = await apiRequest('/api/actes?limit=10&sort=-dateEnregistrement');
+        if (response && response.success) {
           displayActes(response.data);
+          // Mettre à jour les compteurs après le chargement des actes
+          updateActesCounts(response.data);
         } else {
-          // Mock data for demo
-          const mockActes = [
-            { _id: '1', numeroActe: 'N001', type: 'naissance', nom: 'MAHAMAT Ahmed', dateEnregistrement: '2023-02-15' },
-            { _id: '2', numeroActe: 'M002', type: 'mariage', nom: 'HASSAN Fatima et IBRAHIM Omar', dateEnregistrement: '2023-03-01' },
-            { _id: '3', numeroActe: 'D003', type: 'deces', nom: 'MOUSSA Ibrahim', dateEnregistrement: '2023-04-10' }
-          ];
-          displayActes(mockActes);
+          throw new Error(response?.error || 'Erreur inconnue');
         }
       } catch (error) {
-        console.error('Error loading actes:', error);
-        // Afficher données mock en cas d'erreur
-        const mockActes = [
-          { _id: '1', numeroActe: 'N001', type: 'naissance', nom: 'MAHAMAT Ahmed', dateEnregistrement: '2023-02-15' },
-          { _id: '2', numeroActe: 'M002', type: 'mariage', nom: 'HASSAN Fatima et IBRAHIM Omar', dateEnregistrement: '2023-03-01' },
-          { _id: '3', numeroActe: 'D003', type: 'deces', nom: 'MOUSSA Ibrahim', dateEnregistrement: '2023-04-10' }
-        ];
-        displayActes(mockActes);
+        console.error('Erreur lors du chargement des actes récents:', error);
+        showError('Impossible de charger les actes récents');
       }
+    }
+
+    function updateActesCounts(actes) {
+      if (!actes || !Array.isArray(actes)) return;
+      
+      const counts = {
+        naissance: 0,
+        mariage: 0,
+        deces: 0,
+        divorce: 0,
+        engagement: 0
+      };
+      
+      actes.forEach(acte => {
+        if (acte.type && counts.hasOwnProperty(acte.type)) {
+          counts[acte.type]++;
+        }
+      });
+      
+      // Mettre à jour les compteurs
+      if (counts.naissance > 0) animateNumber('births-count', counts.naissance);
+      if (counts.mariage > 0) animateNumber('marriages-count', counts.mariage);
+      if (counts.deces > 0) animateNumber('deaths-count', counts.deces);
+      if (counts.divorce > 0) animateNumber('divorces-count', counts.divorce);
+      if (counts.engagement > 0) animateNumber('engagements-count', counts.engagement);
+      
+      // Mettre à jour le nombre total de documents
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      if (total > 0) animateNumber('documents-count', total);
     }
 
     function displayActes(actes) {
       const tbody = document.querySelector('#actesTable tbody');
       if (!tbody) return;
       
-      if (actes.length === 0) {
+      if (!actes || actes.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
         return;
       }
       
       tbody.innerHTML = actes.map(acte => {
         const typeLabel = getTypeLabel(acte.type);
-        const formattedDate = new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR');
+        const formattedDate = acte.dateEnregistrement 
+          ? new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')
+          : 'Non renseigné';
         
         // Extraire le nom selon le type d'acte
         let nomComplet = '';
@@ -714,33 +769,126 @@
           nomComplet = acte.nom;
         }
         
+        const acteId = acte._id || acte.id;
+        if (!acteId) {
+          console.error('Acte sans ID valide:', acte);
+          return '';
+        }
+        
         return `
-          <tr>
+          <tr data-id="${acteId}">
             <td>${acte.numeroActe || 'N/A'}</td>
             <td><span class="badge bg-${getTypeBadgeColor(acte.type)}">${typeLabel}</span></td>
             <td>${nomComplet || 'Non renseigné'}</td>
             <td>${formattedDate}</td>
             <td>
-              <button class="btn btn-sm btn-primary me-1" onclick="viewActe('${acte._id}')">
-                <i class="fas fa-eye"></i> Voir
-              </button>
-              <button class="btn btn-sm btn-secondary me-1" onclick="editActe('${acte._id}')">
-                <i class="fas fa-edit"></i> Modifier
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="deleteActe('${acte._id}', '${acte.numeroActe}')">
-                <i class="fas fa-trash"></i> Supprimer
-              </button>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-primary view-acte" data-id="${acteId}">
+                  <i class="fas fa-eye"></i> Voir
+                </button>
+                <button type="button" class="btn btn-secondary edit-acte" data-id="${acteId}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-danger delete-acte" data-id="${acteId}" data-numero="${acte.numeroActe || ''}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
-      }).join('');
+      }).filter(Boolean).join('');
+      
+      // Ajouter les écouteurs d'événements après le rendu
+      addActesEventListeners();
     }
+
+    function addActesEventListeners() {
+      // Gestionnaire pour le bouton Voir
+      document.querySelectorAll('.view-acte').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          if (id) viewActe(id);
+        });
+      });
+
+      // Gestionnaire pour le bouton Modifier
+      document.querySelectorAll('.edit-acte').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          if (id) editActe(id);
+        });
+      });
+
+      // Gestionnaire pour le bouton Supprimer
+      document.querySelectorAll('.delete-acte').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const numero = e.currentTarget.getAttribute('data-numero');
+          if (id) deleteActe(id, numero);
+        });
+      });
+    }
+
+    // S'assurer que les fonctions sont disponibles dans la portée globale
+    window.viewActe = async function(id) {
+      try {
+        const response = await apiRequest(`/api/actes/${id}`);
+        if (response && response.success) {
+          showActeDetails(response.data);
+        } else {
+          throw new Error(response?.error || 'Erreur lors du chargement de l\'acte');
+        }
+      } catch (error) {
+        console.error('Error viewing acte:', error);
+        showError('Erreur lors de la consultation de l\'acte');
+      }
+    };
+
+    window.editActe = async function(id) {
+      try {
+        const response = await apiRequest(`/api/actes/${id}`);
+        if (response && response.success) {
+          const acte = response.data;
+          window.location.href = `/${acte.type}?edit=${id}`;
+        } else {
+          throw new Error(response?.error || 'Erreur lors du chargement de l\'acte');
+        }
+      } catch (error) {
+        console.error('Error loading acte for edit:', error);
+        showError('Erreur lors du chargement de l\'acte');
+      }
+    };
+
+    window.deleteActe = async function(id, numeroActe) {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numeroActe || ''} ?`)) {
+        return;
+      }
+      
+      try {
+        const response = await apiRequest(`/api/actes/${id}`, { method: 'DELETE' });
+        if (response && response.success) {
+          showSuccess(`Acte ${numeroActe || ''} supprimé avec succès`);
+          // Supprimer la ligne du tableau
+          const row = document.querySelector(`tr[data-id="${id}"]`);
+          if (row) row.remove();
+          // Recharger les statistiques
+          loadStatistics();
+        } else {
+          throw new Error(response?.error || 'Erreur lors de la suppression');
+        }
+      } catch (error) {
+        console.error('Error deleting acte:', error);
+        showError('Erreur lors de la suppression de l\'acte');
+      }
+    };
 
     function getTypeLabel(type) {
       const labels = {
         naissance: 'Naissance',
         mariage: 'Mariage',
-        deces: 'Décès'
+        deces: 'Décès',
+        divorce: 'Divorce',
+        engagement: 'Engagement de concubinage'
       };
       return labels[type] || type;
     }
@@ -749,7 +897,9 @@
       const colors = {
         naissance: 'primary',
         mariage: 'success',
-        deces: 'danger'
+        deces: 'danger',
+        divorce: 'warning',
+        engagement: 'info'
       };
       return colors[type] || 'secondary';
     }
@@ -802,93 +952,80 @@
     }
 
     function showActeDetails(acte) {
-      // Créer une modal simple pour afficher les détails
-      let modalHtml = `
-        <div class="modal fade" id="acteModal" tabindex="-1">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Détails de l'acte ${acte.numeroActe || 'N/A'}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body">
-                <p><strong>Type:</strong> ${getTypeLabel(acte.type)}</p>
-                <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
-                <p><strong>Date d'enregistrement:</strong> ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}</p>
-                <p><strong>Mairie:</strong> ${acte.mairie || 'Non renseigné'}</p>
-                <hr>
-      `;
+      // Créer un élément modal avec un ID unique
+      const modalId = `acteModal-${Date.now()}`;
       
-      if (acte.details) {
-        if (acte.type === 'naissance') {
-          modalHtml += `
-            <h6><strong>Informations de naissance</strong></h6>
-            <p><strong>Nom:</strong> ${acte.details.nom || 'Non renseigné'}</p>
-            <p><strong>Prénom:</strong> ${acte.details.prenom || 'Non renseigné'}</p>
-            <p><strong>Date de naissance:</strong> ${acte.details.dateNaissance ? new Date(acte.details.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
-            <p><strong>Lieu de naissance:</strong> ${acte.details.lieuNaissance || 'Non renseigné'}</p>
-            <p><strong>Sexe:</strong> ${acte.details.sexe === 'M' ? 'Masculin' : acte.details.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</p>
-            <p><strong>Heure de naissance:</strong> ${acte.details.heureNaissance || 'Non renseigné'}</p>
-            <hr>
-            <h6><strong>Filiation</strong></h6>
-            <p><strong>Père:</strong> ${acte.details.prenomPere || ''} ${acte.details.pere || acte.details.nomPere || 'Non renseigné'}</p>
-            <p><strong>Mère:</strong> ${acte.details.prenomMere || ''} ${acte.details.mere || acte.details.nomMere || 'Non renseigné'}</p>
-            <p><strong>Adresse des parents:</strong> ${acte.details.adresse || 'Non renseigné'}</p>
-          `;
-        } else if (acte.type === 'mariage') {
-          modalHtml += `
-            <h6><strong>Informations de mariage</strong></h6>
-            <p><strong>Époux:</strong> ${acte.details.conjoint1 || acte.details.nomEpoux || 'Non renseigné'}</p>
-            <p><strong>Épouse:</strong> ${acte.details.conjointe2 || acte.details.nomEpouse || 'Non renseigné'}</p>
-            <p><strong>Date de mariage:</strong> ${acte.details.dateMariage ? new Date(acte.details.dateMariage).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
-            <p><strong>Lieu de mariage:</strong> ${acte.details.lieuMariage || 'Non renseigné'}</p>
-            <p><strong>Heure de mariage:</strong> ${acte.details.heureMariage || 'Non renseigné'}</p>
-          `;
-        } else if (acte.type === 'deces') {
-          modalHtml += `
-            <h6><strong>Informations de décès</strong></h6>
-            <p><strong>Nom:</strong> ${acte.details.nom || 'Non renseigné'}</p>
-            <p><strong>Prénom:</strong> ${acte.details.prenom || 'Non renseigné'}</p>
-            <p><strong>Date de décès:</strong> ${acte.details.dateDeces ? new Date(acte.details.dateDeces).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
-            <p><strong>Lieu de décès:</strong> ${acte.details.lieuDeces || 'Non renseigné'}</p>
-            <p><strong>Âge au décès:</strong> ${acte.details.age || 'Non renseigné'}</p>
-            <p><strong>Sexe:</strong> ${acte.details.sexe === 'M' ? 'Masculin' : acte.details.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</p>
-            <p><strong>Cause du décès:</strong> ${acte.details.cause || 'Non renseigné'}</p>
-            <hr>
-            <h6><strong>Déclarant</strong></h6>
-            <p><strong>Nom du déclarant:</strong> ${acte.details.nomDeclarant || 'Non renseigné'}</p>
-            <p><strong>Lien avec le défunt:</strong> ${acte.details.lienDeclarant || 'Non renseigné'}</p>
-          `;
-        }
-      } else {
-        modalHtml += `<p class="text-muted">Aucun détail disponible pour cet acte.</p>`;
-      }
+      // Créer la structure du modal avec JavaScript pur
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.id = modalId;
+      modal.tabIndex = '-1';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', `${modalId}Label`);
       
-      modalHtml += `
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary" onclick="downloadActePdf('${acte._id}')">
-                  <i class="fas fa-download"></i> Télécharger PDF
-                </button>
-              </div>
+      // Créer le contenu du modal
+      modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="${modalId}Label">Détails de l'acte ${acte.numeroActe || 'N/A'}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Type:</strong> ${getTypeLabel(acte.type)}</p>
+              <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
+              <p><strong>Date d'enregistrement:</strong> ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}</p>
+              <p><strong>Mairie:</strong> ${acte.mairie || 'Non renseigné'}</p>
+              <hr>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-primary" onclick="downloadActePdf('${acte._id}')">
+                <i class="fas fa-download"></i> Télécharger PDF
+              </button>
             </div>
           </div>
         </div>
       `;
       
-      // Supprimer l'ancienne modal si elle existe
-      const existingModal = document.getElementById('acteModal');
-      if (existingModal) {
-        existingModal.remove();
-      }
+      // Ajouter la modal au début du body
+      document.body.insertBefore(modal, document.body.firstChild);
       
-      // Ajouter la nouvelle modal
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      // Initialiser la modal Bootstrap
+      const bsModal = new bootstrap.Modal(modal, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+      });
+      
+      // Gérer l'affichage de la modal
+      const handleShown = () => {
+        // S'assurer que le focus est sur le premier élément focusable
+        const focusable = modal.querySelector('button:not([disabled])');
+        if (focusable) focusable.focus();
+      };
+      
+      // Gérer la fermeture de la modal
+      const handleHidden = () => {
+        // Nettoyer les écouteurs d'événements
+        modal.removeEventListener('shown.bs.modal', handleShown);
+        modal.removeEventListener('hidden.bs.modal', handleHidden);
+        
+        // Supprimer la modal du DOM
+        if (document.body.contains(modal)) {
+          modal.remove();
+        }
+      };
+      
+      // Ajouter les écouteurs d'événements
+      modal.addEventListener('shown.bs.modal', handleShown);
+      modal.addEventListener('hidden.bs.modal', handleHidden, { once: true });
       
       // Afficher la modal
-      const modal = new bootstrap.Modal(document.getElementById('acteModal'));
-      modal.show();
+      bsModal.show();
+      
+      // Retourner la référence à la modal
+      return bsModal;
     }
 
     async function downloadActePdf(id) {
@@ -911,6 +1048,90 @@
       } else {
         console.error('Error downloading PDF:', response.statusText);
         showError('Erreur lors du téléchargement du PDF');
+      }
+    }
+
+    // Fonction pour animer les nombres
+    function animateNumber(elementId, targetValue) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      const startValue = parseInt(element.textContent) || 0;
+      const duration = 1000; // 1 seconde d'animation
+      let startTimestamp = null;
+      
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        
+        // Fonction d'interpolation pour un effet plus fluide
+        const easeOutQuad = (t) => t * (2 - t);
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOutQuad(progress));
+        
+        element.textContent = currentValue.toLocaleString('fr-FR');
+        
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      
+      window.requestAnimationFrame(step);
+    }
+
+    // Fonction pour mettre à jour les barres de progression
+    function updateProgress(elementId, current, target) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      const percentage = Math.min((current / target) * 100, 100);
+      element.style.width = `${percentage}%`;
+    }
+
+    async function loadStatistics() {
+      try {
+        const response = await apiRequest('/api/dashboard/stats');
+        if (response && response.success) {
+          dashboardData.stats = {
+            naissances: response.data.naissances || 0,
+            mariages: response.data.mariages || 0,
+            deces: response.data.deces || 0,
+            documents: response.data.total || 0,
+            divorces: response.data.divorces || 0,
+            engagements: response.data.engagements || 0
+          };
+          updateStatCards();
+        } else {
+          throw new Error(response?.error || 'Erreur inconnue');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des statistiques:', error);
+        showError('Impossible de charger les statistiques. Utilisation des données en cache.');
+      }
+    }
+
+    function updateStatCards() {
+      const stats = dashboardData.stats || {};
+      
+      // Mettre à jour les compteurs avec animation
+      if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
+      if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
+      if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
+      if (stats.divorces !== undefined) animateNumber('divorces-count', stats.divorces);
+      if (stats.engagements !== undefined) animateNumber('engagements-count', stats.engagements);
+      if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
+    }
+
+    async function loadRecentActes() {
+      try {
+        const response = await apiRequest('/api/actes?limit=10&sort=-dateEnregistrement');
+        if (response && response.success) {
+          displayActes(response.data);
+        } else {
+          throw new Error(response?.error || 'Erreur inconnue');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des actes récents:', error);
+        showError('Impossible de charger les actes récents');
       }
     }
 
@@ -986,17 +1207,17 @@
         doc.setFontSize(16);
         doc.text('Statistiques', 20, 50);
         doc.setFontSize(12);
-        doc.text(`Naissances: ${stats.births || 0}`, 20, 65);
-        doc.text(`Mariages: ${stats.marriages || 0}`, 20, 75);
-        doc.text(`Décès: ${stats.deaths || 0}`, 20, 85);
-        doc.text(`Documents: ${stats.documents || 0}`, 20, 95);
+        doc.text(`Naissances: ${stats.naissances || 0}`, 20, 65);
+        doc.text(`Mariages: ${stats.mariages || 0}`, 20, 75);
+        doc.text(`Décès: ${stats.deces || 0}`, 20, 85);
+        doc.text(`Documents: ${stats.total || 0}`, 20, 95);
         
         // Télécharger
         doc.save(`rapport-dashboard-${currentDate.replace(/\//g, '-')}.pdf`);
         showSuccess('PDF exporté avec succès');
         
       } catch (error) {
-        console.error('Erreur export PDF:', error);
+        console.error('Error exporting PDF:', error);
         showError('Erreur lors de l\'export PDF. Veuillez réessayer.');
       }
     }
@@ -1015,10 +1236,10 @@
           [`État Civil d'Abéché - ${currentDate}`],
           [''],
           ['Type', 'Nombre'],
-          ['Naissances', stats.births || 0],
-          ['Mariages', stats.marriages || 0],
-          ['Décès', stats.deaths || 0],
-          ['Documents', stats.documents || 0]
+          ['Naissances', stats.naissances || 0],
+          ['Mariages', stats.mariages || 0],
+          ['Décès', stats.deces || 0],
+          ['Documents', stats.total || 0]
         ];
         
         // Créer le CSV (format compatible Excel)
@@ -1034,7 +1255,7 @@
         showSuccess('Fichier Excel exporté avec succès');
         
       } catch (error) {
-        console.error('Erreur export Excel:', error);
+        console.error('Error exporting Excel:', error);
         showError('Erreur lors de l\'export Excel. Veuillez réessayer.');
       }
     }
@@ -1079,7 +1300,7 @@
         showSuccess('Fichier CSV exporté avec succès');
         
       } catch (error) {
-        console.error('Erreur export CSV:', error);
+        console.error('Error exporting CSV:', error);
         showError('Erreur lors de l\'export CSV. Veuillez réessayer.');
       }
     }
@@ -1111,6 +1332,7 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
       alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      
       alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

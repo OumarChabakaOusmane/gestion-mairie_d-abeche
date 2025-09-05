@@ -2,10 +2,21 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { authenticate } = require('../middleware/auth');
+
+// Appliquer le middleware d'authentification à toutes les routes
+router.use(authenticate);
 
 // Route pour obtenir les informations de l'utilisateur connecté
 router.get('/me', async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        error: 'Non authentifié'
+      });
+    }
+    
     const user = await User.findById(req.user.id).select('-password');
     
     if (!user) {
@@ -20,9 +31,11 @@ router.get('/me', async (req, res) => {
       data: user
     });
   } catch (err) {
+    console.error('Erreur dans /me:', err);
     res.status(500).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -55,9 +68,11 @@ router.put('/me', async (req, res) => {
       data: user
     });
   } catch (err) {
+    console.error('Erreur dans /me:', err);
     res.status(400).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -88,9 +103,11 @@ router.put('/me/password', async (req, res) => {
       message: 'Mot de passe changé avec succès'
     });
   } catch (err) {
+    console.error('Erreur dans /me/password:', err);
     res.status(400).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -112,9 +129,11 @@ router.put('/me/settings', async (req, res) => {
       data: user
     });
   } catch (err) {
+    console.error('Erreur dans /me/settings:', err);
     res.status(400).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -151,9 +170,11 @@ router.post('/', async (req, res) => {
       data: { _id: user._id, name, email, role }
     });
   } catch (err) {
+    console.error('Erreur dans /:', err);
     res.status(400).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -167,9 +188,11 @@ router.get('/', async (req, res) => {
       data: users
     });
   } catch (err) {
+    console.error('Erreur dans /:', err);
     res.status(500).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -191,9 +214,11 @@ router.get('/:id', async (req, res) => {
       data: user
     });
   } catch (err) {
+    console.error('Erreur dans /:id:', err);
     res.status(500).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -229,9 +254,11 @@ router.put('/:id', async (req, res) => {
       data: user
     });
   } catch (err) {
+    console.error('Erreur dans /:id:', err);
     res.status(400).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -253,9 +280,11 @@ router.delete('/:id', async (req, res) => {
       message: 'Utilisateur supprimé avec succès'
     });
   } catch (err) {
+    console.error('Erreur dans /:id:', err);
     res.status(500).json({
       success: false,
-      error: err.message
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });

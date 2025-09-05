@@ -59,23 +59,24 @@
             <p class="mb-0">Créer un nouveau compte</p>
         </div>
         <div class="register-body">
-            <form id="registerForm">
+            <form id="registerForm" autocomplete="off">
                 <div class="mb-3">
                     <label for="name" class="form-label">Nom complet</label>
-                    <input type="text" class="form-control" id="name" name="name" required>
+                    <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
                 </div>
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="email" class="form-control" id="email" name="email" required autocomplete="new-email">
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Mot de passe</label>
-                    <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                    <input type="password" class="form-control" id="password" name="password" required minlength="6" autocomplete="new-password">
                     <div class="form-text">Au moins 6 caractères</div>
                 </div>
                 <div class="mb-3">
                     <label for="role" class="form-label">Rôle</label>
-                    <select class="form-control" id="role" name="role" required>
+                    <select class="form-control" id="role" name="role" required autocomplete="off">
+                        <option value="">Sélectionnez un rôle</option>
                         <option value="agent">Agent</option>
                         <option value="admin">Administrateur</option>
                     </select>

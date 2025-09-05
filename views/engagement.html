@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engagement de concubinage - État Civil Tchad</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-section { background: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 25px; }
+        .section-title { color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 10px; margin-bottom: 20px; }
+        .required-field::after { content: " *"; color: #e74c3c; }
+        .nav-tabs .nav-link { color: #2c3e50; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: #9b59b6; font-weight: 600; border-bottom: 3px solid #9b59b6; }
+        .form-control:disabled, .form-control[readonly] { background-color: #f8f9fa; }
+        .btn-save { background-color: #9b59b6; border: none; }
+        .btn-save:hover { background-color: #8e44ad; }
+        .concubin-info { border-left: 3px solid #9b59b6; padding-left: 15px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div class="container-fluid py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0"><i class="fas fa-handshake me-2"></i><span id="formTitle">Nouvel engagement de concubinage</span></h1>
+                    <div>
+                        <a href="/engagements" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                        <button id="printBtn" class="btn btn-outline-primary me-2" disabled>
+                            <i class="fas fa-print me-2"></i>Imprimer
+                        </button>
+                        <button id="saveBtn" class="btn btn-save text-white">
+                            <i class="fas fa-save me-2"></i>Enregistrer
+                        </button>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-4" id="engagementTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">
+                            Informations générales
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="concubins-tab" data-bs-toggle="tab" data-bs-target="#concubins" type="button">
+                            Informations des concubins
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button">
+                            Documents
+                        </button>
+                    </li>
+                </ul>
+
+                <form id="engagementForm" class="needs-validation" novalidate>
+                    <div class="tab-content" id="engagementTabsContent">
+                        <!-- Onglet Informations générales -->
+                        <div class="tab-pane fade show active" id="info" role="tabpanel">
+                            <div class="form-section">
+                                <h3 class="section-title">Informations générales</h3>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="numeroActe" class="form-label">Numéro d'acte</label>
+                                        <input type="text" class="form-control" id="numeroActe" name="numeroActe" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dateEtablissement" class="form-label required-field">Date d'établissement</label>
+                                        <input type="date" class="form-control" id="dateEtablissement" name="dateEtablissement" required>
+                                        <div class="invalid-feedback">Ce champ est requis</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lieuEtablissement" class="form-label required-field">Lieu d'établissement</label>
+                                        <input type="text" class="form-control" id="lieuEtablissement" name="lieuEtablissement" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="officierEtatCivil" class="form-label required-field">Officier d'état civil</label>
+                                        <input type="text" class="form-control" id="officierEtatCivil" name="officierEtatCivil" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dateDebutConcubinage" class="form-label required-field">Date de début du concubinage</label>
+                                        <input type="date" class="form-control" id="dateDebutConcubinage" name="dateDebutConcubinage" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="adresseCommune" class="form-label required-field">Adresse commune</label>
+                                        <input type="text" class="form-control" id="adresseCommune" name="adresseCommune" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="regimeBiens" class="form-label required-field">Régime des biens</label>
+                                        <select class="form-select" id="regimeBiens" name="regimeBiens" required>
+                                            <option value="">Sélectionner un régime</option>
+                                            <option value="séparation de biens">Séparation de biens</option>
+                                            <option value="indivision">Indivision</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="detailsRegimeBiens" class="form-label">Détails du régime</label>
+                                        <input type="text" class="form-control" id="detailsRegimeBiens" name="detailsRegimeBiens">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="observations" class="form-label">Observations</label>
+                                    <textarea class="form-control" id="observations" name="observations" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Onglet Informations des concubins -->
+                        <div class="tab-pane fade" id="concubins" role="tabpanel">
+                            <!-- Concubin 1 -->
+                            <div class="form-section">
+                                <h3 class="section-title">Concubin 1</h3>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_nom" class="form-label required-field">Nom</label>
+                                        <input type="text" class="form-control" id="concubin1_nom" name="concubin1.nom" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_prenoms" class="form-label required-field">Prénoms</label>
+                                        <input type="text" class="form-control" id="concubin1_prenoms" name="concubin1.prenoms" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_dateNaissance" class="form-label required-field">Date de naissance</label>
+                                        <input type="date" class="form-control" id="concubin1_dateNaissance" name="concubin1.dateNaissance" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
+                                        <input type="text" class="form-control" id="concubin1_lieuNaissance" name="concubin1.lieuNaissance" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin1_profession" class="form-label">Profession</label>
+                                    <input type="text" class="form-control" id="concubin1_profession" name="concubin1.profession">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin1_adresse" class="form-label required-field">Adresse</label>
+                                    <input type="text" class="form-control" id="concubin1_adresse" name="concubin1.adresse" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_nationalite" class="form-label required-field">Nationalité</label>
+                                        <input type="text" class="form-control" id="concubin1_nationalite" name="concubin1.nationalite" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_typePieceIdentite" class="form-label required-field">Type de pièce</label>
+                                        <select class="form-select" id="concubin1_typePieceIdentite" name="concubin1.typePieceIdentite" required>
+                                            <option value="">Sélectionner</option>
+                                            <option value="CNI">CNI</option>
+                                            <option value="Passeport">Passeport</option>
+                                            <option value="Acte de naissance">Acte de naissance</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin1_numeroPieceIdentite" class="form-label required-field">N° de pièce</label>
+                                    <input type="text" class="form-control" id="concubin1_numeroPieceIdentite" name="concubin1.numeroPieceIdentite" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_situationMatrimoniale" class="form-label required-field">Situation matrimoniale</label>
+                                        <select class="form-select" id="concubin1_situationMatrimoniale" name="concubin1.situationMatrimoniale" required>
+                                            <option value="">Sélectionner</option>
+                                            <option value="célibataire">Célibataire</option>
+                                            <option value="divorcé(e)">Divorcé(e)</option>
+                                            <option value="veuf(ve)">Veuf(ve)</option>
+                                            <option value="séparé(e) de corps">Séparé(e) de corps</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin1_nomConjoint" class="form-label">Nom du conjoint (si marié)</label>
+                                        <input type="text" class="form-control" id="concubin1_nomConjoint" name="concubin1.nomConjoint">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin1_dateMariage" class="form-label">Date de mariage (si marié)</label>
+                                    <input type="date" class="form-control" id="concubin1_dateMariage" name="concubin1.dateMariage">
+                                </div>
+                            </div>
+
+                            <!-- Concubin 2 -->
+                            <div class="form-section">
+                                <h3 class="section-title">Concubin 2</h3>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_nom" class="form-label required-field">Nom</label>
+                                        <input type="text" class="form-control" id="concubin2_nom" name="concubin2.nom" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_prenoms" class="form-label required-field">Prénoms</label>
+                                        <input type="text" class="form-control" id="concubin2_prenoms" name="concubin2.prenoms" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_dateNaissance" class="form-label required-field">Date de naissance</label>
+                                        <input type="date" class="form-control" id="concubin2_dateNaissance" name="concubin2.dateNaissance" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
+                                        <input type="text" class="form-control" id="concubin2_lieuNaissance" name="concubin2.lieuNaissance" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin2_profession" class="form-label">Profession</label>
+                                    <input type="text" class="form-control" id="concubin2_profession" name="concubin2.profession">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin2_adresse" class="form-label required-field">Adresse</label>
+                                    <input type="text" class="form-control" id="concubin2_adresse" name="concubin2.adresse" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_nationalite" class="form-label required-field">Nationalité</label>
+                                        <input type="text" class="form-control" id="concubin2_nationalite" name="concubin2.nationalite" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_typePieceIdentite" class="form-label required-field">Type de pièce</label>
+                                        <select class="form-select" id="concubin2_typePieceIdentite" name="concubin2.typePieceIdentite" required>
+                                            <option value="">Sélectionner</option>
+                                            <option value="CNI">CNI</option>
+                                            <option value="Passeport">Passeport</option>
+                                            <option value="Acte de naissance">Acte de naissance</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin2_numeroPieceIdentite" class="form-label required-field">N° de pièce</label>
+                                    <input type="text" class="form-control" id="concubin2_numeroPieceIdentite" name="concubin2.numeroPieceIdentite" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_situationMatrimoniale" class="form-label required-field">Situation matrimoniale</label>
+                                        <select class="form-select" id="concubin2_situationMatrimoniale" name="concubin2.situationMatrimoniale" required>
+                                            <option value="">Sélectionner</option>
+                                            <option value="célibataire">Célibataire</option>
+                                            <option value="divorcé(e)">Divorcé(e)</option>
+                                            <option value="veuf(ve)">Veuf(ve)</option>
+                                            <option value="séparé(e) de corps">Séparé(e) de corps</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="concubin2_nomConjoint" class="form-label">Nom du conjoint (si marié)</label>
+                                        <input type="text" class="form-control" id="concubin2_nomConjoint" name="concubin2.nomConjoint">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="concubin2_dateMariage" class="form-label">Date de mariage (si marié)</label>
+                                    <input type="date" class="form-control" id="concubin2_dateMariage" name="concubin2.dateMariage">
+                                </div>
+                            </div>
+
+                            <!-- Témoins -->
+                            <div class="form-section">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h3 class="section-title mb-0">Témoins</h3>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addTemoinBtn">
+                                        <i class="fas fa-plus me-2"></i>Ajouter un témoin
+                                    </button>
+                                </div>
+                                <div id="temoinsContainer">
+                                    <!-- Les champs témoins seront ajoutés ici dynamiquement -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Onglet Documents -->
+                        <div class="tab-pane fade" id="documents" role="tabpanel">
+                            <div class="form-section">
+                                <h3 class="section-title">Documents joints</h3>
+                                <div class="mb-3">
+                                    <label for="documentFile" class="form-label">Ajouter un document</label>
+                                    <input class="form-control" type="file" id="documentFile" multiple>
+                                    <div class="form-text">Formats acceptés : PDF, JPG, PNG (max 5Mo)</div>
+                                </div>
+                                <div id="documentsList">
+                                    <!-- Liste des documents téléchargés -->
+                                    <div class="alert alert-info">Aucun document joint pour le moment</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template pour un témoin -->
+    <template id="temoinTemplate">
+        <div class="card mb-3 temoin-item">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Témoin <span class="temoin-numero">1</span></h5>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-temoin">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Nom</label>
+                        <input type="text" class="form-control" name="temoins[0].nom" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Prénoms</label>
+                        <input type="text" class="form-control" name="temoins[0].prenoms" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Date de naissance</label>
+                        <input type="date" class="form-control" name="temoins[0].dateNaissance" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Profession</label>
+                        <input type="text" class="form-control" name="temoins[0].profession">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-field">Adresse</label>
+                        <input type="text" class="form-control" name="temoins[0].adresse" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Type de pièce</label>
+                        <select class="form-select" name="temoins[0].typePieceIdentite">
+                            <option value="">Sélectionner</option>
+                            <option value="CNI">CNI</option>
+                            <option value="Passeport">Passeport</option>
+                            <option value="Acte de naissance">Acte de naissance</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">N° de pièce</label>
+                        <input type="text" class="form-control" name="temoins[0].numeroPieceIdentite">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Gestion des onglets
+            const triggerTabList = [].slice.call(document.querySelectorAll('#engagementTabs button'));
+            triggerTabList.forEach(function (triggerEl) {
+                const tabTrigger = new bootstrap.Tab(triggerEl);
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+
+            // Gestion de l'ajout de témoins
+            let temoinCount = 0;
+            
+            $('#addTemoinBtn').click(function() {
+                const template = document.getElementById('temoinTemplate').content.cloneNode(true);
+                const newTemoin = $(template);
+                
+                // Mettre à jour les noms des champs avec le bon index
+                temoinCount++;
+                newTemoin.find('.temoin-numero').text(temoinCount);
+                
+                // Mettre à jour les noms des champs
+                newTemoin.find('input, select').each(function() {
+                    const name = $(this).attr('name').replace('[0]', `[${temoinCount - 1}]`);
+                    $(this).attr('name', name);
+                });
+                
+                // Gestion de la suppression d'un témoin
+                newTemoin.find('.remove-temoin').click(function() {
+                    $(this).closest('.temoin-item').remove();
+                    updateTemoinsNumeros();
+                });
+                
+                $('#temoinsContainer').append(newTemoin);
+                updateTemoinsNumeros();
+            });
+            
+            function updateTemoinsNumeros() {
+                $('.temoin-item').each(function(index) {
+                    $(this).find('.temoin-numero').text(index + 1);
+                    
+                    // Mettre à jour les noms des champs avec le bon index
+                    $(this).find('input, select').each(function() {
+                        const name = $(this).attr('name').replace(/\[\d+\]/, `[${index}]`);
+                        $(this).attr('name', name);
+                    });
+                });
+                
+                temoinCount = $('.temoin-item').length;
+            }
+
+            // Gestion de la soumission du formulaire
+            $('#engagementForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (this.checkValidity() === false) {
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
+                    
+                    // Afficher l'onglet avec des erreurs
+                    const firstInvalid = this.querySelector(':invalid');
+                    if (firstInvalid) {
+                        $(firstInvalid).closest('.tab-pane').each(function() {
+                            const tabId = $(this).attr('id');
+                            $(`#${tabId}-tab`).tab('show');
+                        });
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                const engagementData = {};
+                
+                // Convertir FormData en objet
+                for (let [key, value] of formData.entries()) {
+                    // Gérer les champs imbriqués (ex: concubin1.nom)
+                    const keys = key.split('.');
+                    let current = engagementData;
+                    
+                    for (let i = 0; i < keys.length; i++) {
+                        const k = keys[i];
+                        if (i === keys.length - 1) {
+                            current[k] = value;
+                        } else {
+                            current[k] = current[k] || {};
+                            current = current[k];
+                        }
+                    }
+                }
+                
+                // Gérer les tableaux (comme temoins)
+                const temoins = [];
+                $('.temoin-item').each(function() {
+                    const temoin = {
+                        nom: $(this).find('input[name$=".nom"]').val(),
+                        prenoms: $(this).find('input[name$=".prenoms"]').val(),
+                        dateNaissance: $(this).find('input[name$=".dateNaissance"]').val(),
+                        profession: $(this).find('input[name$=".profession"]').val(),
+                        adresse: $(this).find('input[name$=".adresse"]').val(),
+                        typePieceIdentite: $(this).find('select[name$=".typePieceIdentite"]').val(),
+                        numeroPieceIdentite: $(this).find('input[name$=".numeroPieceIdentite"]').val()
+                    };
+                    temoins.push(temoin);
+                });
+                
+                if (temoins.length > 0) {
+                    engagementData.temoins = temoins;
+                }
+                
+                // Déterminer si c'est une création ou une mise à jour
+                const engagementId = new URLSearchParams(window.location.search).get('id');
+                const method = engagementId ? 'PUT' : 'POST';
+                const url = engagementId ? `/api/engagements/${engagementId}` : '/api/engagements';
+                
+                // Envoyer les données au serveur
+                $.ajax({
+                    url: url,
+                    method: method,
+                    contentType: 'application/json',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    data: JSON.stringify(engagementData),
+                    success: function(response) {
+                        showAlert('success', 'Engagement de concubinage enregistré avec succès');
+                        if (!engagementId) {
+                            // Rediriger vers la page d'édition avec l'ID
+                            window.location.href = `/engagement?id=${response.data._id}`;
+                        } else {
+                            // Mettre à jour le numéro d'acte s'il a été généré
+                            if (response.data.numeroActe) {
+                                $('#numeroActe').val(response.data.numeroActe);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        showAlert('danger', 'Erreur lors de l\'enregistrement: ' + (xhr.responseJSON?.message || 'Erreur inconnue'));
+                    }
+                });
+            });
+            
+            // Gestion du bouton Enregistrer
+            $('#saveBtn').click(function() {
+                $('#engagementForm').submit();
+            });
+            
+            // Charger les données si on est en mode édition
+            function loadEngagementData() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const engagementId = urlParams.get('id');
+                
+                if (engagementId) {
+                    // Mettre à jour le titre
+                    $('#formTitle').text('Modifier l\'engagement de concubinage');
+                    
+                    // Charger les données existantes
+                    $.ajax({
+                        url: `/api/engagements/${engagementId}`,
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        },
+                        success: function(response) {
+                            const engagement = response.data;
+                            
+                            // Remplir les champs du formulaire
+                            Object.keys(engagement).forEach(key => {
+                                if (typeof engagement[key] === 'object' && engagement[key] !== null) {
+                                    // Gérer les objets imbriqués (concubin1, concubin2)
+                                    Object.keys(engagement[key]).forEach(subKey => {
+                                        const input = $(`#${key}_${subKey}`);
+                                        if (input.length) {
+                                            input.val(engagement[key][subKey]);
+                                        }
+                                    });
+                                } else {
+                                    const input = $(`#${key}`);
+                                    if (input.length) {
+                                        input.val(engagement[key]);
+                                    }
+                                }
+                            });
+                            
+                            // Gérer les témoins
+                            if (engagement.temoins && engagement.temoins.length > 0) {
+                                engagement.temoins.forEach((temoin, index) => {
+                                    if (index > 0) {
+                                        $('#addTemoinBtn').click();
+                                    }
+                                    
+                                    const prefix = `temoins[${index}]`;
+                                    $(`input[name="${prefix}.nom"]`).val(temoin.nom);
+                                    $(`input[name="${prefix}.prenoms"]`).val(temoin.prenoms);
+                                    $(`input[name="${prefix}.dateNaissance"]`).val(temoin.dateNaissance);
+                                    $(`input[name="${prefix}.profession"]`).val(temoin.profession || '');
+                                    $(`input[name="${prefix}.adresse"]`).val(temoin.adresse);
+                                    $(`select[name="${prefix}.typePieceIdentite"]`).val(temoin.typePieceIdentite || '');
+                                    $(`input[name="${prefix}.numeroPieceIdentite"]`).val(temoin.numeroPieceIdentite || '');
+                                });
+                            }
+                            
+                            // Activer le bouton d'impression
+                            $('#printBtn').prop('disabled', false);
+                            
+                            // Désactiver les champs si l'engagement est rompu
+                            if (engagement.statut === 'rompu' || engagement.statut === 'converti_en_mariage') {
+                                $('#engagementForm :input').prop('disabled', true);
+                                $('#saveBtn').hide();
+                                
+                                // Afficher les informations de fin si rompu
+                                if (engagement.statut === 'rompu' && engagement.dateFin) {
+                                    const endInfo = `
+                                        <div class="alert alert-warning">
+                                            <h5>Engagement rompu</h5>
+                                            <p class="mb-1"><strong>Date de fin :</strong> ${new Date(engagement.dateFin).toLocaleDateString()}</p>
+                                            ${engagement.motifFin ? `<p class="mb-0"><strong>Motif :</strong> ${engagement.motifFin}</p>` : ''}
+                                        </div>
+                                    `;
+                                    $('.container-fluid').prepend(endInfo);
+                                }
+                                
+                                // Afficher les informations de conversion si converti en mariage
+                                if (engagement.statut === 'converti_en_mariage') {
+                                    const convertInfo = `
+                                        <div class="alert alert-info">
+                                            <h5>Converti en mariage</h5>
+                                            <p class="mb-0">Cet engagement a été converti en acte de mariage.</p>
+                                        </div>
+                                    `;
+                                    $('.container-fluid').prepend(convertInfo);
+                                }
+                            }
+                        },
+                        error: function() {
+                            showAlert('danger', 'Erreur lors du chargement des données');
+                        }
+                    });
+                }
+            }
+            
+            // Fonction utilitaire pour afficher des alertes
+            function showAlert(type, message) {
+                const alert = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                $('.container-fluid').prepend(alert);
+                setTimeout(() => $('.alert').alert('close'), 5000);
+            }
+            
+            // Gestion du bouton d'impression
+            $('#printBtn').click(function() {
+                const engagementId = new URLSearchParams(window.location.search).get('id');
+                if (engagementId) {
+                    window.open(`/api/engagements/${engagementId}/pdf`, '_blank');
+                }
+            });
+            
+            // Charger les données au chargement de la page
+            loadEngagementData();
+        });
+    </script>
+</body>
+</html>

@@ -7,6 +7,10 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const { securityHeaders, apiLimiter, sanitizeLogs, validateInputs } = require('./middleware/security');
+const logger = require('./config/logger');
+const morgan = require('morgan');
+const helmet = require('helmet');
 
 const app = express();
 const server = createServer(app);
@@ -18,6 +22,12 @@ const io = new Server(server, {
 });
 const PORT = process.env.PORT || 3000;
 
+// Création du dossier de logs s'il n'existe pas
+const logDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
+
 // Middlewares
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -27,6 +37,76 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(securityHeaders);
+app.use(sanitizeLogs);
+app.use(morgan('combined', { stream: logger.stream }));
+
+// Configuration de la sécurité avec Helmet
+const cspConfig = {
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      "'unsafe-eval'",
+      "'unsafe-hashes'",
+      'https://cdn.jsdelivr.net',
+      'https://cdnjs.cloudflare.com',
+      'https://cdn.socket.io',
+      'https://code.jquery.com',
+      'https://unpkg.com'
+    ],
+    scriptSrcAttr: [
+      "'self'",
+      "'unsafe-inline'"
+    ],
+    styleSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      'https://cdn.jsdelivr.net',
+      'https://cdnjs.cloudflare.com',
+      'https://fonts.googleapis.com'
+    ],
+    imgSrc: [
+      "'self'",
+      'data:',
+      'https:',
+      'http:'
+    ],
+    fontSrc: [
+      "'self'",
+      'https://cdn.jsdelivr.net',
+      'https://cdnjs.cloudflare.com',
+      'https://fonts.gstatic.com',
+      'data:'
+    ],
+    connectSrc: [
+      "'self'",
+      `http://localhost:${process.env.PORT || 3000}`,
+      'https://api.example.com',
+      'wss://your-socket-server.com'
+    ],
+    frameSrc: ["'self'"],
+    objectSrc: ["'none'"],
+    mediaSrc: ["'self'"],
+    frameAncestors: ["'self'"],
+    formAction: ["'self'"],
+    baseUri: ["'self'"],
+    workerSrc: ["'self'"],
+    manifestSrc: ["'self'"]
+  },
+  reportOnly: process.env.NODE_ENV === 'development'
+};
+
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy(cspConfig));
+
+// Servir les fichiers statiques
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mairie', {
@@ -43,15 +123,140 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mairie', 
 const { authenticate: authMiddleware } = require('./middleware/auth');
 
 // Import des routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/dashboard', authMiddleware, require('./routes/dashboard'));
-app.use('/api/actes', authMiddleware, require('./routes/actes'));
-app.use('/api/documents', authMiddleware, require('./routes/documents'));
-app.use('/api/users', authMiddleware, require('./routes/users'));
-app.use('/api/conversations', authMiddleware, require('./routes/conversations'));
-app.use('/api/messagerie', authMiddleware, require('./routes/messagerie'));
-app.use('/api/calendrier', authMiddleware, require('./routes/calendrier'));
-app.use('/api/rapports', authMiddleware, require('./routes/rapports'));
+console.log('=== DÉBUT DU CHARGEMENT DES ROUTES ===');
+const authRoutes = require('./routes/auth');
+console.log('1. Route auth chargée');
+
+const userRoutes = require('./routes/users');
+console.log('2. Route users chargée');
+
+const acteRoutes = require('./routes/actes');
+console.log('3. Route actes chargée');
+
+const documentRoutes = require('./routes/documents');
+console.log('4. Route documents chargée');
+
+const divorceRoutes = require('./routes/divorces');
+console.log('5. Route divorces chargée');
+
+const engagementRoutes = require('./routes/engagements');
+console.log('6. Route engagements chargée');
+
+const dashboardRoutes = require('./routes/dashboard');
+console.log('7. Route dashboard chargée');
+
+const calendrierRoutes = require('./routes/calendrier');
+console.log('8. Route calendrier chargée');
+
+// Chargement de la route des conversations
+try {
+  console.log('Tentative de chargement de la route des conversations...');
+  const conversationRoutes = require('./routes/conversations');
+  console.log('9. Route conversations chargée avec succès!');
+} catch (error) {
+  console.error('ERREUR lors du chargement de la route des conversations:', error);
+  process.exit(1);
+}
+
+console.log('=== FIN DU CHARGEMENT DES ROUTES ===\n');
+
+// Middleware de débogage pour les erreurs non gérées
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection:', { reason, stack: reason?.stack });
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception:', { 
+    message: error.message, 
+    stack: error.stack,
+    name: error.name 
+  });
+  // Ne pas arrêter le processus en développement pour faciliter le débogage
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+});
+
+// Middleware pour logger les requêtes entrantes
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`, {
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+      user: req.user ? req.user.id : 'non authentifié',
+      ip: req.ip,
+      'user-agent': req.get('user-agent')
+    });
+  });
+  
+  next();
+});
+
+// Middleware de journalisation des requêtes
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`, {
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+      user: req.user ? req.user.id : 'non authentifié',
+      ip: req.ip
+    });
+  });
+  
+  next();
+});
+
+// Configuration des routes API
+console.log('=== CONFIGURATION DES ROUTES API ===');
+app.use('/api/auth', authRoutes);
+console.log('Route /api/auth configurée');
+
+app.use('/api/users', userRoutes);
+console.log('Route /api/users configurée');
+
+app.use('/api/actes', acteRoutes);
+console.log('Route /api/actes configurée');
+
+app.use('/api/documents', documentRoutes);
+console.log('Route /api/documents configurée');
+
+app.use('/api/divorces', divorceRoutes);
+console.log('Route /api/divorces configurée');
+
+app.use('/api/engagements', engagementRoutes);
+console.log('Route /api/engagements configurée');
+
+app.use('/api/dashboard', dashboardRoutes);
+console.log('Route /api/dashboard configurée');
+
+// Configuration de la route des conversations
+try {
+  console.log('Configuration de la route /api/conversations...');
+  const conversationRoutes = require('./routes/conversations');
+  app.use('/api/conversations', conversationRoutes);
+  console.log('Route /api/conversations configurée avec succès!');
+} catch (error) {
+  console.error('ERREUR lors de la configuration de la route des conversations:', error);
+  process.exit(1);
+}
+
+app.use('/api/calendrier', calendrierRoutes);
+console.log('Route /api/calendrier configurée');
+
+console.log('=== FIN DE LA CONFIGURATION DES ROUTES ===\n');
+
+// Limitation du taux de requêtes pour l'API
+app.use('/api/', apiLimiter);
 
 // Page d'accueil
 app.get('/', (req, res) => {
@@ -66,8 +271,8 @@ app.get('/', (req, res) => {
 
 // Routes pour les pages HTML
 const htmlPages = [
-  'dashboard', 'naissance', 'mariage', 'deces', 'calendrier',
-  'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
+  'dashboard', 'naissance', 'mariage', 'deces', 'divorce', 'divorces', 'engagement', 'engagements',
+  'calendrier', 'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
   'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];
 
@@ -107,31 +312,54 @@ app.get('/uploads/:filename', (req, res) => {
   }
 });
 
-// Gestion des erreurs 404 pour les API
-app.use('/api', (req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    error: 'Endpoint API non trouvé' 
-  });
-});
-
-// Gestion des erreurs 404 pour les pages
-app.use((req, res) => {
-  res.status(404).send('Page non trouvée');
-});
-
-// Gestion des erreurs serveur
+// Gestion des erreurs globales
 app.use((err, req, res, next) => {
-  console.error('Erreur serveur:', err);
-  
-  if (req.path.startsWith('/api/')) {
-    res.status(500).json({ 
-      success: false, 
-      error: 'Erreur serveur interne' 
-    });
-  } else {
-    res.status(500).send('Erreur serveur');
+  // Vérifier si l'en-tête a déjà été envoyé
+  if (res.headersSent) {
+    return next(err);
   }
+  
+  // Définir le statut par défaut à 500 (Erreur serveur)
+  const statusCode = err.status || 500;
+  
+  // Journaliser l'erreur
+  logger.error('Erreur non gérée:', {
+    message: err.message,
+    stack: err.stack,
+    status: statusCode,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip
+  });
+  
+  // Préparer la réponse d'erreur
+  const errorResponse = {
+    success: false,
+    error: {
+      message: statusCode === 500 ? 'Erreur interne du serveur' : err.message,
+      status: statusCode,
+      // Inclure la pile d'appel en développement uniquement
+      ...(process.env.NODE_ENV === 'development' && { 
+        stack: err.stack,
+        details: err.details 
+      })
+    }
+  };
+  
+  // Envoyer la réponse d'erreur
+  res.status(statusCode).json(errorResponse);
+});
+
+// Gestion des routes non trouvées (404)
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    error: {
+      message: 'Route non trouvée',
+      status: 404,
+      path: req.originalUrl
+    }
+  });
 });
 
 // Configuration Socket.IO avec protections
@@ -224,6 +452,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Démarrer le serveur
 server.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
   console.log('Socket.IO configuré et prêt');

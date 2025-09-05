@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des actes de divorce - État Civil Tchad</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card { border: none; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
+        .card-header { background: #fff; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .btn-add { background: #3498db; color: white; border: none; }
+        .btn-add:hover { background: #2980b9; }
+        .table th { border-top: none; font-weight: 600; color: #2c3e50; }
+        .action-btn { width: 32px; height: 32px; border-radius: 50%; margin: 0 3px; }
+        .action-view { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+        .action-edit { background: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+        .action-delete { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div class="container-fluid py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0"><i class="fas fa-file-contract me-2"></i>Actes de divorce</h1>
+                    <a href="/divorce" class="btn btn-add">
+                        <i class="fas fa-plus me-2"></i>Nouvel acte
+                    </a>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Liste des actes de divorce</h5>
+                        <div class="input-group" style="max-width: 300px;">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>N° Acte</th>
+                                        <th>Date</th>
+                                        <th>Époux</th>
+                                        <th>Épouse</th>
+                                        <th>Type</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="divorcesTableBody">
+                                    <!-- Données chargées dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer cet acte de divorce ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadDivorces();
+            
+            // Gestionnaire de suppression
+            $('#confirmDelete').click(function() {
+                if (window.currentDivorceId) {
+                    deleteDivorce(window.currentDivorceId);
+                }
+            });
+        });
+
+        function loadDivorces(page = 1) {
+            $.ajax({
+                url: `/api/divorces?page=${page}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response && response.success && response.data) {
+                        renderDivorces(response.data.docs);
+                        updatePagination(response.data);
+                    } else {
+                        console.error('Format de réponse inattendu:', response);
+                        showAlert('danger', 'Erreur lors du chargement des actes de divorce');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Erreur lors du chargement des actes de divorce', xhr);
+                    showAlert('danger', 'Erreur lors du chargement des actes de divorce');
+                }
+            });
+        }
+
+        function renderDivorces(divorces) {
+            const tbody = $('#divorcesTableBody');
+            tbody.empty();
+            
+            if (!Array.isArray(divorces)) {
+                console.error('Les données reçues ne sont pas un tableau:', divorces);
+                return;
+            }
+            
+            if (divorces.length === 0) {
+                tbody.append('<tr><td colspan="6" class="text-center">Aucun acte de divorce trouvé</td></tr>');
+                return;
+            }
+            
+            divorces.forEach(divorce => {
+                const row = `
+                    <tr>
+                        <td>${divorce.numeroActe || 'N/A'}</td>
+                        <td>${divorce.dateDivorce ? new Date(divorce.dateDivorce).toLocaleDateString() : 'N/A'}</td>
+                        <td>${divorce.epoux?.nom || 'N/A'} ${divorce.epoux?.prenoms || ''}</td>
+                        <td>${divorce.epouse?.nom || 'N/A'} ${divorce.epouse?.prenoms || ''}</td>
+                        <td><span class="badge bg-info">${divorce.typeDivorce || 'N/A'}</span></td>
+                        <td>
+                            <a href="/divorce/${divorce._id}" class="btn btn-sm action-btn action-view">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="/divorce/${divorce._id}?edit=true" class="btn btn-sm action-btn action-edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="confirmDelete('${divorce._id}')" class="btn btn-sm action-btn action-delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        function updatePagination(data) {
+            const pagination = $('.pagination');
+            pagination.empty();
+
+            // Bouton Précédent
+            const prevLi = $(`<li class="page-item ${!data.hasPrevPage ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${data.page - 1}">Précédent</a>
+            </li>`);
+            pagination.append(prevLi);
+
+            // Numéros de page
+            for (let i = 1; i <= data.totalPages; i++) {
+                const li = $(`<li class="page-item ${i === data.page ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>`);
+                pagination.append(li);
+            }
+
+            // Bouton Suivant
+            const nextLi = $(`<li class="page-item ${!data.hasNextPage ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${data.page + 1}">Suivant</a>
+            </li>`);
+            pagination.append(nextLi);
+
+            // Gestion des clics sur la pagination
+            $('.page-link').on('click', function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page >= 1 && page <= data.totalPages) {
+                    loadDivorces(page);
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            window.currentDivorceId = id;
+            $('#deleteModal').modal('show');
+        }
+
+        function deleteDivorce(id) {
+            $.ajax({
+                url: `/api/divorces/${id}`,
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function() {
+                    $('#deleteModal').modal('hide');
+                    loadDivorces();
+                    showAlert('success', 'Acte de divorce supprimé avec succès');
+                },
+                error: function() {
+                    showAlert('danger', 'Erreur lors de la suppression');
+                }
+            });
+        }
+
+        function showAlert(type, message) {
+            const alert = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('.container-fluid').prepend(alert);
+            setTimeout(() => $('.alert').alert('close'), 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+2025-09-05 10:23:45 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 10:24:57 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 11:15:09 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 11:15:21 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 11:15:35 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 11:16:09 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 11:20:01 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:07:04 [error]: 500 - next is not defined {
+  "url": "/api/dashboard/stats",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:07:32 [error]: 500 - next is not defined {
+  "url": "/api/dashboard/activities",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:07:37 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:16:12 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:16:12 [error]: 500 - next is not defined {
+  "url": "/api/dashboard/stats",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:16:14 [error]: 500 - next is not defined {
+  "url": "/api/dashboard/activities",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:21:54 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:22:02 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:23:11 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:42:44 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:42:49 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:42:52 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:42:58 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:43:00 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:50:46 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:51:04 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:51:48 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:51:54 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:52:06 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:52:14 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:52:18 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:56:28 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 17:56:59 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:04:40 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:06:21 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:17:05 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:24:29 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:12 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:21 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:24 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:26 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:46 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:31:46 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:19 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:26 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:51 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:53 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:54 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:56 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:35:58 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:36:07 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:36:12 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:36:26 [error]: 500 - next is not defined {
+  "url": "/api/users/me/settings",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:50 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:52 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:53 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:54 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:56 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:39:56 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:40:23 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:40:25 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:40:26 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:41:26 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:41:30 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:41:31 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:41:34 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:45:35 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:45:38 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:45:38 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:53:44 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 18:53:44 [error]: 500 - next is not defined {
+  "url": "/api/calendrier",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 19:42:12 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 19:42:32 [error]: 500 - next is not defined {
+  "url": "/api/conversations",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 19:42:37 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 19:43:08 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}
+2025-09-05 19:43:09 [error]: 404 - Ressource non trouvée {
+  "url": "/.well-known/appspecific/com.chrome.devtools.json",
+  "method": "GET",
+  "ip": "::1"
+}

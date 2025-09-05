@@ -26,6 +26,16 @@ function createSidebar(activePage = '') {
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link ${activePage === 'divorce' ? 'active' : ''}" href="/divorce">
+            <i class="fas fa-heart-broken me-2"></i> Actes de Divorce
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link ${activePage === 'engagement' ? 'active' : ''}" href="/engagement">
+            <i class="fas fa-handshake me-2"></i> Engagements de Concubinage
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link ${activePage === 'deces' ? 'active' : ''}" href="/deces">
             <i class="fas fa-skull me-2"></i> Actes de Décès
           </a>
@@ -125,14 +135,20 @@ function checkAuth() {
 
 // Fonction pour faire des requêtes API authentifiées
 async function apiRequest(url, options = {}) {
-  const token = checkAuth();
-  if (!token) return null;
-  
+  const token = localStorage.getItem('token');
+  if (!token && !options.public) {
+    console.warn('Aucun token trouvé, redirection vers la page de connexion');
+    window.location.href = '/login';
+    return null;
+  }
+
   const defaultOptions = {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    credentials: 'same-origin'
   };
   
   const mergedOptions = {
@@ -140,28 +156,88 @@ async function apiRequest(url, options = {}) {
     ...options,
     headers: {
       ...defaultOptions.headers,
-      ...options.headers
+      ...(options.headers || {})
     }
   };
   
   try {
-    const response = await fetch(url, mergedOptions);
-    const result = await response.json();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout de 10 secondes
+    
+    const response = await fetch(url, {
+      ...mergedOptions,
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // Gérer les réponses non-JSON (comme les PDF)
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    const result = isJson ? await response.json() : await response.blob();
     
     if (!response.ok) {
       if (response.status === 401) {
+        console.warn('Session expirée ou non autorisée, déconnexion...');
         logout();
         return null;
       }
-      throw new Error(result.error || 'Erreur API');
+      
+      // Gérer les erreurs de validation
+      if (response.status === 422) {
+        const error = new Error('Erreur de validation');
+        error.errors = result.errors || {};
+        throw error;
+      }
+      
+      // Autres erreurs
+      const error = new Error(result.message || `Erreur ${response.status}: ${response.statusText}`);
+      error.status = response.status;
+      throw error;
     }
     
     return result;
   } catch (error) {
-    console.error('Erreur API:', error);
-    alert(error.message);
+    console.error('Erreur API:', {
+      url,
+      error: error.message,
+      status: error.status,
+      stack: error.stack
+    });
+    
+    // Afficher un message d'erreur convivial
+    if (error.name === 'AbortError') {
+      showError('La requête a pris trop de temps. Veuillez réessayer.');
+    } else if (error.message.includes('Failed to fetch')) {
+      showError('Impossible de se connecter au serveur. Vérifiez votre connexion Internet.');
+    } else {
+      showError(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+    }
+    
     return null;
   }
+}
+
+// Fonction utilitaire pour afficher les erreurs
+function showError(message) {
+  // Vérifier si une alerte est déjà affichée
+  if (document.querySelector('.error-toast')) return;
+  
+  const toast = document.createElement('div');
+  toast.className = 'error-toast';
+  toast.innerHTML = `
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Supprimer automatiquement après 5 secondes
+  setTimeout(() => {
+    toast.remove();
+  }, 5000);
 }
 
 // Fonction de déconnexion

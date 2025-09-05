@@ -19,6 +19,10 @@ const UserSchema = new mongoose.Schema({
     enum: ['agent', 'admin'],
     default: 'agent'
   },
+  avatar: {
+    type: String,
+    default: ''
+  },
   password: {
     type: String,
     required: true,

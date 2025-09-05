@@ -83,14 +83,44 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Vider les champs du formulaire au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.reset();
+                
+                // Vider manuellement chaque champ
+                const inputs = form.querySelectorAll('input');
+                inputs.forEach(input => {
+                    if (input.type !== 'submit' && input.type !== 'button') {
+                        input.value = '';
+                    }
+                });
+            }
+            
+            // Nettoyer le localStorage si nécessaire
+            if (window.performance && performance.navigation.type === 1) {
+                // La page a été rechargée
+                localStorage.removeItem('pendingEmail');
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const formData = new FormData(e.target);
-            const email = formData.get('email');
-            const password = formData.get('password');
+            const form = e.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            const resultDiv = document.getElementById('result');
+            
+            // Désactiver le bouton pendant la requête
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Connexion en cours...';
             
             try {
+                const formData = new FormData(form);
+                const email = formData.get('email');
+                const password = formData.get('password');
+                
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
@@ -100,9 +130,9 @@
                 });
                 
                 const result = await response.json();
-                const resultDiv = document.getElementById('result');
                 
                 if (response.ok) {
+                    // Stocker le token et les informations utilisateur
                     localStorage.setItem('token', result.token);
                     localStorage.setItem('user', JSON.stringify(result.data.user));
                     
@@ -113,24 +143,35 @@
                         </div>
                     `;
                     
+                    // Rediriger vers le tableau de bord
                     setTimeout(() => {
                         window.location.href = '/dashboard';
                     }, 1000);
                 } else {
+                    // Afficher l'erreur
                     resultDiv.innerHTML = `
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-circle me-2"></i>
-                            ${result.error}
+                            ${result.error || 'Identifiants incorrects'}
                         </div>
                     `;
+                    
+                    // Vider le mot de passe
+                    form.password.value = '';
+                    form.password.focus();
                 }
             } catch (error) {
-                document.getElementById('result').innerHTML = `
+                console.error('Erreur de connexion:', error);
+                resultDiv.innerHTML = `
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-circle me-2"></i>
-                        Erreur de connexion
+                        Erreur de connexion. Veuillez réessayer plus tard.
                     </div>
                 `;
+            } finally {
+                // Réactiver le bouton
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Se connecter';
             }
         });
     </script>

@@ -1,61 +1,83 @@
 const express = require('express');
 const router = express.Router();
+const Divorce = require('../models/Divorce');
+const EngagementConcubinage = require('../models/EngagementConcubinage');
 const Acte = require('../models/Acte');
-const User = require('../models/User');
+const logger = require('../config/logger');
+const { authenticate } = require('../middleware/auth');
 
-// Fonction pour calculer le temps écoulé
-function getTimeAgo(date) {
+// Appliquer l'authentification à toutes les routes
+router.use(authenticate);
+
+// Fonction utilitaire pour formater la date
+function formatTimeAgo(date) {
+  if (!date) return 'Inconnu';
+  
   const now = new Date();
   const diffMs = now - new Date(date);
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
   
-  if (diffHours < 1) return 'À l\'instant';
-  if (diffHours < 24) return `${diffHours} heure${diffHours > 1 ? 's' : ''}`;
-  if (diffDays < 7) return `${diffDays} jour${diffDays > 1 ? 's' : ''}`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} semaine${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
-  return `${Math.floor(diffDays / 30)} mois`;
+  if (diffMins < 1) return 'À l\'instant';
+  if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
+  if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
+  if (diffDays < 30) return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+  
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `Il y a ${diffMonths} mois`;
+  
+  const diffYears = Math.floor(diffMonths / 12);
+  return `Il y a ${diffYears} an${diffYears > 1 ? 's' : ''}`;
 }
 
 // Endpoint pour obtenir les statistiques du dashboard
 router.get('/stats', async (req, res) => {
   try {
-    // Compter les actes par type
-    const stats = await Acte.aggregate([
-      {
-        $group: {
-          _id: '$type',
-          count: { $sum: 1 }
-        }
-      }
+    // Utiliser Promise.all pour exécuter les requêtes en parallèle
+    const [
+      divorcesCount, 
+      engagementsCount,
+      naissancesCount,
+      mariagesCount,
+      decesCount
+    ] = await Promise.all([
+      Divorce.countDocuments(),
+      EngagementConcubinage.countDocuments(),
+      Acte.countDocuments({ type: 'naissance' }),
+      Acte.countDocuments({ type: 'mariage' }),
+      Acte.countDocuments({ type: 'deces' })
     ]);
 
-    // Formater les statistiques selon les attentes du frontend
-    const formattedStats = {
-      births: 0,
-      marriages: 0,
-      deaths: 0,
-      documents: 0
+    // Formater les statistiques
+    const stats = {
+      divorces: divorcesCount,
+      engagements: engagementsCount,
+      naissances: naissancesCount,
+      mariages: mariagesCount,
+      deces: decesCount,
+      total: divorcesCount + engagementsCount + naissancesCount + mariagesCount + decesCount,
+      lastUpdated: new Date()
     };
 
-    stats.forEach(stat => {
-      if (stat._id === 'naissance') formattedStats.births = stat.count;
-      else if (stat._id === 'mariage') formattedStats.marriages = stat.count;
-      else if (stat._id === 'deces') formattedStats.deaths = stat.count;
-    });
-
-    // Calculer le total des documents
-    formattedStats.documents = formattedStats.births + formattedStats.marriages + formattedStats.deaths;
-
+    // Mise en cache côté client (1 minute)
+    res.set('Cache-Control', 'public, max-age=60');
+    
     res.json({
       success: true,
-      data: formattedStats
+      data: stats
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error);
+    logger.error('Erreur lors de la récupération des statistiques', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id
+    });
+    
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la récupération des statistiques'
+      error: 'Impossible de récupérer les statistiques',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -65,40 +87,52 @@ router.get('/activities', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     
-    // Récupérer les actes récents
-    const recentActes = await Acte.find()
-      .sort({ dateEnregistrement: -1 })
-      .limit(limit)
-      .select('type dateEnregistrement numeroActe');
+    // Récupérer les activités récentes en parallèle
+    const [recentDivorces, recentEngagements] = await Promise.all([
+      Divorce.find()
+        .sort({ dateEtablissement: -1 })
+        .limit(limit)
+        .select('dateEtablissement numeroActe')
+        .lean(),
+      EngagementConcubinage.find()
+        .sort({ dateEtablissement: -1 })
+        .limit(limit)
+        .select('dateEtablissement numeroActe')
+        .lean()
+    ]);
 
-    // Récupérer les actes récents seulement
-
-    // Formater les activités selon les attentes du frontend
-    const formattedActivities = recentActes.map(acte => {
-      const type = acte.type === 'naissance' ? 'birth' : 
-                   acte.type === 'mariage' ? 'marriage' : 'death';
-      
-      const description = `Acte de ${acte.type} - ${acte.numeroActe}`;
-      const time = getTimeAgo(acte.dateEnregistrement);
-      const user = 'Système'; // Pas de champ utilisateur dans le modèle actuel
-      
-      return {
-        type,
-        description,
-        time,
-        user
-      };
+    // Formater les activités
+    const formatActivity = (item, type) => ({
+      id: item._id,
+      type,
+      numeroActe: item.numeroActe,
+      date: item.dateEtablissement,
+      timeAgo: formatTimeAgo(item.dateEtablissement),
+      icon: type === 'divorce' ? 'fa-gavel' : 'fa-handshake',
+      color: type === 'divorce' ? 'danger' : 'success'
     });
+
+    const activities = [
+      ...recentDivorces.map(item => formatActivity(item, 'divorce')),
+      ...recentEngagements.map(item => formatActivity(item, 'engagement'))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date))
+     .slice(0, limit);
 
     res.json({
       success: true,
-      data: formattedActivities
+      data: activities
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération des activités:', error);
+    logger.error('Erreur lors de la récupération des activités récentes', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id
+    });
+    
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la récupération des activités'
+      error: 'Impossible de récupérer les activités récentes',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
