@@ -7,19 +7,51 @@ exports.securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      connectSrc: [
+        "'self'",
+        "http://localhost:3000",
+        "https://api.example.com",
+        "wss://your-socket-server.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.socket.io",
+        "https://code.jquery.com",
+        "https://unpkg.com"
+      ],
       scriptSrc: [
         "'self'", 
         "'unsafe-inline'",
         "'unsafe-eval'",
-        "'unsafe-hashes'"
+        "'unsafe-hashes'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.socket.io",
+        "https://code.jquery.com",
+        "https://unpkg.com"
       ],
       scriptSrcAttr: [
         "'self'",
         "'unsafe-inline'"
       ],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-    },
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
+      ],
+      imgSrc: [
+        "'self'", 
+        "data:",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "data:"
+      ]
+    }
   },
   hsts: true,
   frameguard: { action: 'deny' },

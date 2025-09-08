@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { securityHeaders, apiLimiter, sanitizeLogs, validateInputs } = require('./middleware/security');
+const disableSourceMaps = require('./middleware/disableSourceMaps');
 const logger = require('./config/logger');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -34,72 +35,23 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+// Middleware pour gérer les données JSON et URL encodées
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Middleware pour les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware de sécurité et de journalisation
 app.use(securityHeaders);
+app.use(disableSourceMaps);
 app.use(sanitizeLogs);
 app.use(morgan('combined', { stream: logger.stream }));
 
-// Configuration de la sécurité avec Helmet
-const cspConfig = {
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: [
-      "'self'",
-      "'unsafe-inline'",
-      "'unsafe-eval'",
-      "'unsafe-hashes'",
-      'https://cdn.jsdelivr.net',
-      'https://cdnjs.cloudflare.com',
-      'https://cdn.socket.io',
-      'https://code.jquery.com',
-      'https://unpkg.com'
-    ],
-    scriptSrcAttr: [
-      "'self'",
-      "'unsafe-inline'"
-    ],
-    styleSrc: [
-      "'self'",
-      "'unsafe-inline'",
-      'https://cdn.jsdelivr.net',
-      'https://cdnjs.cloudflare.com',
-      'https://fonts.googleapis.com'
-    ],
-    imgSrc: [
-      "'self'",
-      'data:',
-      'https:',
-      'http:'
-    ],
-    fontSrc: [
-      "'self'",
-      'https://cdn.jsdelivr.net',
-      'https://cdnjs.cloudflare.com',
-      'https://fonts.gstatic.com',
-      'data:'
-    ],
-    connectSrc: [
-      "'self'",
-      `http://localhost:${process.env.PORT || 3000}`,
-      'https://api.example.com',
-      'wss://your-socket-server.com'
-    ],
-    frameSrc: ["'self'"],
-    objectSrc: ["'none'"],
-    mediaSrc: ["'self'"],
-    frameAncestors: ["'self'"],
-    formAction: ["'self'"],
-    baseUri: ["'self'"],
-    workerSrc: ["'self'"],
-    manifestSrc: ["'self'"]
-  },
-  reportOnly: process.env.NODE_ENV === 'development'
-};
-
-app.use(helmet());
-app.use(helmet.contentSecurityPolicy(cspConfig));
+// Configuration de sécurité avec Helmet (la CSP est gérée par le middleware securityHeaders)
+app.use(helmet({
+  contentSecurityPolicy: false
+}));
 
 // Servir les fichiers statiques
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -142,21 +94,42 @@ console.log('5. Route divorces chargée');
 const engagementRoutes = require('./routes/engagements');
 console.log('6. Route engagements chargée');
 
+const mariageRoutes = require('./routes/mariages');
+console.log('7. Route mariages chargée');
+
 const dashboardRoutes = require('./routes/dashboard');
-console.log('7. Route dashboard chargée');
+console.log('8. Route dashboard chargée');
 
 const calendrierRoutes = require('./routes/calendrier');
-console.log('8. Route calendrier chargée');
+console.log('9. Route calendrier chargée');
 
 // Chargement de la route des conversations
 try {
   console.log('Tentative de chargement de la route des conversations...');
   const conversationRoutes = require('./routes/conversations');
+  app.use('/api/conversations', conversationRoutes);
   console.log('9. Route conversations chargée avec succès!');
 } catch (error) {
   console.error('ERREUR lors du chargement de la route des conversations:', error);
   process.exit(1);
 }
+
+// Chargement des routes de test
+const testRoutes = express.Router();
+
+// Simple test route
+const simpleTestRoutes = require('./routes/simple-test');
+const pdfTestRoutes = require('./routes/pdf-test');
+const testPdfRoute = require('./routes/test-pdf-route');
+
+testRoutes.use('/simple', simpleTestRoutes);
+testRoutes.use('/pdf', pdfTestRoutes);
+testRoutes.use('/test-pdf', testPdfRoute);
+
+// Mount all test routes under /api/test
+app.use('/api/test', testRoutes);
+
+console.log('10. Routes de test chargées avec succès!');
 
 console.log('=== FIN DU CHARGEMENT DES ROUTES ===\n');
 
@@ -234,10 +207,12 @@ app.use('/api/divorces', divorceRoutes);
 console.log('Route /api/divorces configurée');
 
 app.use('/api/engagements', engagementRoutes);
+app.use('/api/mariages', mariageRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 console.log('Route /api/engagements configurée');
 
-app.use('/api/dashboard', dashboardRoutes);
-console.log('Route /api/dashboard configurée');
+// Route des naissances gérée plus haut dans le fichier
+
 
 // Configuration de la route des conversations
 try {

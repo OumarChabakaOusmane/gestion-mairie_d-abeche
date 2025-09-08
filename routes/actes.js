@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Acte = require('../models/Acte');
 const { check, validationResult } = require('express-validator');
 const PDFDocument = require('pdfkit');
+const { authenticate } = require('../middleware/auth');
 
 // Validation des actes
 const validateActe = (type, details) => {
@@ -46,30 +47,57 @@ const validateActeInput = [
 ];
 
 // Créer un acte
-router.post('/', validateActeInput, async (req, res) => {
+router.post('/', authenticate, validateActeInput, async (req, res) => {
   try {
+    console.log('Requête reçue pour créer un acte:', JSON.stringify(req.body, null, 2));
+    
     const { type, details, mairie } = req.body;
-    validateActe(type, details);
     
-    const acte = new Acte({ 
-      type, 
-      details,
-      mairie,
-      createdBy: req.user._id,
-      lastModifiedBy: req.user._id
-    });
+    try {
+      validateActe(type, details);
+    } catch (validationError) {
+      console.error('Erreur de validation:', validationError.message);
+      return res.status(400).json({
+        success: false,
+        error: `Erreur de validation: ${validationError.message}`,
+        validationError: validationError.message,
+        receivedData: { type, details, mairie }
+      });
+    }
     
-    await acte.save();
-    
-    res.status(201).json({ 
-      success: true,
-      message: 'Acte enregistré avec succès',
-      data: acte
-    });
+    try {
+      const acte = new Acte({ 
+        type, 
+        details,
+        mairie,
+        createdBy: req.user?._id || 'system',
+        lastModifiedBy: req.user?._id || 'system'
+      });
+      
+      await acte.save();
+      
+      console.log('Acte enregistré avec succès:', acte._id);
+      
+      res.status(201).json({ 
+        success: true,
+        message: 'Acte enregistré avec succès',
+        data: acte
+      });
+    } catch (dbError) {
+      console.error('Erreur lors de l\'enregistrement en base de données:', dbError);
+      return res.status(400).json({
+        success: false,
+        error: `Erreur lors de l'enregistrement: ${dbError.message}`,
+        dbError: dbError.message,
+        receivedData: { type, details, mairie }
+      });
+    }
   } catch (err) {
-    res.status(400).json({ 
+    console.error('Erreur inattendue:', err);
+    res.status(500).json({ 
       success: false,
-      error: err.message 
+      error: `Erreur serveur: ${err.message}`,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 });
@@ -405,13 +433,34 @@ function generateMariagePDF(doc, acte) {
   const dateMariage = new Date(details.dateMariage).toLocaleDateString('fr-FR');
   const dateEnregistrement = new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR');
   
+  // Fonction pour formater les informations d'une personne
+  const formatPersonne = (prefix) => {
+    return `- Nom: ${details[`${prefix}Nom`] || 'Non renseigné'}
+- Prénoms: ${details[`${prefix}Prenom`] || 'Non renseigné'}
+- Date de naissance: ${details[`${prefix}DateNaissance`] ? new Date(details[`${prefix}DateNaissance`]).toLocaleDateString('fr-FR') : 'Non renseigné'}
+- Lieu de naissance: ${details[`${prefix}LieuNaissance`] || 'Non renseigné'}
+- Profession: ${details[`${prefix}Profession`] || 'Non renseigné'}
+- Adresse: ${details[`${prefix}Adresse`] || 'Non renseigné'}
+- Nationalité: ${details[`${prefix}Nationalite`] || 'Tchadienne'}
+- Pièce d'identité: ${details[`${prefix}TypePiece`] || 'CNI'} n°${details[`${prefix}NumeroPiece`] || 'Non renseigné'}`;
+  };
+
   const texte = `L'an ${new Date().getFullYear()}, le ${dateEnregistrement}, par devant nous, Officier de l'État Civil de ${acte.mairie}, ont été unis par les liens du mariage :
 
-ÉPOUX : ${details.conjoint1 || 'Non renseigné'}
-ÉPOUSE : ${details.conjointe2 || 'Non renseigné'}
+ÉPOUX :
+${formatPersonne('conjoint1')}
+
+ÉPOUSE :
+${formatPersonne('conjoint2')}
+
+Témoin 1: ${details.temoin1Nom || 'Non renseigné'}
+Témoin 2: ${details.temoin2Nom || 'Non renseigné'}
 
 Le mariage a été célébré le ${dateMariage}
 à ${details.lieuMariage || 'Non renseigné'}
+
+Régime matrimonial: ${details.regimeMatrimonial || 'Communauté réduite aux acquêts'}
+Contrat de mariage: ${details.contratMariage || 'Non'}
 
 Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`;
 

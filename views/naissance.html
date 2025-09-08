@@ -264,48 +264,102 @@
     async function handleFormSubmit(e) {
       e.preventDefault();
       
-      const formData = new FormData(e.target);
-      const acteData = Object.fromEntries(formData);
-      
-      const url = isEditMode ? `/api/actes/${editActeId}` : '/api/actes';
-      const method = isEditMode ? 'PUT' : 'POST';
-      
-      const result = await apiRequest(url, {
-        method: method,
-        body: JSON.stringify({
-          type: 'naissance',
-          details: acteData,
-          mairie: acteData.mairie
-        })
-      });
-      
-      if (result) {
-        const resultDiv = document.getElementById('result');
-        const successMessage = isEditMode ? 'Acte de naissance modifié avec succès !' : 'Acte de naissance enregistré avec succès !';
+      try {
+        const formData = new FormData(e.target);
+        const acteData = Object.fromEntries(formData);
         
-        resultDiv.innerHTML = `
-          <div class="alert alert-success">
-            <i class="fas fa-check-circle me-2"></i>
-            <strong>${successMessage}</strong>
-            <div class="mt-3">
-              <strong>Numéro d'acte:</strong> ${result.data.numeroActe}
-            </div>
-            <div class="mt-3">
-              <button onclick="downloadPDF('${result.data._id}')" class="btn btn-danger">
-                <i class="fas fa-file-pdf me-2"></i>Télécharger le PDF
-              </button>
-              <button onclick="window.print()" class="btn btn-outline-primary ms-2">
-                <i class="fas fa-print me-2"></i>Imprimer
-              </button>
-              ${isEditMode ? '<a href="/dashboard" class="btn btn-secondary ms-2"><i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord</a>' : ''}
-            </div>
-          </div>
-        `;
+        // Validation côté client
+        const requiredFields = [
+          'nom', 'prenom', 'sexe', 'dateNaissance', 'lieuNaissance',
+          'pere', 'prenomPere', 'dateNaissancePere', 'lieuNaissancePere', 'professionPere',
+          'mere', 'prenomMere', 'dateNaissanceMere', 'lieuNaissanceMere', 'professionMere',
+          'mairie'
+        ];
         
-        // En mode édition, ne pas réinitialiser le formulaire
-        if (!isEditMode) {
-          e.target.reset();
+        const missingFields = requiredFields.filter(field => !acteData[field]);
+        
+        if (missingFields.length > 0) {
+          throw new Error(`Les champs suivants sont obligatoires : ${missingFields.join(', ')}`);
         }
+        
+        const url = isEditMode ? `/api/actes/${editActeId}` : '/api/actes';
+        const method = isEditMode ? 'PUT' : 'POST';
+        
+        // Préparer les données pour l'envoi
+        const requestData = {
+          type: 'naissance',
+          details: {
+            // Informations de l'enfant - utiliser les noms de champs attendus par le serveur
+            nom: acteData.nom,
+            prenom: acteData.prenom,
+            dateNaissance: acteData.dateNaissance,
+            heureNaissance: acteData.heureNaissance || '',
+            lieuNaissance: acteData.lieuNaissance,
+            sexe: acteData.sexe,
+            
+            // Informations du père - utiliser les noms de champs attendus par le serveur
+            pere: acteData.pere,
+            prenomPere: acteData.prenomPere,
+            dateNaissancePere: acteData.dateNaissancePere,
+            lieuNaissancePere: acteData.lieuNaissancePere,
+            professionPere: acteData.professionPere,
+            
+            // Informations de la mère - utiliser les noms de champs attendus par le serveur
+            mere: acteData.mere,
+            prenomMere: acteData.prenomMere,
+            dateNaissanceMere: acteData.dateNaissanceMere,
+            lieuNaissanceMere: acteData.lieuNaissanceMere,
+            professionMere: acteData.professionMere,
+            
+            // Autres champs
+            adresse: acteData.adresse || ''
+          },
+          mairie: acteData.mairie
+        };
+        
+        console.log('Données envoyées au serveur:', JSON.stringify(requestData, null, 2));
+        
+        const result = await apiRequest(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (result && result.success) {
+          const resultDiv = document.getElementById('result');
+          const successMessage = isEditMode ? 'Acte de naissance modifié avec succès !' : 'Acte de naissance enregistré avec succès !';
+          
+          resultDiv.innerHTML = `
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle me-2"></i>
+              <strong>${successMessage}</strong>
+              <div class="mt-3">
+                <strong>Numéro d'acte:</strong> ${result.data.numeroActe || result.data._id}
+              </div>
+              <div class="mt-3">
+                <button onclick="downloadPDF('${result.data._id}')" class="btn btn-danger">
+                  <i class="fas fa-file-pdf me-2"></i>Télécharger le PDF
+                </button>
+                <button onclick="window.print()" class="btn btn-outline-primary ms-2">
+                  <i class="fas fa-print me-2"></i>Imprimer
+                </button>
+                ${isEditMode ? '<a href="/dashboard" class="btn btn-secondary ms-2"><i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord</a>' : ''}
+              </div>
+            </div>
+          `;
+          
+          // En mode édition, ne pas réinitialiser le formulaire
+          if (!isEditMode) {
+            e.target.reset();
+          }
+        } else {
+          throw new Error(result?.error || 'Erreur inconnue lors de l\'enregistrement');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la soumission du formulaire:', error);
+        showError(error.message || 'Une erreur est survenue lors de l\'enregistrement. Veuillez vérifier les informations et réessayer.');
       }
     }
     

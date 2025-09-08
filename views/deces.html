@@ -418,16 +418,51 @@
           const data = Object.fromEntries(formData.entries());
           
           // Validation côté client
-          if (!validateDecesForm(data)) {
-            throw new Error('Veuillez remplir tous les champs obligatoires');
-          }
+          validateDecesForm(data);
           
+          // Préparer les données pour l'API
           // Préparer les données pour l'API
           const apiData = {
             type: 'deces',
-            details: data,
+            details: {
+              // Informations du défunt
+              nom: data.nom,
+              prenom: data.prenom,
+              dateNaissance: data.dateNaissance,
+              lieuNaissance: data.lieuNaissance,
+              sexe: data.sexe,
+              nationalite: data.nationalite || 'Tchadienne',
+              profession: data.profession,
+              adresse: data.adresse,
+              
+              // Informations du décès
+              dateDeces: data.dateDeces,
+              heureDeces: data.heureDeces,
+              lieuDeces: data.lieuDeces,
+              cause: data.cause,
+              
+              // Informations familiales
+              nomPere: data.nomPere,
+              nomMere: data.nomMere,
+              situationMatrimoniale: data.situationMatrimoniale,
+              nomConjoint: data.nomConjoint,
+              
+              // Informations du déclarant
+              nomDeclarant: data.nomDeclarant,
+              prenomDeclarant: data.prenomDeclarant,
+              lienDeclarant: data.lienDeclarant,
+              telephoneDeclarant: data.telephoneDeclarant,
+              
+              // Informations administratives
+              dateEnregistrement: data.dateEnregistrement || new Date().toISOString().split('T')[0],
+              numeroCertificat: data.numeroCertificat,
+              medecinCertificateur: data.medecinCertificateur,
+              observations: data.observations
+            },
             mairie: data.mairie
           };
+          
+          console.log('Données envoyées au serveur :', apiData);
           
           // Envoyer les données avec timeout
           const controller = new AbortController();
@@ -449,8 +484,16 @@
           clearTimeout(timeoutId);
           
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erreur lors de l\'enregistrement');
+            let errorMessage = 'Erreur lors de l\'enregistrement';
+            try {
+              const errorData = await response.json();
+              console.error('Erreur du serveur :', errorData);
+              errorMessage = errorData.message || JSON.stringify(errorData);
+            } catch (e) {
+              console.error('Erreur lors de la lecture de la réponse d\'erreur :', e);
+              errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
           }
           
           const result = await response.json();
@@ -509,10 +552,17 @@
       const required = ['nom', 'prenom', 'sexe', 'dateDeces', 'lieuDeces', 
                        'nomDeclarant', 'prenomDeclarant', 'lienDeclarant', 'mairie'];
       
+      // Vérifier les champs requis
+      const missingFields = [];
       for (const field of required) {
         if (!data[field] || data[field].trim() === '') {
-          return false;
+          missingFields.push(field);
         }
+      }
+      
+      if (missingFields.length > 0) {
+        console.error('Champs manquants :', missingFields);
+        throw new Error(`Les champs suivants sont requis : ${missingFields.join(', ')}`);
       }
       
       // Validation des dates

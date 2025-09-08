@@ -340,7 +340,28 @@
               </div>
             </form>
             
-            <div id="result" class="mt-4"></div>
+            <div id="result" class="mt-4">
+              <div id="success-message" class="alert alert-success d-none" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span id="success-text"></span>
+                  </div>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="downloadPdfBtn" style="display: none;">
+                      <i class="fas fa-file-pdf me-1"></i> Télécharger PDF
+                    </button>
+                    <a href="/actes.html" class="btn btn-sm btn-outline-primary ms-2">
+                      <i class="fas fa-list me-1"></i> Voir la liste
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div id="error-message" class="alert alert-danger d-none" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="error-text"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -376,101 +397,208 @@
       document.getElementById('sidebar-container').innerHTML = createSidebar('mariage');
       
       // Gérer la soumission du formulaire
-      document.getElementById('formMariage').addEventListener('submit', async (e) => {
+      document.getElementById('formMariage').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const formData = new FormData(e.target);
-        const mariageData = Object.fromEntries(formData);
+        try {
+          const formData = new FormData(e.target);
+          const mariageData = Object.fromEntries(formData);
+          
+          // Vérifier que les champs obligatoires sont présents
+          const requiredFields = {
+            'dateMariage': 'La date du mariage est requise',
+            'lieuMariage': 'Le lieu du mariage est requis',
+            'nomConjoint1': 'Le nom du conjoint 1 est requis',
+            'prenomConjoint1': 'Le prénom du conjoint 1 est requis',
+            'nomConjoint2': 'Le nom du conjoint 2 est requis',
+            'prenomConjoint2': 'Le prénom du conjoint 2 est requis'
+          };
+          
+          const missingFields = [];
+          for (const [field, message] of Object.entries(requiredFields)) {
+            if (!mariageData[field] || mariageData[field].trim() === '') {
+              missingFields.push(message);
+            }
+          }
+          
+          if (missingFields.length > 0) {
+            throw new Error(missingFields.join('\n'));
+          }
         
-        // Structurer les données selon le modèle
+        // Structurer les données selon le modèle attendu par le serveur
         const acteData = {
           type: 'mariage',
           details: {
+            // Champs requis par la validation côté serveur
             dateMariage: mariageData.dateMariage,
-            heureMariage: mariageData.heureMariage,
             lieuMariage: mariageData.lieuMariage,
-            typeCeremonie: mariageData.typeCeremonie,
-            conjoint1: {
+            conjoint1: mariageData.nomConjoint1,
+            conjointe2: mariageData.nomConjoint2,
+            
+            // Champs supplémentaires pour le PDF
+            prenomConjoint1: mariageData.prenomConjoint1 || '',
+            prenomConjoint2: mariageData.prenomConjoint2 || '',
+            heureMariage: mariageData.heureMariage || '12:00',
+            typeCeremonie: mariageData.typeCeremonie || 'Civile',
+            
+            // Informations détaillées des conjoints
+            conjoint1_details: {
               nom: mariageData.nomConjoint1,
               prenom: mariageData.prenomConjoint1,
-              dateNaissance: mariageData.dateNaissanceConjoint1,
-              lieuNaissance: mariageData.lieuNaissanceConjoint1,
-              nationalite: mariageData.nationaliteConjoint1,
-              profession: mariageData.professionConjoint1,
-              situationAnterieure: mariageData.situationAnterieure1,
-              adresse: mariageData.adresseConjoint1,
-              pere: mariageData.pereConjoint1,
-              mere: mariageData.mereConjoint1
+              dateNaissance: mariageData.dateNaissanceConjoint1 || '',
+              lieuNaissance: mariageData.lieuNaissanceConjoint1 || '',
+              nationalite: mariageData.nationaliteConjoint1 || '',
+              profession: mariageData.professionConjoint1 || '',
+              situationAnterieure: mariageData.situationAnterieure1 || '',
+              adresse: mariageData.adresseConjoint1 || '',
+              pere: mariageData.pereConjoint1 || '',
+              mere: mariageData.mereConjoint1 || ''
             },
-            conjoint2: {
+            
+            conjoint2_details: {
               nom: mariageData.nomConjoint2,
               prenom: mariageData.prenomConjoint2,
-              dateNaissance: mariageData.dateNaissanceConjoint2,
-              lieuNaissance: mariageData.lieuNaissanceConjoint2,
-              nationalite: mariageData.nationaliteConjoint2,
-              profession: mariageData.professionConjoint2,
-              situationAnterieure: mariageData.situationAnterieure2,
-              adresse: mariageData.adresseConjoint2,
-              pere: mariageData.pereConjoint2,
-              mere: mariageData.mereConjoint2
+              dateNaissance: mariageData.dateNaissanceConjoint2 || '',
+              lieuNaissance: mariageData.lieuNaissanceConjoint2 || '',
+              nationalite: mariageData.nationaliteConjoint2 || '',
+              profession: mariageData.professionConjoint2 || '',
+              situationAnterieure: mariageData.situationAnterieure2 || '',
+              adresse: mariageData.adresseConjoint2 || '',
+              pere: mariageData.pereConjoint2 || '',
+              mere: mariageData.mereConjoint2 || ''
             },
+            
+            // Témoins
             temoins: [
               {
-                nom: mariageData.temoin1,
-                profession: mariageData.professionTemoin1,
-                dateNaissance: mariageData.dateNaissanceTemoin1,
-                residence: mariageData.residenceTemoin1
+                nom: mariageData.temoin1 || '',
+                profession: mariageData.professionTemoin1 || '',
+                dateNaissance: mariageData.dateNaissanceTemoin1 || '',
+                residence: mariageData.residenceTemoin1 || ''
               },
               {
-                nom: mariageData.temoin2,
-                profession: mariageData.professionTemoin2,
-                dateNaissance: mariageData.dateNaissanceTemoin2,
-                residence: mariageData.residenceTemoin2
+                nom: mariageData.temoin2 || '',
+                profession: mariageData.professionTemoin2 || '',
+                dateNaissance: mariageData.dateNaissanceTemoin2 || '',
+                residence: mariageData.residenceTemoin2 || ''
               }
             ],
-            regimeMatrimonial: mariageData.regimeMatrimonial,
-            contratMariage: mariageData.contratMariage,
-            observations: mariageData.observations
+            
+            // Informations complémentaires
+            regimeMatrimonial: mariageData.regimeMatrimonial || 'Séparation de biens',
+            contratMariage: mariageData.contratMariage || 'Non',
+            observations: mariageData.observations || 'Aucune observation'
           },
-          mairie: mariageData.mairie
+          mairie: mariageData.mairie || 'Mairie de N\'Djamena'
         };
         
-        const result = await apiRequest('/api/actes', {
-          method: 'POST',
+        // Vérifier que les champs requis sont bien définis
+        if (!acteData.details.conjoint1 || !acteData.details.conjointe2) {
+          throw new Error('Les noms des conjoints sont requis');
+        }
+        
+        console.log('Données envoyées au serveur:', JSON.stringify(acteData, null, 2));
+        
+        // Vérification finale des champs requis dans l'objet acteData
+        const requiredActeFields = ['dateMariage', 'lieuMariage', 'conjoint1', 'conjointe2'];
+        const missingActeFields = requiredActeFields.filter(field => !acteData.details[field]);
+        
+        if (missingActeFields.length > 0) {
+          console.error('Champs manquants dans l\'objet acteData:', missingActeFields);
+          throw new Error(`Erreur de configuration: ${missingActeFields.join(', ')}`);
+        }
+        
+        const url = isEditMode ? `/api/actes/${editActeId}` : '/api/actes';
+        const method = isEditMode ? 'PUT' : 'POST';
+        
+        console.log('Envoi de la requête à:', url, 'avec la méthode:', method);
+        
+        const result = await apiRequest(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(acteData)
         });
         
+        console.log('Réponse du serveur:', result);
         const resultDiv = document.getElementById('result');
-        if (result && result.success) {
-          resultDiv.innerHTML = `
-            <div class="alert alert-success alert-dismissible fade show">
-              <i class="fas fa-check-circle me-2"></i>
-              <strong>Succès!</strong> Acte de mariage enregistré avec succès.
-              <div class="mt-2">
-                <strong>Numéro d'acte:</strong> ${result.data.numeroActe || 'En cours de génération'}
-              </div>
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-          `;
-          
-          // Réinitialiser le formulaire et revenir à l'étape 1
-          e.target.reset();
-          currentStep = 1;
-          showStep(currentStep);
-          
-          // Scroll vers le résultat
-          resultDiv.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          resultDiv.innerHTML = `
-            <div class="alert alert-danger alert-dismissible fade show">
-              <i class="fas fa-exclamation-circle me-2"></i>
-              <strong>Erreur!</strong> ${result?.error || 'Erreur lors de l\'enregistrement'}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-          `;
+        
+        if (!result) {
+          throw new Error('Aucune réponse du serveur');
         }
-      });
+        
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        
+        // Afficher le message de succès avec bouton Retour et Télécharger PDF
+        const numeroActe = result.data ? (result.data.numeroActe || 'En cours de génération') : 'En cours de génération';
+        const acteId = result.data ? result.data._id : null;
+        
+        let successHtml = [
+          '<div class="alert alert-success alert-dismissible fade show">',
+          '  <div class="d-flex justify-content-between align-items-start">',
+          '    <div>',
+          '      <i class="fas fa-check-circle me-2"></i>',
+          `      <strong>Succès!</strong> ${result.message || 'Acte enregistré avec succès.'}`,
+          '      <div class="mt-2">',
+          `        <strong>Numéro d\'acte:</strong> ${numeroActe}`,
+          '      </div>',
+          '    </div>',
+          '    <div class="btn-group ms-3">'
+        ];
+        
+        if (acteId) {
+          successHtml.push(
+            `      <button type="button" class="btn btn-sm btn-outline-secondary" id="downloadPdfBtn">`,
+            '        <i class="fas fa-file-pdf me-1"></i> Télécharger PDF',
+            '      </button>'
+          );
+        }
+        
+        successHtml.push(
+          '      <a href="/actes.html" class="btn btn-sm btn-outline-primary ms-2">',
+          '        <i class="fas fa-list me-1"></i> Voir la liste',
+          '      </a>',
+          '    </div>',
+          '  </div>',
+          '</div>'
+        );
+        
+        resultDiv.innerHTML = successHtml.join('\n');
+        
+        // Ajouter l'événement de téléchargement si l'ID est disponible
+        if (acteId) {
+          const downloadBtn = document.getElementById('downloadPdfBtn');
+          if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+              downloadPdf(acteId);
+            });
+          }
+        }
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi de la requête:', error);
+        const resultDiv = document.getElementById('result') || document.body;
+        resultDiv.innerHTML = `
+          <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Erreur!</strong> ${error.message || 'Une erreur est survenue lors de l\'enregistrement.'}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+          </div>
+        `;
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+      } finally {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Enregistrer';
+        }
+      }
     });
+  });
     
     // Charger les données de l'acte pour modification
     async function loadActeForEdit(id) {
@@ -508,53 +636,255 @@
     
     // Remplir le formulaire avec les données existantes
     function populateForm(acte) {
-      if (!acte || !acte.details) return;
+      if (!acte) return;
       
-      const details = acte.details;
+      console.log('Données complètes reçues:', JSON.stringify(acte, null, 2));
+      
+      const details = acte.details || {};
+      const conjoint1 = details.conjoint1_details || {};
+      const conjoint2 = details.conjoint2_details || {};
+      const temoins = Array.isArray(details.temoins) ? details.temoins : [];
+      
+      // Fonction utilitaire pour définir la valeur d'un champ avec gestion des valeurs imbriquées
+      const setFieldValue = (name, ...possiblePaths) => {
+        const element = document.querySelector(`[name="${name}"]`);
+        if (!element) {
+          console.warn(`Élément non trouvé: ${name}`);
+          return false; // Retourne false si l'élément n'existe pas
+        }
+        
+        // Parcourir tous les chemins possibles jusqu'à trouver une valeur
+        for (const path of possiblePaths) {
+          if (path === undefined || path === null) continue;
+          
+          // Si c'est une fonction, l'exécuter pour obtenir la valeur
+          if (typeof path === 'function') {
+            const value = path();
+            if (value !== undefined && value !== null) {
+              element.value = value;
+              return;
+            }
+          } 
+          // Sinon, utiliser directement la valeur
+          else if (path !== undefined && path !== null) {
+            element.value = path;
+            return;
+          }
+        }
+        
+        // Si aucune valeur n'est trouvée, vider le champ
+        element.value = '';
+      };
+      
+      // Fonction pour formater une date (supprime l'heure si présente)
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return dateStr.split('T')[0];
+      };
       
       // Informations générales
-      if (acte.numeroActe) document.getElementById('numeroActe').value = acte.numeroActe;
-      if (acte.dateEnregistrement) {
-        document.getElementById('dateEnregistrement').value = acte.dateEnregistrement.split('T')[0];
-      }
-      if (acte.mairie) document.getElementById('mairie').value = acte.mairie;
+      setFieldValue('dateMariage', formatDate(details.dateMariage));
+      setFieldValue('heureMariage', details.heureMariage || '');
+      setFieldValue('lieuMariage', details.lieuMariage);
+      setFieldValue('mairie', acte.mairie || details.mairie);
+      setFieldValue('typeCeremonie', details.typeCeremonie || 'civile');
       
       // Époux (Conjoint 1)
-      if (details.conjoint1) document.getElementById('conjoint1').value = details.conjoint1;
-      if (details.dateNaissanceConjoint1) {
-        document.getElementById('dateNaissanceConjoint1').value = details.dateNaissanceConjoint1.split('T')[0];
-      }
-      if (details.lieuNaissanceConjoint1) document.getElementById('lieuNaissanceConjoint1').value = details.lieuNaissanceConjoint1;
-      if (details.professionConjoint1) document.getElementById('professionConjoint1').value = details.professionConjoint1;
-      if (details.pereConjoint1) document.getElementById('pereConjoint1').value = details.pereConjoint1;
-      if (details.mereConjoint1) document.getElementById('mereConjoint1').value = details.mereConjoint1;
+      setFieldValue('nomConjoint1', 
+        details.conjoint1, 
+        conjoint1.nom,
+        details.conjoint1Nom
+      );
+      setFieldValue('prenomConjoint1', 
+        conjoint1.prenom, 
+        details.conjoint1Prenom
+      );
+      setFieldValue('dateNaissanceConjoint1', 
+        formatDate(conjoint1.dateNaissance),
+        formatDate(details.dateNaissanceConjoint1),
+        formatDate(details.conjoint1DateNaissance)
+      );
+      setFieldValue('lieuNaissanceConjoint1', 
+        conjoint1.lieuNaissance,
+        details.lieuNaissanceConjoint1,
+        details.conjoint1LieuNaissance
+      );
+      setFieldValue('professionConjoint1', 
+        conjoint1.profession,
+        details.professionConjoint1,
+        details.conjoint1Profession
+      );
+      setFieldValue('adresseConjoint1', 
+        conjoint1.adresse,
+        details.adresseConjoint1,
+        details.conjoint1Adresse
+      );
+      setFieldValue('nationaliteConjoint1', 
+        conjoint1.nationalite,
+        details.nationaliteConjoint1,
+        details.conjoint1Nationalite,
+        'Tchadien(ne)'
+      );
+      // Ces champs ne sont pas dans le formulaire HTML, donc on les commente
+      // setFieldValue('typePieceConjoint1', 
+      //   details.typePieceConjoint1,
+      //   details.conjoint1TypePiece,
+      //   'CNI'
+      // );
+      // setFieldValue('numeroPieceConjoint1', 
+      //   details.numeroPieceConjoint1,
+      //   details.conjoint1NumeroPiece
+      // );
+      setFieldValue('pereConjoint1', 
+        conjoint1.pere,
+        details.pereConjoint1
+      );
+      setFieldValue('mereConjoint1', 
+        conjoint1.mere,
+        details.mereConjoint1
+      );
       
       // Épouse (Conjointe 2)
-      if (details.conjointe2) document.getElementById('conjointe2').value = details.conjointe2;
-      if (details.dateNaissanceConjointe2) {
-        document.getElementById('dateNaissanceConjointe2').value = details.dateNaissanceConjointe2.split('T')[0];
-      }
-      if (details.lieuNaissanceConjointe2) document.getElementById('lieuNaissanceConjointe2').value = details.lieuNaissanceConjointe2;
-      if (details.professionConjointe2) document.getElementById('professionConjointe2').value = details.professionConjointe2;
-      if (details.pereConjointe2) document.getElementById('pereConjointe2').value = details.pereConjointe2;
-      if (details.mereConjointe2) document.getElementById('mereConjointe2').value = details.mereConjointe2;
+      setFieldValue('nomConjoint2', 
+        details.conjointe2,
+        details.conjoint2Nom,
+        conjoint2.nom,
+        details.conjoint2_nom
+      );
+      setFieldValue('prenomConjoint2', 
+        conjoint2.prenom,
+        details.conjoint2Prenom
+      );
+      setFieldValue('dateNaissanceConjoint2',  // Corrigé: dateNaissanceConjoint2 au lieu de dateNaissanceConjointe2
+        formatDate(conjoint2.dateNaissance),
+        formatDate(details.dateNaissanceConjointe2),
+        formatDate(details.dateNaissanceConjoint2),  // Ajout du format alternatif
+        formatDate(details.conjoint2DateNaissance)
+      );
+      setFieldValue('lieuNaissanceConjoint2',  // Corrigé: lieuNaissanceConjoint2 au lieu de lieuNaissanceConjointe2
+        conjoint2.lieuNaissance,
+        details.lieuNaissanceConjointe2,
+        details.lieuNaissanceConjoint2,  // Ajout du format alternatif
+        details.conjoint2LieuNaissance
+      );
+      setFieldValue('professionConjoint2',  // Corrigé: professionConjoint2 au lieu de professionConjointe2
+        conjoint2.profession,
+        details.professionConjointe2,
+        details.professionConjoint2,  // Ajout du format alternatif
+        details.conjoint2Profession
+      );
+      setFieldValue('adresseConjoint2',  // Corrigé: adresseConjoint2 au lieu de adresseConjointe2
+        conjoint2.adresse,
+        details.adresseConjointe2,
+        details.adresseConjoint2,  // Ajout du format alternatif
+        details.conjoint2Adresse
+      );
+      setFieldValue('nationaliteConjoint2',  // Corrigé: nationaliteConjoint2 au lieu de nationaliteConjointe2
+        conjoint2.nationalite,
+        details.nationaliteConjointe2,
+        details.nationaliteConjoint2,  // Ajout du format alternatif
+        details.conjoint2Nationalite,
+        'Tchadien(ne)'
+      );
+      // Ces champs ne sont pas dans le formulaire HTML, donc on les commente
+      // setFieldValue('typePieceConjoint2', 
+      //   details.typePieceConjointe2,
+      //   details.conjoint2TypePiece,
+      //   'CNI'
+      // );
+      // setFieldValue('numeroPieceConjoint2', 
+      //   details.numeroPieceConjointe2,
+      //   details.conjoint2NumeroPiece
+      // );
+      setFieldValue('pereConjoint2',  // Corrigé: pereConjoint2 au lieu de pereConjointe2
+        conjoint2.pere,
+        details.pereConjointe2,
+        details.pereConjoint2  // Ajout du format alternatif
+      );
+      setFieldValue('mereConjoint2',  // Corrigé: mereConjoint2 au lieu de mereConjointe2
+        conjoint2.mere,
+        details.mereConjointe2,
+        details.mereConjoint2  // Ajout du format alternatif
+      );
       
       // Mariage
-      if (details.dateMariage) {
-        document.getElementById('dateMariage').value = details.dateMariage.split('T')[0];
-      }
-      if (details.lieuMariage) document.getElementById('lieuMariage').value = details.lieuMariage;
-      if (details.regimeMatrimonial) document.getElementById('regimeMatrimonial').value = details.regimeMatrimonial;
+      setFieldValue('dateMariage', formatDate(details.dateMariage));
+      setFieldValue('lieuMariage', details.lieuMariage);
+      setFieldValue('regimeMatrimonial', 
+        details.regimeMatrimonial, 
+        'Communauté réduite aux acquêts'
+      );
+      setFieldValue('contratMariage', 
+        details.contratMariage, 
+        'Non'
+      );
       
-      // Témoins
-      if (details.temoin1) document.getElementById('temoin1').value = details.temoin1;
-      if (details.temoin2) document.getElementById('temoin2').value = details.temoin2;
-      if (details.temoin3) document.getElementById('temoin3').value = details.temoin3;
-      if (details.temoin4) document.getElementById('temoin4').value = details.temoin4;
+      // Témoins - avec vérification de l'existence des champs
+      const temoin1 = temoins[0] || {};
+      setFieldValue('temoin1', temoin1.nom || details.temoin1 || details.temoin1Nom || '');
+      // Les champs suivants n'existent pas dans le formulaire HTML, donc on les commente
+      // setFieldValue('temoin1Prenom', temoin1.prenom || details.temoin1Prenom || '');
+      setFieldValue('professionTemoin1', temoin1.profession || details.temoin1Profession || '');
+      setFieldValue('residenceTemoin1', temoin1.adresse || details.temoin1Adresse || temoin1.residence || '');
+      setFieldValue('dateNaissanceTemoin1', formatDate(temoin1.dateNaissance) || '');
       
-      // Informations complémentaires
-      if (details.observations) document.getElementById('observations').value = details.observations;
-      if (details.officierEtatCivil) document.getElementById('officierEtatCivil').value = details.officierEtatCivil;
+      // Mettre à jour les valeurs des sélecteurs avec gestion des valeurs par défaut
+      const setSelectValue = (name, value, defaultValue = '') => {
+        const select = document.querySelector(`select[name="${name}"]`);
+        if (select) {
+          const finalValue = value || defaultValue;
+          // Vérifier si la valeur existe dans les options
+          const optionExists = Array.from(select.options).some(opt => opt.value === finalValue);
+          if (optionExists) {
+            select.value = finalValue;
+          } else {
+            console.warn(`Valeur non valide pour le sélecteur ${name}: ${finalValue}`);
+            select.value = defaultValue;
+          }
+        }
+      };
+      
+      // Définir les valeurs des sélecteurs
+      setSelectValue('situationAnterieure1', 
+        conjoint1.situationAnterieure || details.situationAnterieure1, 
+        'celibataire'
+      );
+      
+      setSelectValue('situationAnterieure2', 
+        conjoint2.situationAnterieure || details.situationAnterieure2, 
+        'celibataire'
+      );
+      
+      setSelectValue('typeCeremonie', 
+        (details.typeCeremonie || '').toLowerCase(), 
+        'civile'
+      );
+      
+      setSelectValue('regimeMatrimonial', 
+        details.regimeMatrimonial, 
+        'communauté'
+      );
+      
+      setSelectValue('contratMariage', 
+        details.contratMariage, 
+        'non'
+      );
+      
+      const temoin2 = temoins[1] || {};
+      setFieldValue('temoin2', (temoin2.nom || details.temoin2 || details.temoin2Nom || ''));
+      // Les champs suivants n'existent pas dans le formulaire HTML, donc on les commente
+      // setFieldValue('temoin2Prenom', (temoin2.prenom || details.temoin2Prenom || ''));
+      setFieldValue('professionTemoin2', (temoin2.profession || details.temoin2Profession || ''));
+      setFieldValue('residenceTemoin2', (temoin2.adresse || details.temoin2Adresse || temoin2.residence || ''));
+      setFieldValue('dateNaissanceTemoin2', formatDate(temoin2.dateNaissance) || '');
+      
+      // Informations complémentaires avec valeurs par défaut
+      setFieldValue('observations', details.observations || '');
+      // Le champ officierEtatCivil n'existe pas dans le formulaire HTML, donc on le commente
+      // setFieldValue('officierEtatCivil', details.officierEtatCivil || '');
+      
+      // Afficher un message de débogage dans la console
+      console.log('Formulaire rempli avec succès');
     }
     
     function changeStep(direction) {
@@ -622,11 +952,96 @@
       return true;
     }
     
+    // Fonction pour télécharger le PDF
+    async function downloadPdf(acteId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const response = await fetch(`/api/mariages/${acteId}/pdf`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors de la génération du PDF');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `acte-mariage-${acteId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        
+      } catch (error) {
+        console.error('Erreur lors du téléchargement du PDF:', error);
+        document.getElementById('error-text').textContent = 'Erreur lors du téléchargement du PDF: ' + error.message;
+        document.getElementById('error-message').classList.remove('d-none');
+      }
+    }
+    
     // Validation en temps réel
     document.addEventListener('input', (e) => {
       if (e.target.hasAttribute('required') && e.target.value.trim()) {
         e.target.classList.remove('is-invalid');
-        e.target.classList.add('is-valid');
+      }
+    });
+    
+    // Gestionnaire de soumission du formulaire
+    document.getElementById('formMariage').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!validateCurrentStep()) return;
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...';
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      try {
+        // Récupération des données du formulaire
+        const formData = new FormData(this);
+        const mariageData = Object.fromEntries(formData.entries());
+        const isEditMode = !!editActeId;
+        
+        const response = await fetch(isEditMode ? `/api/mariages/${editActeId}` : '/api/mariages', {
+          method: isEditMode ? 'PUT' : 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(mariageData)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors de l\'enregistrement des données');
+        }
+        
+        const acteId = await response.json();
+        await downloadPdf(acteId);
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'enregistrement des données:', error);
+        document.getElementById('error-text').textContent = 'Erreur lors de l\'enregistrement des données: ' + error.message;
+        document.getElementById('error-message').classList.remove('d-none');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Enregistrer';
       }
     });
   </script>
