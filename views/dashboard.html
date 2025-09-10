@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +18,7 @@
       position: relative;
       overflow: hidden;
     }
-    
+
     .dashboard-header::before {
       content: '';
       position: absolute;
@@ -30,16 +31,23 @@
       will-change: transform;
       animation-play-state: running;
     }
-    
+
     .dashboard-header:not(.visible)::before {
       animation-play-state: paused;
     }
-    
+
     @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
-    
+
     /* Enhanced Stat Cards */
     .stat-card {
       background: white;
@@ -58,42 +66,42 @@
       will-change: transform;
       backface-visibility: hidden;
     }
-    
+
     .stat-card:hover {
       transform: translateY(-10px) scale(1.02);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
-    
+
     .stat-card.births {
       background: linear-gradient(135deg, #3498db, #2980b9);
       color: white;
     }
-    
+
     .stat-card.marriages {
       background: linear-gradient(135deg, #2ecc71, #27ae60);
       color: white;
     }
-    
+
     .stat-card.deaths {
       background: linear-gradient(135deg, #e74c3c, #c0392b);
       color: white;
     }
-    
+
     .stat-card.documents {
       background: linear-gradient(135deg, #1abc9c, #16a085);
       color: white;
     }
-    
+
     .stat-card.divorces {
       background: linear-gradient(135deg, #f39c12, #d35400);
       color: white;
     }
-    
+
     .stat-card.engagements {
       background: linear-gradient(135deg, #9b59b6, #8e44ad);
       color: white;
     }
-    
+
     .stat-icon {
       position: absolute;
       top: 1.5rem;
@@ -101,21 +109,21 @@
       font-size: 3rem;
       opacity: 0.3;
     }
-    
+
     .stat-number {
       font-size: 3rem;
       font-weight: 800;
       margin-bottom: 0.5rem;
       line-height: 1;
     }
-    
+
     .stat-label {
       font-size: 1rem;
       opacity: 0.9;
       margin-bottom: 1rem;
       font-weight: 500;
     }
-    
+
     .progress-custom {
       height: 8px;
       border-radius: 10px;
@@ -123,7 +131,7 @@
       margin-bottom: 1rem;
       overflow: hidden;
     }
-    
+
     .progress-bar-custom {
       height: 100%;
       border-radius: 10px;
@@ -131,15 +139,15 @@
       transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
       width: 0%;
     }
-    
+
     .quick-actions {
       background: white;
       border-radius: 15px;
       padding: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       border: 1px solid #f0f0f0;
     }
-    
+
     .quick-action-btn {
       display: flex;
       align-items: center;
@@ -154,19 +162,19 @@
       transition: all 0.3s ease;
       height: 120px;
     }
-    
+
     .quick-action-btn:hover {
       border-color: #007bff;
       color: #007bff;
       transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,123,255,0.15);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.15);
     }
-    
+
     .quick-action-icon {
       font-size: 2rem;
       margin-bottom: 10px;
     }
-    
+
     .loading-skeleton {
       background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
       background-size: 200% 100%;
@@ -174,12 +182,17 @@
       border-radius: 8px;
       will-change: background-position;
     }
-    
+
     @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
     }
-    
+
     .metric-trend {
       display: flex;
       align-items: center;
@@ -187,122 +200,125 @@
       font-size: 0.875rem;
       margin-top: 5px;
     }
-    
+
     .trend-up {
       color: #28a745;
     }
-    
+
     .trend-down {
       color: #dc3545;
     }
-    
+
     .trend-neutral {
       color: #6c757d;
     }
-    
+
     /* Optimisation: Réduire les animations sur les appareils moins performants */
     @media (prefers-reduced-motion: reduce) {
       .dashboard-header::before {
         animation: none;
       }
+
       .loading-skeleton {
         animation: none;
         background: #e0e0e0;
       }
+
       .stat-card {
         transition: none;
       }
     }
-    
+
     /* Styles pour le tableau de bord */
     .main-content {
       padding: 1rem;
     }
-    
+
     .dashboard-header {
       padding: 1rem 0;
       margin-bottom: 1rem;
       border-radius: 10px;
     }
-    
+
     .stat-card {
       height: 160px;
       padding: 1.25rem;
       margin-bottom: 1rem;
     }
-    
+
     .stat-card .stat-number {
       font-size: 1.75rem;
       font-weight: 700;
       margin: 0.5rem 0;
     }
-    
+
     .stat-card .stat-icon {
       top: 1rem;
       right: 1rem;
       font-size: 1.5rem;
       opacity: 0.8;
     }
-    
+
     /* Réduire l'espacement des cartes de statistiques */
     .row {
       margin-bottom: 0.5rem;
     }
-    
+
     /* Style pour la section de gestion des actes */
     .quick-actions {
       margin-top: 1.5rem;
     }
-    
+
     .quick-actions h5 {
       font-weight: 600;
       margin-bottom: 1rem;
       color: #495057;
     }
-    
+
     /* Améliorer la table des actes */
     #actesTable {
       font-size: 0.875rem;
     }
-    
+
     #actesTable th {
       font-weight: 600;
       white-space: nowrap;
     }
-    
+
     #actesTable td {
       vertical-align: middle;
     }
-    
+
     /* Réduire la hauteur des lignes du tableau */
-    .table > :not(caption) > * > * {
+    .table> :not(caption)>*>* {
       padding: 0.5rem;
     }
-    
+
     /* Boutons d'action plus compacts */
     .btn-action {
       padding: 0.25rem 0.5rem;
       font-size: 0.8rem;
       margin-right: 0.25rem;
     }
-    
+
     /* Ajustements pour les petits écrans */
     @media (max-width: 992px) {
       .stat-card {
         height: auto;
         min-height: 120px;
       }
-      
+
       .dashboard-header h1 {
         font-size: 1.5rem;
       }
-      
+
       .stat-card .stat-number {
         font-size: 1.5rem;
       }
     }
   </style>
 </head>
+
 <body>
   <div id="sidebar-container"></div>
 
@@ -311,12 +327,14 @@
       <div class="row align-items-center">
         <div class="col-md-4">
           <h1 class="mb-2">Tableau de Bord d'Abéché</h1>
-          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span></p>
+          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span>
+          </p>
         </div>
         <div class="col-md-4">
           <div class="search-container">
             <div class="input-group">
-              <input type="text" class="form-control" id="globalSearch" placeholder="Rechercher dans tous les actes..." style="background: rgba(255,255,255,0.9); border: none;">
+              <input type="text" class="form-control" id="globalSearch" placeholder="Rechercher dans tous les actes..."
+                style="background: rgba(255,255,255,0.9); border: none;">
               <button class="btn btn-light" type="button" id="searchBtn">
                 <i class="fas fa-search"></i>
               </button>
@@ -327,22 +345,25 @@
           <div class="d-flex gap-2 justify-content-end align-items-center">
             <!-- Sélecteur de langue -->
             <div class="dropdown">
-              <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
+              <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
+                data-bs-toggle="dropdown">
                 <i class="fas fa-globe me-1"></i><span id="currentLang">FR</span>
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')"><i class="fas fa-flag me-2"></i>Français</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')"><i class="fas fa-flag me-2"></i>العربية</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')"><i class="fas fa-flag me-2"></i>English</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')"><i
+                      class="fas fa-flag me-2"></i>Français</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')"><i
+                      class="fas fa-flag me-2"></i>العربية</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')"><i
+                      class="fas fa-flag me-2"></i>English</a></li>
               </ul>
             </div>
-            
+
             <!-- Toggle mode sombre -->
             <button class="btn btn-outline-light btn-sm" id="themeToggle">
               <i class="fas fa-moon" id="themeIcon"></i>
             </button>
-            
-            <button class="btn btn-light btn-sm" id="refreshBtn">
+            <button class="btn btn-light btn-sm" id="refresh-btn">
               <i class="fas fa-sync-alt me-2"></i>Actualiser
             </button>
             <button class="btn btn-outline-light btn-sm" id="exportBtn">
@@ -352,7 +373,6 @@
         </div>
       </div>
     </div>
-    
     <!-- Statistiques principales -->
     <div class="row mb-4">
       <div class="col-lg-3 col-md-6">
@@ -367,7 +387,6 @@
           </div>
         </div>
       </div>
-      
       <div class="col-lg-3 col-md-6">
         <div class="stat-card marriages">
           <div class="stat-icon">
@@ -380,11 +399,10 @@
           </div>
         </div>
       </div>
-      
       <div class="col-lg-3 col-md-6">
         <div class="stat-card deaths">
           <div class="stat-icon">
-            <i class="fas fa-cross"></i>
+            <i class="fas fa-skull"></i>
           </div>
           <div class="stat-number" id="deaths-count">0</div>
           <div class="stat-label">Décès</div>
@@ -393,7 +411,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-lg-3 col-md-6">
         <div class="stat-card documents">
           <div class="stat-icon">
@@ -407,7 +425,6 @@
         </div>
       </div>
     </div>
-    
     <!-- Deuxième rangée de cartes -->
     <div class="row mb-4">
       <div class="col-lg-3 col-md-6">
@@ -422,7 +439,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-lg-3 col-md-6">
         <div class="stat-card engagements">
           <div class="stat-icon">
@@ -461,8 +478,10 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/sidebar-template.js"></script>
+  <script src="/js/dashboard.js" type="module"></script>
   <script>
-    let dashboardData = {
+    // Variables globales nécessaires
+    window.dashboardData = {
       stats: { naissances: 0, mariages: 0, deces: 0, documents: 0 },
       charts: { evolution: null, distribution: null, region: null },
       activities: []
@@ -504,35 +523,35 @@
         search: 'Search in all records...'
       }
     };
-    
+
     function changeLanguage(lang) {
       localStorage.setItem('selectedLanguage', lang);
       document.getElementById('currentLang').textContent = lang.toUpperCase();
-      
+
       const t = translations[lang];
       if (t) {
         document.querySelector('h1').textContent = t.title;
         document.querySelector('.opacity-75').innerHTML = t.subtitle + ' - <span id="currentDate"></span>';
         document.getElementById('globalSearch').placeholder = t.search;
-        
+
         // Mettre à jour les labels des statistiques
         const naissancesLabel = document.querySelector('.births .stat-label');
         const mariagesLabel = document.querySelector('.marriages .stat-label');
         const decesLabel = document.querySelector('.deaths .stat-label');
         const documentsLabel = document.querySelector('.documents .stat-label');
-        
+
         if (naissancesLabel) naissancesLabel.textContent = t.naissances;
         if (mariagesLabel) mariagesLabel.textContent = t.mariages;
         if (decesLabel) decesLabel.textContent = t.deces;
         if (documentsLabel) documentsLabel.textContent = t.documents;
-        
+
         // Mettre à jour les boutons
         const refreshBtn = document.querySelector('button[onclick="refreshDashboard(event)"]');
         const exportBtn = document.querySelector('button[onclick="exportDashboard()"]');
-        
+
         if (refreshBtn) refreshBtn.innerHTML = `<i class="fas fa-sync-alt me-2"></i>${t.refresh}`;
         if (exportBtn) exportBtn.innerHTML = `<i class="fas fa-download me-2"></i>${t.export}`;
-        
+
         // Remettre la date
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
           weekday: 'long',
@@ -540,7 +559,7 @@
           month: 'long',
           day: 'numeric'
         });
-        
+
         // Appliquer la direction RTL pour l'arabe
         if (lang === 'ar') {
           document.body.style.direction = 'rtl';
@@ -550,18 +569,18 @@
           document.body.style.textAlign = 'left';
         }
       }
-      
+
       showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
     }
-    
+
     // Fonctions pour le toggle de thème
     function toggleTheme() {
       const currentTheme = document.body.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      
+
       document.body.setAttribute('data-theme', newTheme);
       localStorage.setItem('selectedTheme', newTheme);
-      
+
       const themeIcon = document.getElementById('themeIcon');
       if (themeIcon) {
         if (newTheme === 'dark') {
@@ -570,10 +589,10 @@
           themeIcon.className = 'fas fa-moon';
         }
       }
-      
+
       showSuccess(`Mode ${newTheme === 'dark' ? 'sombre' : 'clair'} activé`);
     }
-    
+
     // Initialiser les préférences
     function initializePreferences() {
       // Charger le thème sauvegardé
@@ -583,7 +602,7 @@
       if (themeIcon) {
         themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
       }
-      
+
       // Charger la langue sauvegardée
       const savedLang = localStorage.getItem('selectedLanguage') || 'fr';
       if (savedLang !== 'fr') {
@@ -594,10 +613,10 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const token = checkAuth();
       if (!token) return;
-      
+
       document.getElementById('common-styles').textContent = commonCSS;
       document.getElementById('sidebar-container').innerHTML = createSidebar('dashboard');
-      
+
       // Set current date
       document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR', {
         weekday: 'long',
@@ -605,28 +624,101 @@
         month: 'long',
         day: 'numeric'
       });
-      
+
       // Initialiser les préférences au chargement
       initializePreferences();
-      
+
       await initializeDashboard();
       loadRecentActes();
+
+      // Fonction utilitaire pour ajouter des écouteurs d'événements
+      const addEvent = (id, event, handler) => {
+        const el = document.getElementById(id);
+        
+        if (el && typeof handler === 'function') {
+          el.addEventListener(event, handler);
+          return true;
+        }
+        return false;
+      };
       
-      // Ajouter les event listeners
-      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-      document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
-      document.getElementById('exportBtn').addEventListener('click', exportDashboard);
+      // Ajout des écouteurs
+      addEvent('themeToggle', 'click', toggleTheme);
+      addEvent('exportBtn', 'click', exportDashboard);
+      addEvent('searchBtn', 'click', performSearch);
+      
+      // Style et débogage du bouton d'actualisation
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) {
+        // Style visuel pour le bouton de rafraîchissement
+        
+        // Initialisation du tableau de bord
+        
+        // Définir la fonction de rafraîchissement
+        window.refreshDashboard = async function(event) {
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          
+          const refreshBtn = document.getElementById('refresh-btn');
+          if (!refreshBtn) {
+            console.error('Bouton de rafraîchissement non trouvé');
+            return;
+          }
+          
+          // Désactiver le bouton pendant le chargement
+          refreshBtn.disabled = true;
+          const icon = refreshBtn.querySelector('i');
+          if (icon) icon.classList.add('fa-spin');
+          
+          try {
+            // Recharger les données
+            const dashboard = window.dashboardInstance;
+            if (dashboard && typeof dashboard.loadData === 'function') {
+              await dashboard.loadData();
+            } else {
+              // Fallback: recharger la page
+              window.location.reload();
+            }
+          } catch (error) {
+            console.error('Erreur lors du rafraîchissement:', error);
+          } finally {
+            // Réactiver le bouton
+            if (refreshBtn) {
+              refreshBtn.disabled = false;
+              if (icon) icon.classList.remove('fa-spin');
+            }
+          }
+        };
+        
+        // Fonction de rafraîchissement initialisée
+      } else {
+        // Le bouton de rafraîchissement utilise l'ID refresh-btn
+      }
+        
+        // Gestionnaire d'événement pour la recherche
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            performSearch();
+          }
+        });
+      } else {
+        console.error('Champ de recherche global non trouvé');
+      }
     });
 
     async function initializeDashboard() {
       try {
         showLoadingState();
-        
+
         // Limiter les requêtes simultanées pour éviter la surcharge
         const requestQueue = [];
         const maxConcurrentRequests = 2;
         let activeRequests = 0;
-        
+
         const executeRequest = async (requestFn) => {
           return new Promise((resolve, reject) => {
             const execute = async () => {
@@ -634,7 +726,7 @@
                 setTimeout(execute, 100);
                 return;
               }
-              
+
               activeRequests++;
               try {
                 const result = await requestFn();
@@ -648,10 +740,10 @@
             execute();
           });
         };
-        
+
         // Charger les données de manière séquentielle pour éviter la surcharge
         await executeRequest(() => loadStatistics());
-        
+
         hideLoadingState();
       } catch (error) {
         console.error('Error initializing dashboard:', error);
@@ -661,30 +753,62 @@
     }
 
     async function loadStatistics() {
+      // Données par défaut en cas d'échec
+      const defaultStats = {
+        naissances: 0,
+        mariages: 0,
+        deces: 0,
+        documents: 0,
+        divorces: 0,
+        engagements: 0
+      };
+      
       try {
         const response = await apiRequest('/api/dashboard/stats');
-        if (response && response.success) {
+        
+        if (!response) {
+          throw new Error('Aucune réponse du serveur');
+        }
+        
+        if (response && response.success && response.data) {
+          // Mettre à jour les statistiques avec les données reçues
           dashboardData.stats = {
-            naissances: response.data.naissances || 0,
-            mariages: response.data.mariages || 0,
-            deces: response.data.deces || 0,
-            documents: response.data.total || 0,
-            divorces: response.data.divorces || 0,
-            engagements: response.data.engagements || 0
+            naissances: parseInt(response.data.naissances) || 0,
+            mariages: parseInt(response.data.mariages) || 0,
+            deces: parseInt(response.data.deces) || 0,
+            documents: parseInt(response.data.total) || 0,
+            divorces: parseInt(response.data.divorces) || 0,
+            engagements: parseInt(response.data.engagements) || 0
           };
+          
+          // Mettre à jour l'interface utilisateur
           updateStatCards();
+          return true;
         } else {
-          throw new Error(response?.error || 'Erreur inconnue');
+          // Utiliser les données par défaut si la réponse n'est pas valide
+          dashboardData.stats = defaultStats;
+          updateStatCards();
+          
+          const errorMsg = response?.error || 'Format de réponse inattendu';
+          console.warn('Réponse inattendue du serveur:', response);
+          throw new Error(errorMsg);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error);
-        showError('Impossible de charger les statistiques. Utilisation des données en cache.');
+        
+        // Utiliser les données par défaut en cas d'erreur
+        if (!dashboardData.stats) {
+          dashboardData.stats = defaultStats;
+          updateStatCards();
+        }
+        
+        throw error; // Propager l'erreur pour une gestion ultérieure
       }
     }
 
     function updateStatCards() {
       const stats = dashboardData.stats || {};
-      
+
       // Mettre à jour les compteurs avec animation
       if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
       if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
@@ -712,7 +836,7 @@
 
     function updateActesCounts(actes) {
       if (!actes || !Array.isArray(actes)) return;
-      
+
       const counts = {
         naissance: 0,
         mariage: 0,
@@ -720,20 +844,20 @@
         divorce: 0,
         engagement: 0
       };
-      
+
       actes.forEach(acte => {
         if (acte.type && counts.hasOwnProperty(acte.type)) {
           counts[acte.type]++;
         }
       });
-      
+
       // Mettre à jour les compteurs
       if (counts.naissance > 0) animateNumber('births-count', counts.naissance);
       if (counts.mariage > 0) animateNumber('marriages-count', counts.mariage);
       if (counts.deces > 0) animateNumber('deaths-count', counts.deces);
       if (counts.divorce > 0) animateNumber('divorces-count', counts.divorce);
       if (counts.engagement > 0) animateNumber('engagements-count', counts.engagement);
-      
+
       // Mettre à jour le nombre total de documents
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
       if (total > 0) animateNumber('documents-count', total);
@@ -742,18 +866,18 @@
     function displayActes(actes) {
       const tbody = document.querySelector('#actesTable tbody');
       if (!tbody) return;
-      
+
       if (!actes || actes.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
         return;
       }
-      
+
       tbody.innerHTML = actes.map(acte => {
         const typeLabel = getTypeLabel(acte.type);
-        const formattedDate = acte.dateEnregistrement 
+        const formattedDate = acte.dateEnregistrement
           ? new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')
           : 'Non renseigné';
-        
+
         // Extraire le nom selon le type d'acte
         let nomComplet = '';
         if (acte.details) {
@@ -763,18 +887,18 @@
             nomComplet = `${acte.details.conjoint1 || ''} et ${acte.details.conjointe2 || ''}`.trim();
           }
         }
-        
+
         // Fallback si pas de details
         if (!nomComplet && acte.nom) {
           nomComplet = acte.nom;
         }
-        
+
         const acteId = acte._id || acte.id;
         if (!acteId) {
           console.error('Acte sans ID valide:', acte);
           return '';
         }
-        
+
         return `
           <tr data-id="${acteId}">
             <td>${acte.numeroActe || 'N/A'}</td>
@@ -797,7 +921,7 @@
           </tr>
         `;
       }).filter(Boolean).join('');
-      
+
       // Ajouter les écouteurs d'événements après le rendu
       addActesEventListeners();
     }
@@ -830,7 +954,7 @@
     }
 
     // S'assurer que les fonctions sont disponibles dans la portée globale
-    window.viewActe = async function(id) {
+    window.viewActe = async function (id) {
       try {
         const response = await apiRequest(`/api/actes/${id}`);
         if (response && response.success) {
@@ -844,7 +968,7 @@
       }
     };
 
-    window.editActe = async function(id) {
+    window.editActe = async function (id) {
       try {
         const response = await apiRequest(`/api/actes/${id}`);
         if (response && response.success) {
@@ -859,11 +983,11 @@
       }
     };
 
-    window.deleteActe = async function(id, numeroActe) {
+    window.deleteActe = async function (id, numeroActe) {
       if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numeroActe || ''} ?`)) {
         return;
       }
-      
+
       try {
         const response = await apiRequest(`/api/actes/${id}`, { method: 'DELETE' });
         if (response && response.success) {
@@ -936,7 +1060,7 @@
       if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numeroActe} ?`)) {
         return;
       }
-      
+
       try {
         const response = await apiRequest(`/api/actes/${id}`, { method: 'DELETE' });
         if (response.success) {
@@ -954,7 +1078,7 @@
     function showActeDetails(acte) {
       // Créer un élément modal avec un ID unique
       const modalId = `acteModal-${Date.now()}`;
-      
+
       // Créer la structure du modal avec JavaScript pur
       const modal = document.createElement('div');
       modal.className = 'modal';
@@ -962,7 +1086,7 @@
       modal.tabIndex = '-1';
       modal.setAttribute('role', 'dialog');
       modal.setAttribute('aria-labelledby', `${modalId}Label`);
-      
+
       // Créer le contenu du modal
       modal.innerHTML = `
         <div class="modal-dialog modal-lg">
@@ -987,43 +1111,43 @@
           </div>
         </div>
       `;
-      
+
       // Ajouter la modal au début du body
       document.body.insertBefore(modal, document.body.firstChild);
-      
+
       // Initialiser la modal Bootstrap
       const bsModal = new bootstrap.Modal(modal, {
         backdrop: true,
         keyboard: true,
         focus: true
       });
-      
+
       // Gérer l'affichage de la modal
       const handleShown = () => {
         // S'assurer que le focus est sur le premier élément focusable
         const focusable = modal.querySelector('button:not([disabled])');
         if (focusable) focusable.focus();
       };
-      
+
       // Gérer la fermeture de la modal
       const handleHidden = () => {
         // Nettoyer les écouteurs d'événements
         modal.removeEventListener('shown.bs.modal', handleShown);
         modal.removeEventListener('hidden.bs.modal', handleHidden);
-        
+
         // Supprimer la modal du DOM
         if (document.body.contains(modal)) {
           modal.remove();
         }
       };
-      
+
       // Ajouter les écouteurs d'événements
       modal.addEventListener('shown.bs.modal', handleShown);
       modal.addEventListener('hidden.bs.modal', handleHidden, { once: true });
-      
+
       // Afficher la modal
       bsModal.show();
-      
+
       // Retourner la référence à la modal
       return bsModal;
     }
@@ -1031,13 +1155,13 @@
     async function downloadActePdf(id) {
       const token = checkAuth();
       if (!token) return;
-      
+
       const url = `/api/actes/${id}/pdf`;
       const headers = new Headers({
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       });
-      
+
       const response = await fetch(url, { headers });
       if (response.ok) {
         const blob = await response.blob();
@@ -1055,26 +1179,26 @@
     function animateNumber(elementId, targetValue) {
       const element = document.getElementById(elementId);
       if (!element) return;
-      
+
       const startValue = parseInt(element.textContent) || 0;
       const duration = 1000; // 1 seconde d'animation
       let startTimestamp = null;
-      
+
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        
+
         // Fonction d'interpolation pour un effet plus fluide
         const easeOutQuad = (t) => t * (2 - t);
         const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOutQuad(progress));
-        
+
         element.textContent = currentValue.toLocaleString('fr-FR');
-        
+
         if (progress < 1) {
           window.requestAnimationFrame(step);
         }
       };
-      
+
       window.requestAnimationFrame(step);
     }
 
@@ -1082,36 +1206,14 @@
     function updateProgress(elementId, current, target) {
       const element = document.getElementById(elementId);
       if (!element) return;
-      
+
       const percentage = Math.min((current / target) * 100, 100);
       element.style.width = `${percentage}%`;
     }
 
-    async function loadStatistics() {
-      try {
-        const response = await apiRequest('/api/dashboard/stats');
-        if (response && response.success) {
-          dashboardData.stats = {
-            naissances: response.data.naissances || 0,
-            mariages: response.data.mariages || 0,
-            deces: response.data.deces || 0,
-            documents: response.data.total || 0,
-            divorces: response.data.divorces || 0,
-            engagements: response.data.engagements || 0
-          };
-          updateStatCards();
-        } else {
-          throw new Error(response?.error || 'Erreur inconnue');
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des statistiques:', error);
-        showError('Impossible de charger les statistiques. Utilisation des données en cache.');
-      }
-    }
-
     function updateStatCards() {
       const stats = dashboardData.stats || {};
-      
+
       // Mettre à jour les compteurs avec animation
       if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
       if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
@@ -1124,43 +1226,238 @@
     async function loadRecentActes() {
       try {
         const response = await apiRequest('/api/actes?limit=10&sort=-dateEnregistrement');
+        
+        if (!response) {
+          throw new Error('Aucune réponse du serveur');
+        }
+        
         if (response && response.success) {
           displayActes(response.data);
+          return true;
         } else {
-          throw new Error(response?.error || 'Erreur inconnue');
+          console.warn('Format de réponse inattendu pour les actes récents:', response);
+          throw new Error(response?.error || 'Format de réponse inattendu');
         }
       } catch (error) {
         console.error('Erreur lors du chargement des actes récents:', error);
-        showError('Impossible de charger les actes récents');
+        
+        // Afficher un message d'erreur dans le tableau
+        const tbody = document.querySelector('#actesTable tbody');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center text-muted">
+                <div class="alert alert-warning mb-0">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Impossible de charger les actes récents. Veuillez réessayer.
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+        
+        throw error; // Propager l'erreur pour une gestion ultérieure
       }
     }
 
-    // Dashboard functions
-    async function refreshDashboard(event) {
-      const btn = event.target.closest('button');
-      const icon = btn.querySelector('i');
+    // Fonction pour afficher un message lorsqu'aucun résultat n'est trouvé
+    function showNoResults(message) {
+      const resultsContainer = document.getElementById('searchResults');
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            ${message}
+          </div>
+        `;
+      }
+      showAlert(message, 'info');
+    }
+    
+    // Fonction pour effectuer une recherche
+    async function performSearch() {
+      const searchTerm = document.getElementById('globalSearch').value.trim();
       
-      icon.classList.add('fa-spin');
-      btn.disabled = true;
+      if (!searchTerm) {
+        loadRecentActes();
+        return;
+      }
       
       try {
-        await initializeDashboard();
-        await loadRecentActes();
-        showSuccess('Tableau de bord actualisé avec succès');
+        showLoadingState();
+        
+        // Nettoyer le terme de recherche (retirer les préfixes de champ comme 'MAHAMAT:1')
+        const cleanSearchTerm = searchTerm.split(':')[0].trim();
+        
+        // Vérifier si le terme de recherche est vide après nettoyage
+        if (!cleanSearchTerm) {
+          showNoResults('Veuillez entrer un terme de recherche valide');
+          return;
+        }
+        
+        const searchUrl = `/api/actes/search?q=${encodeURIComponent(cleanSearchTerm)}`;
+        
+        // Options de la requête avec timeout
+        const controller = new AbortController();
+        
+        // Timeout après 10 secondes
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            controller.abort();
+            reject(new Error('La recherche a pris trop de temps. Veuillez réessayer.'));
+          }, 10000);
+        });
+        
+        try {
+          const fetchPromise = fetch(searchUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            signal: controller.signal
+          });
+          
+          // Attendre soit la réponse, soit le timeout
+          const response = await Promise.race([fetchPromise, timeoutPromise]);
+          clearTimeout(timeoutId);
+          
+          // Gérer les réponses non-OK
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || 'Erreur lors de la recherche');
+          }
+          
+          // Traiter la réponse réussie
+          const result = await response.json();
+          
+          if (result && result.success) {
+            if (result.data && result.data.length > 0) {
+              displayActes(result.data);
+              showSuccess(`${result.data.length} résultat(s) trouvé(s)`);
+            } else {
+              showAlert('Aucun résultat trouvé pour votre recherche', 'info');
+              loadRecentActes();
+            }
+          } else {
+            throw new Error(result?.error || 'Format de réponse inattendu du serveur');
+          }
+        } catch (error) {
+          // Gérer les erreurs de timeout et autres erreurs réseau
+          if (error.name === 'AbortError') {
+            throw new Error('La recherche a pris trop de temps. Veuillez réessayer.');
+          }
+          throw error;
+        }
       } catch (error) {
-        console.error('Erreur actualisation:', error);
-        showError('Erreur lors de l\'actualisation du tableau de bord');
+        console.error('Erreur lors de la recherche:', error);
+        showError(error.message || 'Erreur lors de la recherche. Veuillez réessayer.');
       } finally {
-        icon.classList.remove('fa-spin');
-        btn.disabled = false;
+        hideLoadingState();
       }
     }
+    
+    // Fonction pour rafraîchir le tableau de bord (version globale)
+    window.refreshDashboard = async function(event) {
+      console.log('=== DÉBUT refreshDashboard ===');
+      console.log('Événement reçu:', event);
+      console.trace('Stack trace de l\'appel');
+      console.log('refreshDashboard appelée avec event:', event);
+      // Empêcher le comportement par défaut si c'est un événement
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      
+      console.log('Rafraîchissement du tableau de bord...');
+      
+      // Trouver le bouton et l'icône de manière robuste
+      let btn, icon;
+      
+      if (event && event.currentTarget) {
+        // Si l'événement vient d'un addEventListener
+        btn = event.currentTarget;
+        icon = btn.querySelector('i');
+      } else if (event && event.target) {
+        // Si l'événement vient d'un onclick
+        btn = event.target.closest('button');
+        icon = btn ? btn.querySelector('i') : null;
+      } else {
+        // Si appelé directement
+        btn = document.getElementById('refreshBtn');
+        icon = btn ? btn.querySelector('i') : null;
+      }
+      
+      // Activer l'état de chargement
+      if (btn) {
+        btn.disabled = true;
+        if (icon) {
+          icon.classList.add('fa-spin');
+        }
+      }
+      
+      try {
+        // Afficher l'état de chargement
+        showLoadingState();
+        
+        // Exécuter les requêtes en parallèle
+        const [statsResult, actesResult] = await Promise.allSettled([
+          loadStatistics(),
+          loadRecentActes()
+        ]);
+        
+        // Vérifier les résultats
+        const errors = [];
+        
+        if (statsResult.status === 'rejected') {
+          console.error('Erreur lors du chargement des statistiques:', statsResult.reason);
+          errors.push('Impossible de charger les statistiques');
+        }
+        
+        if (actesResult.status === 'rejected') {
+          console.error('Erreur lors du chargement des actes récents:', actesResult.reason);
+          errors.push('Impossible de charger les actes récents');
+        }
+        
+        // Effacer le champ de recherche
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput) {
+          searchInput.value = '';
+        }
+        
+        // Afficher un message de succès ou d'erreur
+        if (errors.length > 0) {
+          showError(errors.join(' | '));
+        } else {
+          showSuccess('Tableau de bord actualisé avec succès');
+        }
+        
+      } catch (error) {
+        console.error('Erreur inattendue lors du rafraîchissement:', error);
+        showError('Une erreur inattendue est survenue lors du rafraîchissement');
+      } finally {
+        // Désactiver l'état de chargement
+        hideLoadingState();
+        
+        // Réinitialiser l'état du bouton
+        if (btn) {
+          btn.disabled = false;
+          if (icon) {
+            icon.classList.remove('fa-spin');
+          }
+        }
+      }
+      
+      // Empêcher la propagation de l'événement
+      return false;
+    };
 
     function exportDashboard() {
       const menu = document.createElement('div');
       menu.className = 'dropdown-menu show position-fixed';
       menu.style.cssText = 'top: 60px; right: 20px; z-index: 9999; min-width: 200px;';
-      
+
       menu.innerHTML = `
         <button class="dropdown-item" onclick="exportToPDF(); this.parentElement.remove();">
           <i class="fas fa-file-pdf me-2"></i>Exporter en PDF
@@ -1172,9 +1469,9 @@
           <i class="fas fa-file-csv me-2"></i>Exporter en CSV
         </button>
       `;
-      
+
       document.body.appendChild(menu);
-      
+
       // Fermer le menu en cliquant ailleurs
       setTimeout(() => {
         document.addEventListener('click', (e) => {
@@ -1188,21 +1485,21 @@
     async function exportToPDF() {
       try {
         showSuccess('Génération du PDF en cours...');
-        
+
         // Collecter les données du dashboard
         const stats = dashboardData.stats;
         const currentDate = new Date().toLocaleDateString('fr-FR');
-        
+
         // Créer le contenu PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         // En-tête
         doc.setFontSize(20);
         doc.text('Rapport du Tableau de Bord', 20, 20);
         doc.setFontSize(12);
         doc.text(`État Civil d'Abéché - ${currentDate}`, 20, 30);
-        
+
         // Statistiques
         doc.setFontSize(16);
         doc.text('Statistiques', 20, 50);
@@ -1211,11 +1508,11 @@
         doc.text(`Mariages: ${stats.mariages || 0}`, 20, 75);
         doc.text(`Décès: ${stats.deces || 0}`, 20, 85);
         doc.text(`Documents: ${stats.total || 0}`, 20, 95);
-        
+
         // Télécharger
         doc.save(`rapport-dashboard-${currentDate.replace(/\//g, '-')}.pdf`);
         showSuccess('PDF exporté avec succès');
-        
+
       } catch (error) {
         console.error('Error exporting PDF:', error);
         showError('Erreur lors de l\'export PDF. Veuillez réessayer.');
@@ -1225,11 +1522,11 @@
     async function exportToExcel() {
       try {
         showSuccess('Génération du fichier Excel en cours...');
-        
+
         // Préparer les données
         const stats = dashboardData.stats;
         const currentDate = new Date().toLocaleDateString('fr-FR');
-        
+
         // Créer les données pour Excel
         const data = [
           ['Rapport du Tableau de Bord'],
@@ -1241,19 +1538,19 @@
           ['Décès', stats.deces || 0],
           ['Documents', stats.total || 0]
         ];
-        
+
         // Créer le CSV (format compatible Excel)
         const csvContent = data.map(row => row.join(',')).join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        
+
         // Télécharger
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `rapport-dashboard-${currentDate.replace(/\//g, '-')}.csv`;
         link.click();
-        
+
         showSuccess('Fichier Excel exporté avec succès');
-        
+
       } catch (error) {
         console.error('Error exporting Excel:', error);
         showError('Erreur lors de l\'export Excel. Veuillez réessayer.');
@@ -1263,14 +1560,14 @@
     async function exportToCSV() {
       try {
         showSuccess('Génération du fichier CSV en cours...');
-        
+
         // Récupérer les actes depuis le tableau
         const tableRows = document.querySelectorAll('#actesTable tbody tr');
         const csvData = [];
-        
+
         // En-têtes
         csvData.push(['Numéro', 'Type', 'Nom', 'Date']);
-        
+
         // Données des actes
         tableRows.forEach(row => {
           const cells = row.querySelectorAll('td');
@@ -1283,22 +1580,22 @@
             ]);
           }
         });
-        
+
         // Créer le CSV
-        const csvContent = csvData.map(row => 
+        const csvContent = csvData.map(row =>
           row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
         ).join('\n');
-        
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        
+
         // Télécharger
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `actes-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`;
         link.click();
-        
+
         showSuccess('Fichier CSV exporté avec succès');
-        
+
       } catch (error) {
         console.error('Error exporting CSV:', error);
         showError('Erreur lors de l\'export CSV. Veuillez réessayer.');
@@ -1332,15 +1629,24 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
       alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-      
+
       alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       `;
-      
+
       document.body.appendChild(alertDiv);
       setTimeout(() => alertDiv.remove(), 5000);
     }
+  </script>
+  <script>
+    // Initialisation du tableau de bord
+    document.addEventListener('DOMContentLoaded', () => {
+      if (document.getElementById('dashboard-page')) {
+        // Enregistrer l'instance du tableau de bord dans une variable globale
+        window.dashboardInstance = new Dashboard();
+      }
+    });
   </script>
 </body>
 </html>

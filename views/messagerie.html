@@ -276,12 +276,12 @@
   </div>
   
   <!-- Modal Nouveau Message -->
-  <div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+  <div class="modal fade" id="newMessageModal" tabindex="-1" role="dialog" aria-labelledby="newMessageModalLabel" aria-modal="true">
+    <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Nouveau message</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="newMessageModalLabel">Nouveau message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer la fenêtre de dialogue"></button>
         </div>
         <div class="modal-body">
           <form id="newMessageForm">

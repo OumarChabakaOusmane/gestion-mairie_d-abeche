@@ -19,12 +19,8 @@
 </head>
 <body>
   <div id="sidebar-container"></div>
-  
   <div class="main-content">
     <div class="page-container">
-      
-  
-
   <div class="main-content">
     <h2 class="mb-4"><i class="fas fa-users me-2"></i> Gestion des Utilisateurs</h2>
     
@@ -46,14 +42,12 @@
       </div>
     </div>
   </div>
-
-  
-  <div class="modal fade" id="newUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+  <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel" aria-modal="true">
+    <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Nouvel utilisateur</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="newUserModalLabel">Nouvel utilisateur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <form id="newUserForm">
@@ -84,14 +78,12 @@
       </div>
     </div>
   </div>
-
-  
-  <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+  <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-modal="true">
+    <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Modifier utilisateur</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="editUserModalLabel">Modifier utilisateur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <form id="editUserForm">
@@ -123,13 +115,8 @@
       </div>
     </div>
   </div>
-
-  
-  
-
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/sidebar-template.js"></script>
   <script>
@@ -139,6 +126,60 @@
       
       document.getElementById('common-styles').textContent = commonCSS;
       document.getElementById('sidebar-container').innerHTML = createSidebar('utilisateurs');
+
+      // Only target modals specific to this page
+      const pageModals = [
+        { id: 'newUserModal', options: { backdrop: true, keyboard: true, focus: true } },
+        // Add other modals specific to this page
+      ];
+
+      pageModals.forEach(({ id, options }) => {
+        const modalEl = document.getElementById(id);
+        if (!modalEl) return;
+
+        // Create a custom modal instance for this specific modal
+        class AccessibleModal extends bootstrap.Modal {
+          _showBackdrop() {
+            super._showBackdrop();
+            this._element.removeAttribute('aria-hidden');
+            this._element.setAttribute('aria-modal', 'true');
+          }
+          
+          _hideModal() {
+            // Remove the modal-open class and reset body styles
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            
+            // Remove the modal backdrop if no other modals are open
+            const otherOpenModals = document.querySelectorAll('.modal.show');
+            if (otherOpenModals.length <= 1) { // Only remove if this is the last modal
+              const backdrop = document.querySelector('.modal-backdrop');
+              if (backdrop) backdrop.remove();
+            }
+            
+            // Reset the modal state
+            this._element.classList.remove('show');
+            this._element.style.display = 'none';
+            this._element.removeAttribute('aria-modal');
+            this._element.removeAttribute('role');
+            this._element.removeAttribute('aria-hidden');
+            
+            // Trigger the hidden event
+            const hideEvent = new Event('hidden.bs.modal');
+            this._element.dispatchEvent(hideEvent);
+          }
+        }
+
+        // Initialize the modal with our custom class
+        const modal = new AccessibleModal(modalEl, options);
+        
+        // Ensure proper ARIA attributes when shown
+        modalEl.addEventListener('show.bs.modal', () => {
+          modalEl.removeAttribute('aria-hidden');
+          modalEl.setAttribute('aria-modal', 'true');
+        });
+      });
     });
   </script>
 </body>

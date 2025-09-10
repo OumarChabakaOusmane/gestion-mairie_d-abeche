@@ -4,6 +4,7 @@ class Dashboard {
     this.maxRetries = 3;
     this.isLoading = false;
     this.abortController = null;
+    this.refreshHandler = this.handleRefresh.bind(this);
     this.init();
   }
 
@@ -12,15 +13,13 @@ class Dashboard {
       await this.loadData();
       this.setupEventListeners();
     } catch (error) {
-      this.showError(error);
-      console.error('Dashboard init error:', error);
+      this.showError('Erreur lors de l\'initialisation du tableau de bord');
     }
   }
 
   async loadData() {
     // Éviter les appels multiples simultanés
     if (this.isLoading) {
-      console.warn('Load already in progress');
       return;
     }
 
@@ -33,7 +32,10 @@ class Dashboard {
     
     try {
       const token = localStorage.getItem('token');
-      if (!token) throw new Error('Authentication required');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
 
       // Annuler la requête précédente si elle existe
       if (this.abortController) {
@@ -41,99 +43,306 @@ class Dashboard {
       }
       this.abortController = new AbortController();
 
-      const response = await fetch('/api/actes', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        signal: this.abortController.signal,
-        // Timeout de 10 secondes
-        timeout: 10000
-      });
+      // Charger les statistiques
+      const [statsResponse, actesResponse] = await Promise.all([
+        fetch('/api/dashboard/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          signal: this.abortController.signal
+        }),
+        fetch('/api/actes?limit=5&sort=-dateCreation', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          signal: this.abortController.signal
+        })
+      ]);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to fetch data');
+      // Vérifier les réponses
+      if (!statsResponse.ok || !actesResponse.ok) {
+        const statsError = await statsResponse.json().catch(() => ({}));
+        const actesError = await actesResponse.json().catch(() => ({}));
+        throw new Error(statsError.error || actesError.error || 'Erreur lors du chargement des données');
       }
 
-      const { success, data, error } = await response.json();
-      if (!success) throw new Error(error);
+      const statsData = await statsResponse.json();
+      const actesData = await actesResponse.json();
 
-      this.updateDashboard(data);
+      if (!statsData.success || !actesData.success) {
+        throw new Error(statsData.error || actesData.error || 'Données invalides reçues du serveur');
+      }
+
+      // Mettre à jour l'interface
+      this.updateStats(statsData.data);
+      this.updateRecentActivity(actesData.data);
+      
       this.retryCount = 0; // Reset sur succès
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Request aborted');
-        return;
+      if (error.name !== 'AbortError') {
+        this.retryCount++;
+        this.showError('Erreur lors du chargement des données');
       }
-      
-      this.retryCount++;
-      throw error;
     } finally {
       this.isLoading = false;
     }
   }
 
-  updateDashboard(actes) {
-    this.updateStats(actes);
-    this.updateRecentActivity(actes);
-    this.updateCharts(actes);
-  }
-
-  updateStats(actes) {
-    const stats = {
-      naissance: actes.filter(a => a.type === 'naissance').length,
-      mariage: actes.filter(a => a.type === 'mariage').length,
-      deces: actes.filter(a => a.type === 'deces').length
+  updateStats(stats) {
+    if (!stats) return;
+    
+    // Mettre à jour les compteurs
+    const statsElements = {
+      'naissances': 'births-count',
+      'mariages': 'marriages-count',
+      'deces': 'deaths-count',
+      'documents': 'documents-count'
     };
 
-    // Update counters
-    Object.entries(stats).forEach(([type, count]) => {
-      const element = document.getElementById(`${type}-count`);
-      if (element) element.textContent = count.toLocaleString();
-    });
-
-    // Update progress bars
-    const goals = { naissance: 1500, mariage: 600, deces: 400 };
-    Object.entries(goals).forEach(([type, goal]) => {
-      const percent = Math.min(Math.round((stats[type] / goal) * 100), 100);
-      const progressBar = document.getElementById(`${type}-progress`);
-      if (progressBar) {
-        progressBar.style.width = `${percent}%`;
-        progressBar.setAttribute('aria-valuenow', percent);
+    Object.entries(statsElements).forEach(([key, elementId]) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = stats[key] || 0;
       }
     });
   }
 
   updateRecentActivity(actes) {
-    const periods = {
-      '7j': new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      '20j': new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-      '60j': new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-    };
+    if (!actes || !actes.length) return;
+    
+    const tbody = document.getElementById('recentActesBody');
+    if (!tbody) return;
 
-    const tableBody = document.querySelector('#recentActesTable tbody');
-    if (!tableBody) return;
+    // Vider le tableau
+    tbody.innerHTML = '';
 
-    tableBody.innerHTML = ['naissance', 'mariage', 'deces'].map(type => {
-      const counts = Object.entries(periods).map(([_, date]) => 
-        actes.filter(a => a.type === type && new Date(a.dateEnregistrement) >= date).length
-      );
-
-      return `
-        <tr>
-          <td>${this.getTypeLabel(type)}</td>
-          ${counts.map(count => `<td>${count}</td>`).join('')}
-        </tr>
+    // Ajouter chaque acte récent
+    actes.forEach(acte => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${acte.numeroActe || 'N/A'}</td>
+        <td><span class="badge ${this.getTypeBadge(acte.type)}">${this.getTypeLabel(acte.type)}</span></td>
+        <td>${this.formatDate(acte.dateActe)}</td>
+        <td>${this.getActeDescription(acte)}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary view-acte" data-id="${acte._id}">
+            <i class="fas fa-eye"></i>
+          </button>
+        </td>
       `;
-    }).join('');
+      tbody.appendChild(row);
+    });
   }
 
-  updateCharts(actes) {
-    // Initialize charts using Chart.js or similar library
-    if (typeof Chart !== 'undefined') {
-      this.initTypeDistributionChart(actes);
-      this.initMonthlyTrendChart(actes);
+  getTypeBadge(type) {
+    const types = {
+      'naissance': 'bg-primary',
+      'mariage': 'bg-success',
+      'deces': 'bg-dark',
+      'divorce': 'bg-danger'
+    };
+    return types[type] || 'bg-secondary';
+  }
+
+  getTypeLabel(type) {
+    const labels = {
+      'naissance': 'Naissance',
+      'mariage': 'Mariage',
+      'deces': 'Décès',
+      'divorce': 'Divorce'
+    };
+    return labels[type] || type;
+  }
+
+  formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString('fr-FR', options);
+  }
+
+  getActeDescription(acte) {
+    switch(acte.type) {
+      case 'naissance':
+        return `${acte.prenomEnfant || ''} ${acte.nomEnfant || ''}`.trim() || 'Nouveau-né';
+      case 'mariage':
+        return `${acte.conjoint1Nom || ''} & ${acte.conjoint2Nom || ''}`.trim() || 'Mariage';
+      case 'deces':
+        return `${acte.prenomDefunt || ''} ${acte.nomDefunt || ''}`.trim() || 'Décès';
+      default:
+        return acte.numeroActe || 'Acte';
+    }
+  }
+
+  // Méthode de mise à jour des statistiques
+  updateStats(stats) {
+    if (!stats) return;
+    
+    // Mettre à jour les compteurs
+    const statsElements = {
+      'naissances': 'births-count',
+      'mariages': 'marriages-count',
+      'deces': 'deaths-count',
+      'documents': 'documents-count'
+    };
+
+    Object.entries(statsElements).forEach(([key, elementId]) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = stats[key] || 0;
+      }
+    });
+  }
+
+  updateRecentActivity(actes) {
+    if (!actes || !Array.isArray(actes)) {
+      console.error('Aucun acte reçu ou format invalide:', actes);
+      return;
+    }
+    
+    const tbody = document.getElementById('recentActesBody');
+    if (!tbody) {
+      console.error('Élément tbody#recentActesBody non trouvé');
+      return;
+    }
+    
+    // Trier les actes par date décroissante
+    const sortedActes = [...actes].sort((a, b) => 
+      new Date(b.dateCreation || b.dateEnregistrement) - new Date(a.dateCreation || a.dateEnregistrement)
+    );
+    
+    // Prendre les 5 premiers actes
+    const recentActes = sortedActes.slice(0, 5);
+    
+    // Vider le tableau
+    tbody.innerHTML = '';
+    
+    // Ajouter chaque acte au tableau
+    recentActes.forEach(acte => {
+      const row = document.createElement('tr');
+      
+      // Créer les cellules avec les données de l'acte
+      const numeroCell = document.createElement('td');
+      numeroCell.textContent = acte.numeroActe || 'N/A';
+      
+      const typeCell = document.createElement('td');
+      const typeBadge = document.createElement('span');
+      typeBadge.className = `badge ${this.getTypeBadge(acte.type)}`;
+      typeBadge.textContent = this.getTypeLabel(acte.type);
+      typeCell.appendChild(typeBadge);
+      
+      const nomCell = document.createElement('td');
+      nomCell.textContent = this.getActeDescription(acte);
+      
+      const dateCell = document.createElement('td');
+      dateCell.textContent = this.formatDate(acte.dateActe || acte.dateEnregistrement);
+      
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'text-end';
+      actionsCell.innerHTML = `
+        <button class="btn btn-sm btn-outline-primary view-acte" data-id="${acte._id}">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-secondary edit-acte" data-id="${acte._id}">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger delete-acte" data-id="${acte._id}" data-numero="${acte.numeroActe || ''}">
+          <i class="fas fa-trash"></i>
+        </button>
+      `;
+      
+      // Ajouter les cellules à la ligne
+      row.appendChild(numeroCell);
+      row.appendChild(typeCell);
+      row.appendChild(nomCell);
+      row.appendChild(dateCell);
+      row.appendChild(actionsCell);
+      
+      // Ajouter la ligne au tableau
+      tbody.appendChild(row);
+    });
+    
+    // Ajouter les gestionnaires d'événements pour les boutons
+    this.addActesEventListeners();
+  }
+
+  // Méthode pour ajouter les gestionnaires d'événements aux boutons d'action
+  addActesEventListeners() {
+    // Gestionnaire pour le bouton Voir
+    document.querySelectorAll('.view-acte').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        if (id) this.viewActe(id);
+      });
+    });
+
+    // Gestionnaire pour le bouton Modifier
+    document.querySelectorAll('.edit-acte').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        if (id) this.editActe(id);
+      });
+    });
+
+    // Gestionnaire pour le bouton Supprimer
+    document.querySelectorAll('.delete-acte').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        const numero = e.currentTarget.getAttribute('data-numero');
+        if (id) this.deleteActe(id, numero);
+      });
+    });
+  }
+
+  // Méthodes pour gérer les actions sur les actes
+  async viewActe(id) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/actes/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la récupération des détails');
+      
+      const { success, data } = await response.json();
+      if (!success) throw new Error('Données invalides reçues');
+      
+      // Afficher les détails dans une modal
+      this.showActeDetails(data);
+    } catch (error) {
+      console.error('Erreur:', error);
+      this.showError('Impossible de charger les détails de l\'acte');
+    }
+  }
+
+  editActe(id) {
+    // Rediriger vers la page d'édition appropriée
+    window.location.href = `/actes/edit/${id}`;
+  }
+
+  async deleteActe(id, numero) {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numero || ''} ?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/actes/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la suppression');
+      
+      const { success } = await response.json();
+      if (!success) throw new Error('Erreur lors de la suppression');
+      
+      this.showSuccess('Acte supprimé avec succès');
+      this.loadData(); // Recharger les données
+    } catch (error) {
+      console.error('Erreur:', error);
+      this.showError('Impossible de supprimer l\'acte');
     }
   }
 
@@ -162,11 +371,44 @@ class Dashboard {
     // Nettoyer les anciens listeners
     this.cleanup();
     
-    // Refresh button
+    // Style et débogage du bouton d'actualisation
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) {
-      this.refreshHandler = () => this.loadData();
+      // Style visuel pour le débogage
+      refreshBtn.style.border = '2px solid #dc3545';
+      refreshBtn.style.padding = '5px';
+      
+      // Lier le gestionnaire d'événements avec le bon contexte
+      this.refreshHandler = this.handleRefresh.bind(this);
       refreshBtn.addEventListener('click', this.refreshHandler);
+    } else {
+      console.error('Bouton d\'actualisation non trouvé');
+    }
+  }
+
+  async handleRefresh(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (!refreshBtn) return;
+
+    // Désactiver le bouton pendant le chargement
+    refreshBtn.disabled = true;
+    const icon = refreshBtn.querySelector('i');
+    if (icon) icon.classList.add('fa-spin');
+
+    try {
+      // Recharger les données
+      await this.loadData();
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement:', error);
+    } finally {
+      // Réactiver le bouton
+      refreshBtn.disabled = false;
+      if (icon) icon.classList.remove('fa-spin');
     }
   }
 

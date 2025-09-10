@@ -232,12 +232,12 @@
   </div>
   
   <!-- Modal pour ajouter/modifier un événement -->
-  <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+  <div class="modal" id="eventModal" tabindex="-1" aria-modal="true" style="display: none; background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Détails de l'événement</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title" id="eventModalLabel">Détails de l'événement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <div id="eventDetails"></div>
@@ -409,9 +409,10 @@
     }
     
     function showEventDetails(event) {
-      const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+      const modalEl = document.getElementById('eventModal');
       const detailsDiv = document.getElementById('eventDetails');
       
+      // Préparer le contenu avant d'afficher le modal
       const eventType = event.extendedProps.type;
       const typeIcon = {
         naissance: 'fa-baby',
@@ -420,6 +421,7 @@
         autre: 'fa-calendar'
       }[eventType] || 'fa-calendar';
       
+      // Créer le contenu du modal
       detailsDiv.innerHTML = `
         <div class="text-center mb-3">
           <i class="fas ${typeIcon} fa-3x text-primary mb-2"></i>
@@ -450,7 +452,37 @@
         ` : ''}
       `;
       
-      modal.show();
+      // Afficher le modal manuellement
+      modalEl.style.display = 'block';
+      modalEl.classList.add('show');
+      document.body.classList.add('modal-open');
+      
+      // Ajouter le backdrop manuellement
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+      
+      // Gestion de la fermeture
+      const closeModal = () => {
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        if (document.body.contains(backdrop)) {
+          document.body.removeChild(backdrop);
+        }
+      };
+      
+      // Fermer en cliquant sur le bouton
+      const closeButton = modalEl.querySelector('[data-bs-dismiss="modal"]');
+      if (closeButton) {
+        closeButton.onclick = closeModal;
+      }
+      
+      // Fermer en cliquant en dehors
+      backdrop.onclick = closeModal;
+      
+      // Retourner la fonction de fermeture pour une utilisation externe si nécessaire
+      return closeModal;
     }
     
     function getTypeColor(type) {

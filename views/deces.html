@@ -24,7 +24,17 @@
     <div class="page-container">
       
   <div class="container mt-5">
-    <h2 id="pageTitle" class="mb-4"><i class="fas fa-skull me-2"></i> Enregistrer un Acte de Décès</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 id="pageTitle" class="mb-0"><i class="fas fa-skull me-2"></i> Enregistrer un Acte de Décès</h2>
+      <div class="btn-group" role="group">
+        <button type="button" id="btnChanger" class="btn btn-outline-secondary">
+          <i class="fas fa-sync-alt me-2"></i>Changer
+        </button>
+        <button type="button" id="btnSigner" class="btn btn-primary">
+          <i class="fas fa-signature me-2"></i>Signer
+        </button>
+      </div>
+    </div>
     <form id="formDeces">
       <!-- Informations du défunt -->
       <div class="card mb-4">
@@ -393,8 +403,72 @@
     function initializeFormHandler() {
       const form = document.getElementById('formDeces');
       const resultDiv = document.getElementById('result');
+      const btnSigner = document.getElementById('btnSigner');
+      const btnChanger = document.getElementById('btnChanger');
       
-      if (!form || !resultDiv) return;
+      if (!form || !resultDiv || !btnSigner || !btnChanger) return;
+      
+      // Gestionnaire pour le bouton Signer
+      btnSigner.addEventListener('click', () => {
+        // Vérifier si le formulaire est valide
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        
+        // Afficher une confirmation avant signature
+        if (confirm('Voulez-vous vraiment signer cet acte de décès ? Cette action est irréversible.')) {
+          // Ici, vous pouvez ajouter la logique de signature
+          console.log('Signature de l\'acte de décès...');
+          // Désactiver le formulaire après signature
+          const inputs = form.querySelectorAll('input, select, textarea, button');
+          inputs.forEach(input => {
+            if (input !== btnChanger) {
+              input.disabled = true;
+            }
+          });
+          
+          // Changer l'apparence du bouton Signer
+          btnSigner.disabled = true;
+          btnSigner.innerHTML = '<i class="fas fa-check-circle me-2"></i>Signé';
+          btnSigner.classList.remove('btn-primary');
+          btnSigner.classList.add('btn-success');
+          
+          // Afficher un message de confirmation
+          showSuccess('L\'acte a été signé avec succès.');
+        }
+      });
+      
+      // Gestionnaire pour le bouton Changer
+      btnChanger.addEventListener('click', () => {
+        if (confirm('Voulez-vous annuler les modifications et réinitialiser le formulaire ?')) {
+          form.reset();
+          // Réactiver tous les champs
+          const inputs = form.querySelectorAll('input, select, textarea, button');
+          inputs.forEach(input => {
+            input.disabled = false;
+          });
+          
+          // Réinitialiser l'apparence du bouton Signer
+          btnSigner.disabled = false;
+          btnSigner.innerHTML = '<i class="fas fa-signature me-2"></i>Signer';
+          btnSigner.classList.remove('btn-success');
+          btnSigner.classList.add('btn-primary');
+          
+          // Si on est en mode édition, recharger les données originales
+          if (isEditMode && editActeId) {
+            loadActeForEdit(editActeId);
+          } else {
+            // Réinitialiser la date d'enregistrement à aujourd'hui
+            const dateEnregistrement = document.querySelector('input[name="dateEnregistrement"]');
+            if (dateEnregistrement) {
+              dateEnregistrement.value = new Date().toISOString().split('T')[0];
+            }
+          }
+          
+          showSuccess('Le formulaire a été réinitialisé.');
+        }
+      });
       
       // Nettoyer les anciens event listeners
       if (formHandler) {

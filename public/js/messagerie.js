@@ -22,10 +22,8 @@ class MessageSystem {
       
       // Setup event listeners
       this.setupEventListeners();
-      
-      console.log('MessageSystem initialized');
     } catch (error) {
-      console.error('Error initializing MessageSystem:', error);
+      console.error('Erreur lors de l\'initialisation du système de messagerie');
     }
   }
 
@@ -66,7 +64,6 @@ class MessageSystem {
       });
 
       this.socket.on('disconnect', (reason) => {
-        console.log('Socket.IO disconnected:', reason);
         if (reason === 'io server disconnect') {
           // Reconnexion automatique
           this.socket.connect();

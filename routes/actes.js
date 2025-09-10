@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const Acte = require('../models/Acte');
 const { check, validationResult } = require('express-validator');
+const { generatePdf } = require('../services/pdfService');
 const PDFDocument = require('pdfkit');
 const { authenticate } = require('../middleware/auth');
+const decesController = require('../controllers/decesController');
 
 // Validation des actes
 const validateActe = (type, details) => {
@@ -145,6 +148,117 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ====================================
+// ROUTE DE RECHERCHE - DOIT ÊTRE AVANT LA ROUTE /:id
+// ====================================
+router.get('/search', authenticate, async (req, res) => {
+  // Début du suivi des performances
+  const startTime = Date.now();
+  const requestId = Math.random().toString(36).substr(2, 9);
+  
+  console.log(`[${new Date().toISOString()}] [${requestId}] Requête de recherche reçue`, {
+    query: req.query,
+    user: req.user ? req.user._id : 'non authentifié',
+    ip: req.ip
+  });
+  
+  try {
+    // Vérifier le terme de recherche
+    let searchTerm = req.query.q;
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+      console.log(`[${requestId}] Erreur: Terme de recherche manquant`);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Le terme de recherche est requis' 
+      });
+    }
+
+    // Nettoyer le terme de recherche (retirer les préfixes de champ comme 'MAHAMAT:1')
+    searchTerm = searchTerm.split(':')[0].trim();
+    
+    if (searchTerm.length < 2) {
+      console.log(`[${requestId}] Erreur: Terme de recherche trop court: "${searchTerm}"`);
+      return res.status(400).json({
+        success: false,
+        error: 'Le terme de recherche doit contenir au moins 2 caractères'
+      });
+    }
+    
+    console.log(`[${requestId}] Recherche du terme: "${searchTerm}"`);
+    
+    // Créer une expression régulière insensible à la casse avec échappement des caractères spéciaux
+    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedTerm, 'i');
+
+    // Construire la requête de recherche
+    const query = {
+      $or: [
+        { 'details.nom': { $regex: regex } },
+        { 'details.prenom': { $regex: regex } },
+        { 'details.lieuNaissance': { $regex: regex } },
+        { 'details.lieuDeces': { $regex: regex } },
+        { 'details.lieuMariage': { $regex: regex } },
+        { 'details.numeroActe': { $regex: regex } },
+        { 'details.pere': { $regex: regex } },
+        { 'details.mere': { $regex: regex } },
+        { 'details.conjoint1': { $regex: regex } },
+        { 'details.conjointe2': { $regex: regex } }
+      ]
+    };
+
+    console.log(`[${requestId}] Exécution de la requête:`, JSON.stringify(query));
+    
+    // Exécuter la requête avec un timeout
+    const results = await Promise.race([
+      Acte.find(query)
+        .sort({ dateEnregistrement: -1 })
+        .limit(50)
+        .lean()
+        .exec(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('La requête a pris trop de temps')), 15000)
+      )
+    ]);
+
+    const duration = Date.now() - startTime;
+    console.log(`[${requestId}] Recherche terminée en ${duration}ms - ${results.length} résultats`);
+
+    // Envoyer la réponse
+    return res.status(200).json({
+      success: true,
+      data: results,
+      meta: {
+        count: results.length,
+        searchTerm: searchTerm,
+        duration: duration
+      }
+    });
+    
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[${requestId}] Erreur après ${duration}ms:`, error);
+    
+    // Gérer les erreurs spécifiques
+    let statusCode = 500;
+    let errorMessage = 'Erreur lors de la recherche des actes';
+    
+    if (error.message.includes('trop de temps')) {
+      statusCode = 504; // Gateway Timeout
+      errorMessage = 'La recherche a pris trop de temps. Veuillez essayer avec un terme plus spécifique.';
+    } else if (error.name === 'MongoError') {
+      errorMessage = 'Erreur de base de données. Veuillez réessayer plus tard.';
+    }
+    
+    return res.status(statusCode).json({ 
+      success: false, 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      requestId: requestId
+    });
+  }
+});
+
 // Obtenir un acte spécifique
 router.get('/:id', async (req, res) => {
   try {
@@ -178,51 +292,197 @@ router.get('/:id', async (req, res) => {
 // Générer et télécharger un PDF d'acte
 router.get('/:id/pdf', async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'ID invalide'
-      });
-    }
-
     const acte = await Acte.findById(req.params.id);
+    
     if (!acte) {
-      return res.status(404).json({
-        success: false,
-        error: 'Acte non trouvé'
-      });
+      return res.status(404).json({ error: 'Acte non trouvé' });
     }
-
-    // Créer le document PDF
-    const doc = new PDFDocument({ margin: 50 });
     
-    // Configuration des headers pour le téléchargement
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="acte-${acte.type}-${acte.numeroActe}.pdf"`);
-    
-    // Pipe le PDF vers la réponse
-    doc.pipe(res);
+    // Préparer les données pour le PDF dans le format attendu
+    const pdfData = {
+      numeroActe: acte.numeroActe,
+      dateEnregistrement: acte.dateEnregistrement,
+      mairie: acte.mairie,
+      ...acte.details
+    };
 
-    // Générer le contenu selon le type d'acte
-    if (acte.type === 'naissance') {
-      generateNaissancePDF(doc, acte);
-    } else if (acte.type === 'mariage') {
-      generateMariagePDF(doc, acte);
-    } else if (acte.type === 'deces') {
-      generateDecesPDF(doc, acte);
-    }
+    // Générer le PDF en utilisant le service
+    const pdfBuffer = await generatePdf(acte.type, pdfData);
 
-    // Finaliser le PDF
-    doc.end();
+    // Configurer les en-têtes de la réponse
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="acte-${acte.type}-${acte.numeroActe}.pdf"`,
+      'Content-Length': pdfBuffer.length
+    });
+
+    // Envoyer le PDF
+    res.send(pdfBuffer);
 
   } catch (err) {
     console.error('Erreur génération PDF:', err);
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de la génération du PDF'
+      error: 'Erreur lors de la génération du PDF',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
+
+// Fonction pour générer un PDF d'acte de décès
+function generateDecesPDF(doc, acte) {
+  const details = acte.details;
+  
+  // === DRAPEAU DU TCHAD VISIBLE ===
+  // Fond blanc pour le drapeau
+  doc.rect(50, 30, 90, 60).fillColor('#FFFFFF').fill().strokeColor('#000000').stroke();
+  
+  // Bandes du drapeau
+  doc.rect(50, 30, 30, 60).fillColor('#002689').fill(); // Bleu
+  doc.rect(80, 30, 30, 60).fillColor('#FFD100').fill(); // Jaune  
+  doc.rect(110, 30, 30, 60).fillColor('#CE1126').fill(); // Rouge
+  
+  // Contour du drapeau
+  doc.rect(50, 30, 90, 60).fillColor('transparent').strokeColor('#000000').lineWidth(2).stroke();
+  
+  // === EN-TÊTE OFFICIEL ===
+  doc.fillColor('#000000').lineWidth(1);
+  doc.fontSize(16).font('Helvetica-Bold')
+     .text('RÉPUBLIQUE DU TCHAD', 160, 35);
+  doc.fontSize(12).font('Helvetica-Oblique')
+     .text('Unité - Travail - Progrès', 160, 55);
+  doc.fontSize(11).font('Helvetica')
+     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', 160, 75);
+  
+  // Ligne de séparation
+  doc.moveTo(50, 110).lineTo(doc.page.width - 50, 110).strokeColor('#000000').lineWidth(1).stroke();
+  
+  // === TITRE PRINCIPAL ===
+  doc.fontSize(20).font('Helvetica-Bold')
+     .text('ACTE DE DÉCÈS', 0, 130, { align: 'center' });
+  
+  // Ligne décorative sous le titre
+  doc.moveTo(150, 155).lineTo(doc.page.width - 150, 155).strokeColor('#CE1126').lineWidth(2).stroke();
+  
+  // === INFORMATIONS ADMINISTRATIVES ===
+  let y = 180;
+  
+  // Cadre élégant pour les infos admin
+  doc.roundedRect(50, y, doc.page.width - 100, 60, 5)
+     .fillColor('#f8f9fa').fill()
+     .strokeColor('#dee2e6').lineWidth(1).stroke();
+  
+  doc.fillColor('#000000').fontSize(11).font('Helvetica');
+  doc.text(`N° d'acte: ${acte.numeroActe || 'En cours de génération'}`, 70, y + 15);
+  doc.text(`Mairie: ${acte.mairie || 'Non renseigné'}`, 70, y + 30);
+  doc.text(`Date d'enregistrement: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 70, y + 45);
+  
+  y += 80;
+  
+  // === DÉCLARATION OFFICIELLE ===
+  doc.fontSize(12).font('Helvetica')
+     .text('Nous, Officier de l\'État Civil, déclarons que:', 50, y);
+  
+  y += 30;
+  
+  // === INFORMATIONS DU DÉFUNT ===
+  doc.roundedRect(50, y, doc.page.width - 100, 200, 5)
+     .fillColor('#ffffff').fill()
+     .strokeColor('#002689').lineWidth(2).stroke();
+  
+  // Titre de section avec fond coloré
+  doc.rect(50, y, doc.page.width - 100, 25)
+     .fillColor('#002689').fill();
+  doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
+     .text('DÉFUNT', 0, y + 8, { align: 'center' });
+  
+  doc.fillColor('#000000').fontSize(11).font('Helvetica');
+  y += 35;
+  
+  // Informations du défunt
+  doc.text('Nom:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.nomDefunt || 'Non renseigné'}`);
+  doc.font('Helvetica').text('Prénoms:', 300, y, { continued: true }).font('Helvetica-Bold').text(` ${details.prenomsDefunt || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Date de naissance:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.dateNaissanceDefunt ? new Date(details.dateNaissanceDefunt).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
+  doc.font('Helvetica').text('Lieu de naissance:', 300, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.lieuNaissanceDefunt || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Profession:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.professionDefunt || 'Non renseignée'}`);
+  doc.font('Helvetica').text('Domicile:', 300, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.domicileDefunt || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Date du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.dateDeces ? new Date(details.dateDeces).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
+  doc.font('Helvetica').text('Heure du décès:', 300, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.heureDeces || 'Non spécifiée'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Lieu du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.lieuDeces || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Cause du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.causeDeces || 'Non spécifiée'}`);
+  
+  y += 40;
+  
+  // === INFORMATIONS DU DÉCLARANT ===
+  doc.roundedRect(50, y, doc.page.width - 100, 120, 5)
+     .fillColor('#ffffff').fill()
+     .strokeColor('#002689').lineWidth(2).stroke();
+  
+  // Titre de section avec fond coloré
+  doc.rect(50, y, doc.page.width - 100, 25)
+     .fillColor('#002689').fill();
+  doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
+     .text('DÉCLARANT', 0, y + 8, { align: 'center' });
+  
+  doc.fillColor('#000000').fontSize(11).font('Helvetica');
+  y += 35;
+  
+  // Informations du déclarant
+  doc.text('Nom:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.nomDeclarant || 'Non renseigné'}`);
+  doc.font('Helvetica').text('Prénoms:', 300, y, { continued: true }).font('Helvetica-Bold').text(` ${details.prenomsDeclarant || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Date de naissance:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.dateNaissanceDeclarant ? new Date(details.dateNaissanceDeclarant).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
+  doc.font('Helvetica').text('Lieu de naissance:', 300, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.lieuNaissanceDeclarant || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Profession:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.professionDeclarant || 'Non renseignée'}`);
+  doc.font('Helvetica').text('Domicile:', 300, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.domicileDeclarant || 'Non renseigné'}`);
+  
+  y += 20;
+  doc.font('Helvetica').text('Lien avec le défunt:', 70, y, { continued: true }).font('Helvetica-Bold')
+     .text(` ${details.lienDeclarant || 'Non spécifié'}`);
+  
+  y += 40;
+  
+  // === SIGNATURE ===
+  doc.moveTo(100, y).lineTo(500, y).strokeColor('#CCCCCC').lineWidth(0.5).stroke();
+  
+  // Texte de signature
+  doc.font('Helvetica').fontSize(10)
+     .fillColor('#333333')
+     .text(`Fait à ${acte.mairie || 'N/A'}, le ${acte.dateEnregistrement ? new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR') : ''}`, 300, y + 10, { align: 'right' })
+     .moveDown(2)
+     .font('Helvetica-Bold')
+     .text('Le Maire', 400, y + 30, { align: 'right' })
+     .moveDown(3)
+     .font('Helvetica')
+     .fontSize(9)
+     .fillColor('#999999')
+     .text('Cachet et signature', 400, y + 50, { align: 'right' });
+}
 
 // Fonction pour générer un PDF d'acte de naissance
 function generateNaissancePDF(doc, acte) {
@@ -525,8 +785,44 @@ Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`
   doc.text('Signature et cachet', { align: 'right' });
 }
 
+
+// ====================================
+// ROUTE POUR UN ACTE SPÉCIFIQUE PAR ID
+// ====================================
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID invalide'
+      });
+    }
+    
+    const acte = await Acte.findById(req.params.id).lean();
+    
+    if (!acte) {
+      return res.status(404).json({
+        success: false,
+        error: 'Acte non trouvé'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: acte
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'acte:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération de l\'acte',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Récupérer les actes récents
-router.get('/recent', async (req, res) => {
+router.get('/recent', authenticate, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     
@@ -583,8 +879,10 @@ function formatTimeAgo(date) {
   return `Il y a ${Math.floor(diffMonths / 12)} an${Math.floor(diffMonths / 12) > 1 ? 's' : ''}`;
 }
 
+
+
 // Mettre à jour un acte
-router.put('/:id', validateActeInput, async (req, res) => {
+router.put('/:id', validateActeInput, authenticate, async (req, res) => {
   try {
     const { type, details, mairie } = req.body;
     validateActe(type, details);
@@ -620,6 +918,9 @@ router.put('/:id', validateActeInput, async (req, res) => {
     });
   }
 });
+
+// Télécharger un PDF d'acte de décès
+router.get('/deces/:id/pdf', decesController.generateDecesPdf);
 
 // Supprimer un acte
 router.delete('/:id', async (req, res) => {

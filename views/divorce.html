@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,23 +8,61 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .form-section { background: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 25px; }
-        .section-title { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
-        .required-field::after { content: " *"; color: #e74c3c; }
-        .nav-tabs .nav-link { color: #2c3e50; font-weight: 500; }
-        .nav-tabs .nav-link.active { color: #3498db; font-weight: 600; border-bottom: 3px solid #3498db; }
-        .form-control:disabled, .form-control[readonly] { background-color: #f8f9fa; }
-        .btn-save { background-color: #2ecc71; border: none; }
-        .btn-save:hover { background-color: #27ae60; }
+        .form-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        .nav-tabs .nav-link {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #3498db;
+            font-weight: 600;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .form-control:disabled,
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+        }
+
+        .btn-save {
+            background-color: #2ecc71;
+            border: none;
+        }
+
+        .btn-save:hover {
+            background-color: #27ae60;
+        }
     </style>
 </head>
+
 <body>
     <div id="app">
         <div id="sidebar-container"></div>
         <div class="main-content">
             <div class="container-fluid py-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0"><i class="fas fa-file-contract me-2"></i><span id="formTitle">Nouvel acte de divorce</span></h1>
+                    <h1 class="h3 mb-0"><i class="fas fa-file-contract me-2"></i><span id="formTitle">Nouvel acte de
+                            divorce</span></h1>
                     <div>
                         <a href="/divorces" class="btn btn-outline-secondary me-2">
                             <i class="fas fa-arrow-left me-2"></i>Retour
@@ -36,35 +75,38 @@
                         </button>
                     </div>
                 </div>
-
                 <ul class="nav nav-tabs mb-4" id="divorceTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info"
+                            type="button">
                             Informations générales
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="epoux-tab" data-bs-toggle="tab" data-bs-target="#epoux" type="button">
+                        <button class="nav-link" id="epoux-tab" data-bs-toggle="tab" data-bs-target="#epoux"
+                            type="button">
                             Informations sur l'époux
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="epouse-tab" data-bs-toggle="tab" data-bs-target="#epouse" type="button">
+                        <button class="nav-link" id="epouse-tab" data-bs-toggle="tab" data-bs-target="#epouse"
+                            type="button">
                             Informations sur l'épouse
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="enfants-tab" data-bs-toggle="tab" data-bs-target="#enfants" type="button">
+                        <button class="nav-link" id="enfants-tab" data-bs-toggle="tab" data-bs-target="#enfants"
+                            type="button">
                             Enfants
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents"
+                            type="button">
                             Documents
                         </button>
                     </li>
                 </ul>
-
                 <form id="divorceForm" class="needs-validation" novalidate>
                     <div class="tab-content" id="divorceTabsContent">
                         <!-- Onglet Informations générales -->
@@ -74,56 +116,74 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="numeroActe" class="form-label">Numéro d'acte</label>
-                                        <input type="text" class="form-control" id="numeroActe" name="numeroActe" readonly>
+                                        <input type="text" class="form-control" id="numeroActe" name="numeroActe"
+                                            readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="dateEtablissement" class="form-label required-field">Date d'établissement</label>
-                                        <input type="date" class="form-control" id="dateEtablissement" name="dateEtablissement" required>
+                                        <label for="dateEtablissement" class="form-label required-field">Date
+                                            d'établissement</label>
+                                        <input type="date" class="form-control" id="dateEtablissement"
+                                            name="dateEtablissement" required>
                                         <div class="invalid-feedback">Ce champ est requis</div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="lieuEtablissement" class="form-label required-field">Lieu d'établissement</label>
-                                        <input type="text" class="form-control" id="lieuEtablissement" name="lieuEtablissement" required>
+                                        <label for="lieuEtablissement" class="form-label required-field">Lieu
+                                            d'établissement</label>
+                                        <input type="text" class="form-control" id="lieuEtablissement"
+                                            name="lieuEtablissement" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="officierEtatCivil" class="form-label required-field">Officier d'état civil</label>
-                                        <input type="text" class="form-control" id="officierEtatCivil" name="officierEtatCivil" required>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="dateMariage" class="form-label required-field">Date du mariage</label>
-                                        <input type="date" class="form-control" id="dateMariage" name="dateMariage" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lieuMariage" class="form-label required-field">Lieu du mariage</label>
-                                        <input type="text" class="form-control" id="lieuMariage" name="lieuMariage" required>
+                                        <label for="officierEtatCivil" class="form-label required-field">Officier d'état
+                                            civil</label>
+                                        <input type="text" class="form-control" id="officierEtatCivil"
+                                            name="officierEtatCivil" required>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="dateDivorce" class="form-label required-field">Date du divorce</label>
-                                        <input type="date" class="form-control" id="dateDivorce" name="dateDivorce" required>
+                                        <label for="dateMariage" class="form-label required-field">Date du
+                                            mariage</label>
+                                        <input type="date" class="form-control" id="dateMariage" name="dateMariage"
+                                            required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="typeDivorce" class="form-label required-field">Type de divorce</label>
+                                        <label for="lieuMariage" class="form-label required-field">Lieu du
+                                            mariage</label>
+                                        <input type="text" class="form-control" id="lieuMariage" name="lieuMariage"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dateDivorce" class="form-label required-field">Date du
+                                            divorce</label>
+                                        <input type="date" class="form-control" id="dateDivorce" name="dateDivorce"
+                                            required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="typeDivorce" class="form-label required-field">Type de
+                                            divorce</label>
                                         <select class="form-select" id="typeDivorce" name="typeDivorce" required>
                                             <option value="">Sélectionner un type</option>
                                             <option value="par consentement mutuel">Par consentement mutuel</option>
                                             <option value="pour faute">Pour faute</option>
-                                            <option value="pour altération définitive du lien conjugal">Pour altération définitive du lien conjugal</option>
+                                            <option value="pour altération définitive du lien conjugal">Pour altération
+                                                définitive du lien conjugal</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="regimeMatrimonial" class="form-label required-field">Régime matrimonial</label>
-                                    <input type="text" class="form-control" id="regimeMatrimonial" name="regimeMatrimonial" required>
+                                    <label for="regimeMatrimonial" class="form-label required-field">Régime
+                                        matrimonial</label>
+                                    <input type="text" class="form-control" id="regimeMatrimonial"
+                                        name="regimeMatrimonial" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="motifs" class="form-label required-field">Motifs du divorce</label>
-                                    <textarea class="form-control" id="motifs" name="motifs" rows="3" required></textarea>
+                                    <textarea class="form-control" id="motifs" name="motifs" rows="3"
+                                        required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -135,39 +195,51 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="epoux_nom" class="form-label required-field">Nom</label>
-                                        <input type="text" class="form-control" id="epoux_nom" name="epoux.nom" required>
+                                        <input type="text" class="form-control" id="epoux_nom" name="epoux.nom"
+                                            required>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="epoux_prenoms" class="form-label required-field">Prénoms</label>
-                                        <input type="text" class="form-control" id="epoux_prenoms" name="epoux.prenoms" required>
+                                        <input type="text" class="form-control" id="epoux_prenoms" name="epoux.prenoms"
+                                            required>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="epoux_dateNaissance" class="form-label required-field">Date de naissance</label>
-                                        <input type="date" class="form-control" id="epoux_dateNaissance" name="epoux.dateNaissance" required>
+                                        <label for="epoux_dateNaissance" class="form-label required-field">Date de
+                                            naissance</label>
+                                        <input type="date" class="form-control" id="epoux_dateNaissance"
+                                            name="epoux.dateNaissance" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="epoux_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
-                                        <input type="text" class="form-control" id="epoux_lieuNaissance" name="epoux.lieuNaissance" required>
+                                        <label for="epoux_lieuNaissance" class="form-label required-field">Lieu de
+                                            naissance</label>
+                                        <input type="text" class="form-control" id="epoux_lieuNaissance"
+                                            name="epoux.lieuNaissance" required>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="epoux_profession" class="form-label">Profession</label>
-                                    <input type="text" class="form-control" id="epoux_profession" name="epoux.profession">
+                                    <input type="text" class="form-control" id="epoux_profession"
+                                        name="epoux.profession">
                                 </div>
                                 <div class="mb-3">
                                     <label for="epoux_adresse" class="form-label required-field">Adresse</label>
-                                    <input type="text" class="form-control" id="epoux_adresse" name="epoux.adresse" required>
+                                    <input type="text" class="form-control" id="epoux_adresse" name="epoux.adresse"
+                                        required>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="epoux_nationalite" class="form-label required-field">Nationalité</label>
-                                        <input type="text" class="form-control" id="epoux_nationalite" name="epoux.nationalite" required>
+                                        <label for="epoux_nationalite"
+                                            class="form-label required-field">Nationalité</label>
+                                        <input type="text" class="form-control" id="epoux_nationalite"
+                                            name="epoux.nationalite" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="epoux_typePieceIdentite" class="form-label required-field">Type de pièce</label>
-                                        <select class="form-select" id="epoux_typePieceIdentite" name="epoux.typePieceIdentite" required>
+                                        <label for="epoux_typePieceIdentite" class="form-label required-field">Type de
+                                            pièce</label>
+                                        <select class="form-select" id="epoux_typePieceIdentite"
+                                            name="epoux.typePieceIdentite" required>
                                             <option value="">Sélectionner</option>
                                             <option value="CNI">CNI</option>
                                             <option value="Passeport">Passeport</option>
@@ -177,12 +249,13 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="epoux_numeroPieceIdentite" class="form-label required-field">N° de pièce</label>
-                                    <input type="text" class="form-control" id="epoux_numeroPieceIdentite" name="epoux.numeroPieceIdentite" required>
+                                    <label for="epoux_numeroPieceIdentite" class="form-label required-field">N° de
+                                        pièce</label>
+                                    <input type="text" class="form-control" id="epoux_numeroPieceIdentite"
+                                        name="epoux.numeroPieceIdentite" required>
                                 </div>
                             </div>
                         </div>
-
                         <!-- Onglet Informations sur l'épouse -->
                         <div class="tab-pane fade" id="epouse" role="tabpanel">
                             <div class="form-section">
@@ -190,39 +263,51 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="epouse_nom" class="form-label required-field">Nom</label>
-                                        <input type="text" class="form-control" id="epouse_nom" name="epouse.nom" required>
+                                        <input type="text" class="form-control" id="epouse_nom" name="epouse.nom"
+                                            required>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="epouse_prenoms" class="form-label required-field">Prénoms</label>
-                                        <input type="text" class="form-control" id="epouse_prenoms" name="epouse.prenoms" required>
+                                        <input type="text" class="form-control" id="epouse_prenoms"
+                                            name="epouse.prenoms" required>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="epouse_dateNaissance" class="form-label required-field">Date de naissance</label>
-                                        <input type="date" class="form-control" id="epouse_dateNaissance" name="epouse.dateNaissance" required>
+                                        <label for="epouse_dateNaissance" class="form-label required-field">Date de
+                                            naissance</label>
+                                        <input type="date" class="form-control" id="epouse_dateNaissance"
+                                            name="epouse.dateNaissance" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="epouse_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
-                                        <input type="text" class="form-control" id="epouse_lieuNaissance" name="epouse.lieuNaissance" required>
+                                        <label for="epouse_lieuNaissance" class="form-label required-field">Lieu de
+                                            naissance</label>
+                                        <input type="text" class="form-control" id="epouse_lieuNaissance"
+                                            name="epouse.lieuNaissance" required>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="epouse_profession" class="form-label">Profession</label>
-                                    <input type="text" class="form-control" id="epouse_profession" name="epouse.profession">
+                                    <input type="text" class="form-control" id="epouse_profession"
+                                        name="epouse.profession">
                                 </div>
                                 <div class="mb-3">
                                     <label for="epouse_adresse" class="form-label required-field">Adresse</label>
-                                    <input type="text" class="form-control" id="epouse_adresse" name="epouse.adresse" required>
+                                    <input type="text" class="form-control" id="epouse_adresse" name="epouse.adresse"
+                                        required>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="epouse_nationalite" class="form-label required-field">Nationalité</label>
-                                        <input type="text" class="form-control" id="epouse_nationalite" name="epouse.nationalite" required>
+                                        <label for="epouse_nationalite"
+                                            class="form-label required-field">Nationalité</label>
+                                        <input type="text" class="form-control" id="epouse_nationalite"
+                                            name="epouse.nationalite" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="epouse_typePieceIdentite" class="form-label required-field">Type de pièce</label>
-                                        <select class="form-select" id="epouse_typePieceIdentite" name="epouse.typePieceIdentite" required>
+                                        <label for="epouse_typePieceIdentite" class="form-label required-field">Type de
+                                            pièce</label>
+                                        <select class="form-select" id="epouse_typePieceIdentite"
+                                            name="epouse.typePieceIdentite" required>
                                             <option value="">Sélectionner</option>
                                             <option value="CNI">CNI</option>
                                             <option value="Passeport">Passeport</option>
@@ -232,12 +317,13 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="epouse_numeroPieceIdentite" class="form-label required-field">N° de pièce</label>
-                                    <input type="text" class="form-control" id="epouse_numeroPieceIdentite" name="epouse.numeroPieceIdentite" required>
+                                    <label for="epouse_numeroPieceIdentite" class="form-label required-field">N° de
+                                        pièce</label>
+                                    <input type="text" class="form-control" id="epouse_numeroPieceIdentite"
+                                        name="epouse.numeroPieceIdentite" required>
                                 </div>
                             </div>
                         </div>
-
                         <!-- Onglet Enfants -->
                         <div class="tab-pane fade" id="enfants" role="tabpanel">
                             <div class="form-section">
@@ -252,7 +338,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Onglet Documents -->
                         <div class="tab-pane fade" id="documents" role="tabpanel">
                             <div class="form-section">
@@ -273,7 +358,6 @@
             </div>
         </div>
     </div>
-
     <!-- Template pour un enfant -->
     <template id="enfantTemplate">
         <div class="card mb-3 enfant-item">
@@ -317,11 +401,10 @@
             </div>
         </div>
     </template>
-
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Gestion des onglets
             const triggerTabList = [].slice.call(document.querySelectorAll('#divorceTabs button'));
             triggerTabList.forEach(function (triggerEl) {
@@ -334,64 +417,64 @@
 
             // Gestion de l'ajout d'enfants
             let enfantCount = 0;
-            
-            $('#addEnfantBtn').click(function() {
+
+            $('#addEnfantBtn').click(function () {
                 const template = document.getElementById('enfantTemplate').content.cloneNode(true);
                 const newEnfant = $(template);
-                
+
                 // Mettre à jour les noms des champs avec le bon index
                 enfantCount++;
                 newEnfant.find('.enfant-numero').text(enfantCount);
-                
+
                 // Mettre à jour les noms des champs
-                newEnfant.find('input, select').each(function() {
+                newEnfant.find('input, select').each(function () {
                     const name = $(this).attr('name').replace('[0]', `[${enfantCount - 1}]`);
                     $(this).attr('name', name);
                 });
-                
+
                 // Gestion de la suppression d'un enfant
-                newEnfant.find('.remove-enfant').click(function() {
+                newEnfant.find('.remove-enfant').click(function () {
                     $(this).closest('.enfant-item').remove();
                     updateEnfantsNumeros();
                 });
-                
+
                 $('#enfantsContainer').append(newEnfant);
                 updateEnfantsNumeros();
             });
-            
+
             function updateEnfantsNumeros() {
-                $('.enfant-item').each(function(index) {
+                $('.enfant-item').each(function (index) {
                     $(this).find('.enfant-numero').text(index + 1);
-                    
+
                     // Mettre à jour les noms des champs avec le bon index
-                    $(this).find('input, select').each(function() {
+                    $(this).find('input, select').each(function () {
                         const name = $(this).attr('name').replace(/\[\d+\]/, `[${index}]`);
                         $(this).attr('name', name);
                     });
                 });
-                
+
                 enfantCount = $('.enfant-item').length;
             }
 
             // Gestion de la soumission du formulaire
-            $('#divorceForm').on('submit', function(e) {
+            $('#divorceForm').on('submit', function (e) {
                 e.preventDefault();
-                
+
                 if (this.checkValidity() === false) {
                     e.stopPropagation();
                     $(this).addClass('was-validated');
                     return;
                 }
-                
+
                 const formData = new FormData(this);
                 const divorceData = {};
-                
+
                 // Convertir FormData en objet
                 for (let [key, value] of formData.entries()) {
                     // Gérer les champs imbriqués (ex: epoux.nom)
                     const keys = key.split('.');
                     let current = divorceData;
-                    
+
                     for (let i = 0; i < keys.length; i++) {
                         const k = keys[i];
                         if (i === keys.length - 1) {
@@ -402,10 +485,10 @@
                         }
                     }
                 }
-                
+
                 // Gérer les tableaux (comme gardeEnfants)
                 const enfants = [];
-                $('.enfant-item').each(function() {
+                $('.enfant-item').each(function () {
                     const enfant = {
                         nom: $(this).find('input[name$=".nom"]').val(),
                         prenom: $(this).find('input[name$=".prenom"]').val(),
@@ -415,16 +498,16 @@
                     };
                     enfants.push(enfant);
                 });
-                
+
                 if (enfants.length > 0) {
                     divorceData.gardeEnfants = enfants;
                 }
-                
+
                 // Déterminer si c'est une création ou une mise à jour
                 const divorceId = new URLSearchParams(window.location.search).get('id');
                 const method = divorceId ? 'PUT' : 'POST';
                 const url = divorceId ? `/api/divorces/${divorceId}` : '/api/divorces';
-                
+
                 // Envoyer les données au serveur
                 $.ajax({
                     url: url,
@@ -434,33 +517,33 @@
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     },
                     data: JSON.stringify(divorceData),
-                    success: function(response) {
+                    success: function (response) {
                         showAlert('success', 'Acte de divorce enregistré avec succès');
                         if (!divorceId) {
                             // Rediriger vers la page d'édition avec l'ID
                             window.location.href = `/divorce?id=${response.data._id}`;
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         showAlert('danger', 'Erreur lors de l\'enregistrement: ' + (xhr.responseJSON?.message || 'Erreur inconnue'));
                     }
                 });
             });
-            
+
             // Gestion du bouton Enregistrer
-            $('#saveBtn').click(function() {
+            $('#saveBtn').click(function () {
                 $('#divorceForm').submit();
             });
-            
+
             // Charger les données si on est en mode édition
             function loadDivorceData() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const divorceId = urlParams.get('id');
-                
+
                 if (divorceId) {
                     // Mettre à jour le titre
                     $('#formTitle').text('Modifier l\'acte de divorce');
-                    
+
                     // Charger les données existantes
                     $.ajax({
                         url: `/api/divorces/${divorceId}`,
@@ -468,9 +551,9 @@
                         headers: {
                             'Authorization': 'Bearer ' + localStorage.getItem('token')
                         },
-                        success: function(response) {
+                        success: function (response) {
                             const divorce = response.data;
-                            
+
                             // Remplir les champs du formulaire
                             Object.keys(divorce).forEach(key => {
                                 if (typeof divorce[key] === 'object' && divorce[key] !== null) {
@@ -488,14 +571,14 @@
                                     }
                                 }
                             });
-                            
+
                             // Gérer les enfants
                             if (divorce.gardeEnfants && divorce.gardeEnfants.length > 0) {
                                 divorce.gardeEnfants.forEach((enfant, index) => {
                                     if (index > 0) {
                                         $('#addEnfantBtn').click();
                                     }
-                                    
+
                                     const prefix = `gardeEnfants[${index}]`;
                                     $(`input[name="${prefix}.nom"]`).val(enfant.nom);
                                     $(`input[name="${prefix}.prenom"]`).val(enfant.prenom);
@@ -504,17 +587,17 @@
                                     $(`input[name="${prefix}.details"]`).val(enfant.details || '');
                                 });
                             }
-                            
+
                             // Activer le bouton d'impression
                             $('#printBtn').prop('disabled', false);
                         },
-                        error: function() {
+                        error: function () {
                             showAlert('danger', 'Erreur lors du chargement des données');
                         }
                     });
                 }
             }
-            
+
             // Fonction utilitaire pour afficher des alertes
             function showAlert(type, message) {
                 const alert = `
@@ -526,7 +609,7 @@
                 $('.container-fluid').prepend(alert);
                 setTimeout(() => $('.alert').alert('close'), 5000);
             }
-            
+
             // Charger les données au chargement de la page
             loadDivorceData();
         });
