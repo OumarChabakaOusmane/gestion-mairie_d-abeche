@@ -69,6 +69,13 @@ router.get('/:id',
   divorceController.getDivorceById
 );
 
+// Route pour générer le PDF d'un acte de divorce
+router.get('/:id/pdf',
+  authenticate,
+  check('id', 'ID invalide').isMongoId(),
+  divorceController.generateDivorcePdf
+);
+
 router.put('/:id', 
   authenticate, 
   authorize(['admin', 'officier_etat_civil']), 
@@ -78,13 +85,8 @@ router.put('/:id',
 
 router.delete('/:id', 
   authenticate, 
-  authorize(['admin', 'officier_etat_civil']), 
+  authorize(['admin']), 
   divorceController.deleteDivorce
-);
-
-router.get('/:id/pdf', 
-  authenticate, 
-  divorceController.generateDivorcePdf
 );
 
 module.exports = router;

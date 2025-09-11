@@ -8,6 +8,10 @@ const { generatePdf } = require('../services/pdfService');
 const PDFDocument = require('pdfkit');
 const { authenticate } = require('../middleware/auth');
 const decesController = require('../controllers/decesController');
+const logger = require('../config/logger');
+const engagementConcubinageController = require('../controllers/engagementConcubinageController');
+const naissanceController = require('../controllers/naissanceController');
+const mariageController = require('../controllers/mariageController');
 
 // Validation des actes
 const validateActe = (type, details) => {
@@ -290,42 +294,196 @@ router.get('/:id', async (req, res) => {
 });
 
 // Générer et télécharger un PDF d'acte
-router.get('/:id/pdf', async (req, res) => {
+router.get('/:id/pdf', authenticate, async (req, res) => {
+  const startTime = Date.now();
+  const requestId = `pdf-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  
+  const log = (message, data = {}) => {
+    console.log(`[${requestId}] ${message}`, JSON.stringify({
+      ...data,
+      timestamp: new Date().toISOString(),
+      duration: `${Date.now() - startTime}ms`
+    }, null, 2));
+  };
+  
   try {
-    const acte = await Acte.findById(req.params.id);
+    logger.info('PDF route hit in routes/actes.js', { path: req.originalUrl });
+    log(`Début de génération du PDF pour l'acte`, { 
+      acteId: req.params.id,
+      user: req.user ? req.user._id : 'non authentifié'
+    });
+    
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      const error = new Error('ID d\'acte invalide');
+      log('Erreur de validation', { 
+        error: error.message,
+        acteId: req.params.id
+      });
+      return res.status(400).json({ 
+        success: false,
+        error: error.message,
+        requestId
+      });
+    }
+
+    log('Recherche de l\'acte dans la base de données...');
+    const acte = await Acte.findById(req.params.id)
+      .populate('createdBy', 'nom prenom')
+      .lean()
+      .catch(error => {
+        log('Erreur lors de la recherche de l\'acte', { error: error.message });
+        throw error;
+      });
     
     if (!acte) {
-      return res.status(404).json({ error: 'Acte non trouvé' });
+      const error = new Error('Acte non trouvé');
+      log(error.message, { acteId: req.params.id });
+      return res.status(404).json({ 
+        success: false,
+        error: error.message,
+        requestId
+      });
     }
-    
-    // Préparer les données pour le PDF dans le format attendu
-    const pdfData = {
-      numeroActe: acte.numeroActe,
-      dateEnregistrement: acte.dateEnregistrement,
+
+    log('Acte trouvé', { 
+      acteId: acte._id,
+      type: acte.type,
       mairie: acte.mairie,
-      ...acte.details
-    };
-
-    // Générer le PDF en utilisant le service
-    const pdfBuffer = await generatePdf(acte.type, pdfData);
-
-    // Configurer les en-têtes de la réponse
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="acte-${acte.type}-${acte.numeroActe}.pdf"`,
-      'Content-Length': pdfBuffer.length
+      createdAt: acte.createdAt
     });
 
-    // Envoyer le PDF
-    res.send(pdfBuffer);
+    // Utiliser le contrôleur approprié en fonction du type d'acte
+    log('Sélection du contrôleur en fonction du type d\'acte', { type: acte.type });
+    
+    try {
+      let controllerResponse;
+      const controllerRequest = {
+        params: { id: acte._id.toString() },
+        user: req.user,
+        log: log // Passer la fonction de log au contrôleur
+      };
+
+      switch (acte.type) {
+        case 'naissance': {
+          log('Génération PDF de naissance depuis Acte');
+          logger.info('Using LOCAL naissance PDF generation (routes/actes.js)', { requestId, acteId: acte._id?.toString() });
+          const doc = new PDFDocument({ size: 'A4', margin: 50 });
+          const fileName = `acte-naissance-${(acte.numeroActe || 'sans-numero')}.pdf`;
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+          doc.pipe(res);
+          try {
+            generateNaissancePDF(doc, acte);
+            doc.end();
+            controllerResponse = res;
+          } catch (e) {
+            doc.destroy();
+            throw e;
+          }
+          break;
+        }
+          
+        case 'mariage':
+          log('Appel du contrôleur de mariage');
+          controllerResponse = await mariageController.generateMariagePdf(controllerRequest, res);
+          break;
+          
+        case 'engagement-concubinage':
+          log('Appel du contrôleur d\'engagement de concubinage');
+          controllerResponse = await engagementConcubinageController.generateEngagementPdf(controllerRequest, res);
+          break;
+          
+        case 'deces':
+          log('Appel du contrôleur de décès');
+          controllerResponse = await decesController.generateDecesPdf(controllerRequest, res);
+          break;
+          
+        default:
+          const error = new Error(`Type d'acte '${acte.type}' non pris en charge`);
+          log(error.message, { type: acte.type });
+          return res.status(400).json({
+            success: false,
+            error: error.message,
+            requestId,
+            supportedTypes: ['naissance', 'mariage', 'deces']
+          });
+      }
+      
+      log('Réponse du contrôleur reçue', { 
+        statusCode: res.statusCode,
+        hasResponse: !!controllerResponse 
+      });
+      
+      return controllerResponse;
+      
+    } catch (controllerError) {
+      log('Erreur dans le contrôleur', { 
+        error: controllerError.message,
+        stack: controllerError.stack,
+        type: acte.type
+      });
+      throw controllerError; // Laisser le bloc catch externe gérer l'erreur
+    }
 
   } catch (err) {
-    console.error('Erreur génération PDF:', err);
-    res.status(500).json({
+    const errorDetails = {
+      message: err.message,
+      stack: err.stack,
+      params: req.params,
+      user: req.user ? { _id: req.user._id, role: req.user.role } : 'non authentifié',
+      timestamp: new Date().toISOString(),
+      requestId
+    };
+    
+    // Journalisation détaillée de l'erreur
+    console.error(`[${requestId}] ERREUR CRITIQUE lors de la génération du PDF:`, 
+      JSON.stringify(errorDetails, null, 2));
+    
+    // Envoyer une réponse d'erreur plus détaillée en mode développement
+    const errorResponse = {
       success: false,
       error: 'Erreur lors de la génération du PDF',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+      timestamp: errorDetails.timestamp,
+      requestId,
+      ...(process.env.NODE_ENV === 'development' && {
+        details: err.message,
+        stack: err.stack,
+        errorType: err.name,
+        errorCode: err.code || 'UNKNOWN_ERROR'
+      })
+    };
+    
+    // Journalisation des erreurs de validation
+    if (err.name === 'ValidationError') {
+      errorResponse.error = 'Erreur de validation des données';
+      if (err.errors) {
+        errorResponse.validationErrors = Object.keys(err.errors).map(key => ({
+          field: key,
+          message: err.errors[key].message,
+          value: err.errors[key].value
+        }));
+      }
+    }
+    
+    // Journalisation des erreurs de base de données
+    if (err.name === 'MongoError' || err.name === 'MongoServerError') {
+      errorResponse.error = 'Erreur de base de données';
+      errorResponse.errorCode = err.code || 'DATABASE_ERROR';
+      
+      // Masquer les détails sensibles en production
+      if (process.env.NODE_ENV !== 'development') {
+        delete errorResponse.details;
+        delete errorResponse.stack;
+      }
+    }
+    
+    // Journalisation des erreurs de système de fichiers
+    if (err.code && err.code.startsWith('ENOENT')) {
+      errorResponse.error = 'Erreur d\'accès au système de fichiers';
+      errorResponse.errorCode = 'FILE_SYSTEM_ERROR';
+    }
+    
+    return res.status(500).json(errorResponse);
   }
 });
 
@@ -487,178 +645,177 @@ function generateDecesPDF(doc, acte) {
 // Fonction pour générer un PDF d'acte de naissance
 function generateNaissancePDF(doc, acte) {
   const details = acte.details;
+  const margin = 50;
+  const pageWidth = doc.page.width - (margin * 2);
+  let y = 50;
   
-  // === DRAPEAU DU TCHAD VISIBLE ===
-  // Fond blanc pour le drapeau
-  doc.rect(50, 30, 90, 60).fillColor('#FFFFFF').fill().strokeColor('#000000').stroke();
+  // === EN-TÊTE CLASSIQUE ===
+  // Conteneur de l'en-tête
+  doc.rect(margin, y, pageWidth, 80)
+     .fillColor('#f8f9fa').fill()
+     .strokeColor('#dee2e6').lineWidth(0.5).stroke();
+
+  // Drapeau du Tchad
+  doc.rect(margin + 10, y + 10, 20, 60).fillColor('#002689').fill(); // Bleu
+  doc.rect(margin + 30, y + 10, 20, 60).fillColor('#FFD100').fill(); // Jaune
+  doc.rect(margin + 50, y + 10, 20, 60).fillColor('#CE1126').fill(); // Rouge
+  doc.rect(margin + 10, y + 10, 60, 60).strokeColor('#000000').lineWidth(0.5).stroke();
+
+  // Titres
+  doc.fontSize(14).font('Helvetica-Bold')
+     .text('RÉPUBLIQUE DU TCHAD', margin + 90, y + 15);
+  doc.fontSize(10).font('Helvetica-Oblique')
+     .text('Unité - Travail - Progrès', margin + 90, y + 35);
+  doc.fontSize(9).font('Helvetica')
+     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', margin + 90, y + 50);
+
+  // Numéro d'acte et date
+  doc.fontSize(10).font('Helvetica-Bold')
+     .text(`N° ${acte.numeroActe || 'En cours'}`, pageWidth - 100, y + 20, { width: 90, align: 'right' });
+  doc.fontSize(8).font('Helvetica')
+     .text(`Fait le: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 
+           pageWidth - 100, y + 35, { width: 90, align: 'right' });
   
-  // Bandes du drapeau
-  doc.rect(50, 30, 30, 60).fillColor('#002689').fill(); // Bleu
-  doc.rect(80, 30, 30, 60).fillColor('#FFD100').fill(); // Jaune  
-  doc.rect(110, 30, 30, 60).fillColor('#CE1126').fill(); // Rouge
-  
-  // Contour du drapeau
-  doc.rect(50, 30, 90, 60).fillColor('transparent').strokeColor('#000000').lineWidth(2).stroke();
-  
-  // === EN-TÊTE OFFICIEL ===
-  doc.fillColor('#000000').lineWidth(1);
-  doc.fontSize(16).font('Helvetica-Bold')
-     .text('RÉPUBLIQUE DU TCHAD', 160, 35);
-  doc.fontSize(12).font('Helvetica-Oblique')
-     .text('Unité - Travail - Progrès', 160, 55);
-  doc.fontSize(11).font('Helvetica')
-     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', 160, 75);
-  
-  // Ligne de séparation
-  doc.moveTo(50, 110).lineTo(doc.page.width - 50, 110).strokeColor('#000000').lineWidth(1).stroke();
+  y += 100;
   
   // === TITRE PRINCIPAL ===
-  doc.fontSize(20).font('Helvetica-Bold')
-     .text('ACTE DE NAISSANCE', 0, 130, { align: 'center' });
+  doc.fontSize(18).font('Helvetica-Bold')
+     .text('ACTE DE NAISSANCE', margin, y, { align: 'center' });
+  doc.moveTo(margin + 100, y + 25).lineTo(pageWidth - 50, y + 25)
+     .strokeColor('#CE1126').lineWidth(1).stroke();
   
-  // Ligne décorative sous le titre
-  doc.moveTo(150, 155).lineTo(doc.page.width - 150, 155).strokeColor('#CE1126').lineWidth(2).stroke();
-  
-  // === INFORMATIONS ADMINISTRATIVES ===
-  let y = 180;
-  
-  // Cadre élégant pour les infos admin
-  doc.roundedRect(50, y, doc.page.width - 100, 60, 5)
-     .fillColor('#f8f9fa').fill()
-     .strokeColor('#dee2e6').lineWidth(1).stroke();
-  
-  doc.fillColor('#000000').fontSize(11).font('Helvetica');
-  doc.text(`N° d'acte: ${acte.numeroActe || 'En cours de génération'}`, 70, y + 15);
-  doc.text(`Mairie: ${acte.mairie || 'Non renseigné'}`, 70, y + 30);
-  doc.text(`Date d'enregistrement: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 70, y + 45);
-  
-  y += 80;
+  y += 50;
   
   // === DÉCLARATION OFFICIELLE ===
-  doc.fontSize(12).font('Helvetica')
-     .text('Nous, Officier de l\'État Civil, certifions que:', 50, y);
-  
+  doc.fontSize(11).font('Helvetica')
+     .text('Nous, Officier de l\'État Civil, certifions que :', margin, y);
   y += 30;
   
   // === INFORMATIONS DE L'ENFANT ===
-  doc.roundedRect(50, y, doc.page.width - 100, 140, 5)
-     .fillColor('#ffffff').fill()
-     .strokeColor('#002689').lineWidth(2).stroke();
-  
-  // Titre de section avec fond coloré
-  doc.rect(50, y, doc.page.width - 100, 25)
-     .fillColor('#002689').fill();
-  doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
-     .text('ENFANT', 0, y + 8, { align: 'center' });
-  
-  doc.fillColor('#000000').fontSize(11).font('Helvetica');
-  y += 35;
-  
-  // Informations en colonnes élégantes
-  doc.text('Nom:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.nom || 'Non renseigné'}`);
-  doc.font('Helvetica').text('Prénom:', 70, y + 18, { continued: true }).font('Helvetica-Bold').text(` ${details.prenom || 'Non renseigné'}`);
-  
-  const sexeText = details.sexe === 'M' ? 'Masculin' : details.sexe === 'F' ? 'Féminin' : 'Non renseigné';
-  doc.font('Helvetica').text('Sexe:', 70, y + 36, { continued: true }).font('Helvetica-Bold').text(` ${sexeText}`);
-  
-  const dateNaissance = details.dateNaissance ? new Date(details.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné';
-  doc.font('Helvetica').text('Né(e) le:', 70, y + 54, { continued: true }).font('Helvetica-Bold').text(` ${dateNaissance}`);
-  
-  const heureNaissance = details.heureNaissance ? `à ${details.heureNaissance}` : '';
-  if (heureNaissance) {
-    doc.font('Helvetica').text('Heure:', 300, y + 54, { continued: true }).font('Helvetica-Bold').text(` ${details.heureNaissance}`);
-  }
-  
-  doc.font('Helvetica').text('Lieu de naissance:', 70, y + 72, { continued: true }).font('Helvetica-Bold').text(` ${details.lieuNaissance || 'Non renseigné'}`);
-  
-  y += 120;
-  
-  // === FILIATION ===
-  doc.roundedRect(50, y, doc.page.width - 100, 180, 5)
-     .fillColor('#ffffff').fill()
-     .strokeColor('#FFD100').lineWidth(2).stroke();
-  
-  // Titre de section
-  doc.rect(50, y, doc.page.width - 100, 25)
-     .fillColor('#FFD100').fill();
-  doc.fillColor('#000000').fontSize(12).font('Helvetica-Bold')
-     .text('FILIATION', 0, y + 8, { align: 'center' });
-  
-  doc.fontSize(11).font('Helvetica');
-  y += 35;
-  
-  // === INFORMATIONS DU PÈRE ===
-  doc.fontSize(11).font('Helvetica-Bold').text('PÈRE:', 70, y);
+  doc.fontSize(10).font('Helvetica-Bold').text('ENFANT', margin, y);
   y += 15;
   
-  const nomPere = `${details.prenomPere || ''} ${details.pere || details.nomPere || 'Non renseigné'}`.trim();
-  doc.font('Helvetica').text('Nom et prénom:', 90, y, { continued: true }).font('Helvetica-Bold').text(` ${nomPere}`);
+  // Grille d'informations
+  const gridY = y;
+  
+  // Lignes de la grille
+  const drawGrid = (startY, rows, rowHeight) => {
+    for (let i = 0; i <= rows; i++) {
+      const currentY = startY + (i * rowHeight);
+      doc.moveTo(margin, currentY).lineTo(pageWidth + margin, currentY).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+    }
+  };
+  
+  // En-têtes de colonnes
+  doc.rect(margin, y, pageWidth, 20).fillColor('#f1f3f5').fill();
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000');
+  doc.text('INFORMATION', margin + 10, y + 7);
+  doc.text('DÉTAIL', margin + pageWidth/2, y + 7);
+  
+  y += 20;
+  
+  // Lignes d'information
+  const addInfoRow = (label, value, yPos) => {
+    doc.rect(margin, yPos, pageWidth, 20).fillColor('#ffffff').fill();
+    doc.moveTo(margin, yPos).lineTo(pageWidth + margin, yPos).strokeColor('#dee2e6').lineWidth(0.5).stroke();
+    
+    doc.fontSize(9).font('Helvetica').fillColor('#495057');
+    doc.text(label, margin + 10, yPos + 7);
+    doc.font('Helvetica-Bold').fillColor('#212529');
+    doc.text(value || 'Non renseigné', margin + pageWidth/2, yPos + 7);
+    
+    return yPos + 20;
+  };
+  
+  // Ajout des informations
+  y = addInfoRow('Nom', details.nom, y);
+  y = addInfoRow('Prénom', details.prenom, y);
+  
+  const sexeText = details.sexe === 'M' ? 'Masculin' : details.sexe === 'F' ? 'Féminin' : 'Non renseigné';
+  y = addInfoRow('Sexe', sexeText, y);
+  
+  const dateNaissance = details.dateNaissance ? new Date(details.dateNaissance).toLocaleDateString('fr-FR') : '';
+  y = addInfoRow('Date de naissance', dateNaissance, y);
+  
+  if (details.heureNaissance) {
+    y = addInfoRow('Heure de naissance', details.heureNaissance, y);
+  }
+  
+  y = addInfoRow('Lieu de naissance', details.lieuNaissance, y);
+  
+  // FILIATION
+  y += 20;
+  doc.rect(margin, y, pageWidth, 25).fillColor('#f1f3f5').fill();
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+     .text('FILIATION', margin + 10, y + 8);
+  y += 25;
+  
+  // Père
+  y = addInfoRow('Père - Nom et prénom', 
+                `${details.prenomPere || ''} ${details.pere || details.nomPere || ''}`.trim(), 
+                y);
   
   if (details.dateNaissancePere) {
-    const dateNaissancePere = new Date(details.dateNaissancePere).toLocaleDateString('fr-FR');
-    doc.font('Helvetica').text('Né le:', 90, y + 15, { continued: true }).font('Helvetica-Bold').text(` ${dateNaissancePere}`);
+    y = addInfoRow('Date de naissance du père', 
+                  new Date(details.dateNaissancePere).toLocaleDateString('fr-FR'), 
+                  y);
   }
   
   if (details.lieuNaissancePere) {
-    doc.font('Helvetica').text('Lieu de naissance:', 90, y + 30, { continued: true }).font('Helvetica-Bold').text(` ${details.lieuNaissancePere}`);
+    y = addInfoRow('Lieu de naissance du père', details.lieuNaissancePere, y);
   }
   
   if (details.professionPere) {
-    doc.font('Helvetica').text('Profession:', 90, y + 45, { continued: true }).font('Helvetica-Bold').text(` ${details.professionPere}`);
+    y = addInfoRow('Profession du père', details.professionPere, y);
   }
   
-  y += 70;
-  
-  // === INFORMATIONS DE LA MÈRE ===
-  doc.fontSize(11).font('Helvetica-Bold').text('MÈRE:', 70, y);
-  y += 15;
-  
-  const nomMere = `${details.prenomMere || ''} ${details.mere || details.nomMere || 'Non renseigné'}`.trim();
-  doc.font('Helvetica').text('Nom et prénom:', 90, y, { continued: true }).font('Helvetica-Bold').text(` ${nomMere}`);
+  // Mère
+  y = addInfoRow('Mère - Nom et prénom', 
+                `${details.prenomMere || ''} ${details.mere || details.nomMere || ''}`.trim(), 
+                y);
   
   if (details.dateNaissanceMere) {
-    const dateNaissanceMere = new Date(details.dateNaissanceMere).toLocaleDateString('fr-FR');
-    doc.font('Helvetica').text('Née le:', 90, y + 15, { continued: true }).font('Helvetica-Bold').text(` ${dateNaissanceMere}`);
+    y = addInfoRow('Date de naissance de la mère', 
+                  new Date(details.dateNaissanceMere).toLocaleDateString('fr-FR'), 
+                  y);
   }
   
   if (details.lieuNaissanceMere) {
-    doc.font('Helvetica').text('Lieu de naissance:', 90, y + 30, { continued: true }).font('Helvetica-Bold').text(` ${details.lieuNaissanceMere}`);
+    y = addInfoRow('Lieu de naissance de la mère', details.lieuNaissanceMere, y);
   }
   
   if (details.professionMere) {
-    doc.font('Helvetica').text('Profession:', 90, y + 45, { continued: true }).font('Helvetica-Bold').text(` ${details.professionMere}`);
+    y = addInfoRow('Profession de la mère', details.professionMere, y);
   }
   
-  y += 65;
-  
-  // Adresse commune des parents
+  // Adresse
   if (details.adresse) {
-    doc.font('Helvetica').text('Domicile des parents:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.adresse}`);
+    y = addInfoRow('Domicile des parents', details.adresse, y);
   }
   
-  y += 35;
+  // (Section VALIDATION DU JURY supprimée)
+  y += 30;
+
+  // FOOTER classique
+  y += 30;
+  doc.fontSize(10).font('Helvetica-Oblique')
+     .text(`Fait à ${acte.mairie || 'N\'Djamena'}, le ${new Date().toLocaleDateString('fr-FR', {
+       year: 'numeric',
+       month: 'long',
+       day: 'numeric'
+     })}`, margin, y, { align: 'right', width: pageWidth });
   
-  // === FORMULE DE CLÔTURE ===
-  y += 20;
-  doc.fontSize(11).font('Helvetica-Oblique')
-     .text(`En foi de quoi, nous avons dressé le présent acte le ${new Date().toLocaleDateString('fr-FR')}.`, 50, y, { align: 'justify' });
-  
-  // === SIGNATURE ===
-  y += 40;
-  
-  // Cadre pour signature
-  doc.roundedRect(doc.page.width - 220, y, 170, 80, 5)
-     .fillColor('#f8f9fa').fill()
-     .strokeColor('#CE1126').lineWidth(1).stroke();
-  
-  doc.fillColor('#000000').fontSize(11).font('Helvetica-Bold')
-     .text('L\'Officier de l\'État Civil', doc.page.width - 210, y + 15);
-  
+  // SIGNATURE
+  y += 50;
   doc.fontSize(10).font('Helvetica')
-     .text('Signature et cachet officiel', doc.page.width - 210, y + 55);
+     .text('L\'Officier de l\'État Civil,', pageWidth - 150, y);
   
-  // Ligne pour signature
-  doc.moveTo(doc.page.width - 210, y + 45).lineTo(doc.page.width - 70, y + 45).strokeColor('#000000').lineWidth(1).stroke();
+  y += 40;
+  doc.moveTo(pageWidth - 150, y).lineTo(pageWidth - 30, y)
+     .strokeColor('#000000').lineWidth(0.5).stroke();
+  
+  doc.fontSize(8).font('Helvetica')
+     .text('Signature et cachet', pageWidth - 150, y + 5);
 }
 
 // Fonction pour générer un PDF d'acte de mariage
@@ -738,25 +895,31 @@ Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`
 function generateDecesPDF(doc, acte) {
   const details = acte.details;
   
-  // En-tête officiel
-  doc.fontSize(20).font('Helvetica-Bold')
-     .text('RÉPUBLIQUE DU TCHAD', { align: 'center' });
-  doc.fontSize(16)
-     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', { align: 'center' });
-  doc.fontSize(14)
-     .text(acte.mairie || 'MAIRIE', { align: 'center' });
-  
-  doc.moveDown(2);
-  
-  // Titre de l'acte
-  doc.fontSize(18).font('Helvetica-Bold')
-     .text('ACTE DE DÉCÈS', { align: 'center' });
-  
-  doc.moveDown(1);
-  
-  // Numéro d'acte
-  doc.fontSize(12).font('Helvetica')
-     .text(`N° ${acte.numeroActe}`, { align: 'right' });
+  // Bandeau supérieur
+  doc.save();
+  doc.rect(0, 0, doc.page.width, 70).fillColor('#495057').fill();
+  doc.rect(0, 70, doc.page.width, 3).fillColor('#CE1126').fill();
+  doc.restore();
+
+  // Drapeau (gauche)
+  doc.rect(50, 15, 16, 48).fillColor('#002689').fill();
+  doc.rect(66, 15, 16, 48).fillColor('#FFD100').fill();
+  doc.rect(82, 15, 16, 48).fillColor('#CE1126').fill();
+  doc.rect(50, 15, 48, 48).strokeColor('#ffffff').lineWidth(0.6).stroke();
+
+  // Titres
+  doc.fillColor('#ffffff');
+  doc.fontSize(14).font('Helvetica-Bold').text('RÉPUBLIQUE DU TCHAD', 110, 16);
+  doc.fontSize(11).font('Helvetica-Oblique').text('Unité - Travail - Progrès', 110, 35);
+  doc.fontSize(10).font('Helvetica').text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', 110, 50);
+
+  // Numéro + date (droite)
+  doc.fontSize(10).font('Helvetica-Bold').text(`N° ${acte.numeroActe || '—'}`, 0, 16, { align: 'right' });
+  doc.fontSize(9).font('Helvetica').text(`Fait le: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 0, 34, { align: 'right' });
+
+  // Titre principal
+  doc.moveDown(3);
+  doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000').text('ACTE DE DÉCÈS', { align: 'center' });
   
   doc.moveDown(1);
   
@@ -783,6 +946,24 @@ Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`
   doc.text('L\'Officier de l\'État Civil', { align: 'right' });
   doc.moveDown(3);
   doc.text('Signature et cachet', { align: 'right' });
+
+  // Bloc signatures (Directeur & Officier)
+  const margin = 50;
+  const pageWidth = doc.page.width - (margin * 2);
+  const y = doc.y + 20;
+  const signBoxWidth = (pageWidth - 20) / 2;
+  const leftX = margin;
+  const rightX = margin + signBoxWidth + 20;
+  doc.roundedRect(leftX, y, signBoxWidth, 70, 6).strokeColor('#adb5bd').lineWidth(0.8).stroke();
+  doc.roundedRect(rightX, y, signBoxWidth, 70, 6).strokeColor('#adb5bd').lineWidth(0.8).stroke();
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#212529')
+     .text('Le Directeur de la Mairie', leftX + 10, y + 8)
+     .text('L\'Officier de l\'État Civil', rightX + 10, y + 8);
+  doc.font('Helvetica').fontSize(9).fillColor('#495057')
+     .text('Nom & qualité: ____________________________', leftX + 10, y + 28)
+     .text('Nom & qualité: ____________________________', rightX + 10, y + 28)
+     .text('Signature: ________________________________', leftX + 10, y + 46)
+     .text('Signature: ________________________________', rightX + 10, y + 46);
 }
 
 

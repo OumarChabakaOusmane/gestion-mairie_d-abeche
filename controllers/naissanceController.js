@@ -1,98 +1,287 @@
 const { validationResult } = require('express-validator');
 const { logger } = require('../config/logger');
 const Naissance = require('../models/Naissance');
-const { generatePdf } = require('../services/pdfService');
+const { generateNaissancePdf } = require('../services/pdfServiceNew');
+const Acte = require('../models/Acte');
+const { format } = require('date-fns');
+const { fr } = require('date-fns/locale');
 
 // Définition du contrôleur
 const naissanceController = {};
 
 /**
  * Génère un PDF pour un acte de naissance
- * @route GET /api/naissances/:id/pdf
+ * @route GET /api/actes/naissances/:id/pdf
  * @access Privé
  */
 naissanceController.generateNaissancePdf = async (req, res) => {
+  const startTime = Date.now();
+  const { id } = req.params;
+  
+  // Fonction utilitaire pour formater les dates
+  const formatDate = (date) => {
+    if (!date) return 'Non spécifiée';
+    try {
+      return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
+    } catch (e) {
+      return date;
+    }
+  };
+
   try {
-    // Vérifier les erreurs de validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      logger.warn('Validation failed', { errors: errors.array() });
-      return res.status(400).json({ errors: errors.array() });
+    // Utiliser le logger passé dans la requête ou le logger par défaut
+    const log = req.log || ((message, data) => 
+      console.log(`[${new Date().toISOString()}] ${message}`, data));
+    
+    log(`Début génération PDF pour l'acte de naissance: ${id}`);
+    
+    // Vérifier si l'ID est valide
+    if (!require('mongoose').Types.ObjectId.isValid(id)) {
+      const errorMsg = `ID d'acte invalide: ${id}`;
+      log(errorMsg);
+      return res.status(400).json({ 
+        success: false,
+        message: errorMsg
+      });
     }
 
-    const { id } = req.params;
-    
-    // Récupérer l'acte de naissance
+    // Récupérer l'acte de naissance avec les données associées
+    log('Recherche de l\'acte dans la base de données...');
     const naissance = await Naissance.findById(id)
       .populate('enfant')
       .populate('pere')
       .populate('mere')
-      .populate('declarant');
+      .populate('declarant')
+      .populate('mairie', 'nom ville')
+      .lean()
+      .maxTimeMS(10000); // Timeout de 10 secondes
 
     if (!naissance) {
-      logger.warn('Acte de naissance non trouvé', { id });
-      return res.status(404).json({ message: 'Acte de naissance non trouvé' });
+      // Fallback: tenter avec la collection Acte (type naissance)
+      log('Acte Naissance introuvable dans collection Naissance. Fallback vers Acte...');
+      const acte = await Acte.findById(id).lean();
+      if (!acte || acte.type !== 'naissance') {
+        const errorMsg = `Acte de naissance non trouvé: ${id}`;
+        log(errorMsg);
+        return res.status(404).json({ 
+          success: false,
+          message: errorMsg
+        });
+      }
+
+      // Adapter les données depuis Acte.details vers le format attendu par generateNaissancePdf
+      const d = acte.details || {};
+      const safe = (v) => (v === undefined || v === null ? '' : v);
+      const pdfDataFromActe = {
+        numeroActe: acte.numeroActe || 'En attente',
+        dateEtablissement: formatDate(acte.dateEnregistrement),
+        mairie: safe(acte.mairie) || 'Mairie non spécifiée',
+        ville: '',
+        nomEnfant: safe(d.nom),
+        prenomsEnfant: safe(d.prenom),
+        dateNaissance: formatDate(d.dateNaissance),
+        heureNaissance: safe(d.heureNaissance),
+        lieuNaissance: safe(d.lieuNaissance),
+        sexe: safe(d.sexe),
+        nomPere: safe(d.pere) || safe(d.nomPere),
+        prenomsPere: safe(d.prenomPere),
+        dateNaissancePere: formatDate(d.dateNaissancePere),
+        lieuNaissancePere: safe(d.lieuNaissancePere),
+        professionPere: safe(d.professionPere),
+        nomMere: safe(d.mere) || safe(d.nomMere),
+        prenomsMere: safe(d.prenomMere),
+        dateNaissanceMere: formatDate(d.dateNaissanceMere),
+        lieuNaissanceMere: safe(d.lieuNaissanceMere),
+        professionMere: safe(d.professionMere),
+        nomDeclarant: safe(d.nomDeclarant),
+        prenomsDeclarant: safe(d.prenomsDeclarant),
+        lienDeclarant: safe(d.lienDeclarant),
+        adresseDeclarant: safe(d.adresseDeclarant),
+        observations: safe(d.observations),
+        createdAt: formatDate(acte.dateEnregistrement),
+        createdBy: acte.createdBy ? (acte.createdBy.name || '') : 'Utilisateur inconnu'
+      };
+
+      log('Fallback Acte -> génération PDF via pdfServiceNew');
+      const pdfBuffer = await generateNaissancePdf(pdfDataFromActe);
+
+      if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
+        return res.status(500).json({ success: false, message: 'Erreur lors de la génération du PDF' });
+      }
+
+      const safeFileName = `acte-naissance-${(pdfDataFromActe.numeroActe || 'sans-numero')}
+        `.toString().toLowerCase().replace(/[^a-z0-9-]/g, '-') + `-${Date.now()}.pdf`;
+
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${safeFileName}"`,
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'X-Generated-At': new Date().toISOString(),
+        'X-Acte-ID': id
+      });
+
+      return res.send(pdfBuffer);
+    }
+
+    log('Acte de naissance trouvé', {
+      _id: naissance._id,
+      numeroActe: naissance.numeroActe,
+      dateEtablissement: naissance.dateEtablissement
+    });
+
+    // Vérifier que les entités requises existent
+    const requiredEntities = ['enfant', 'pere', 'mere', 'declarant'];
+    const missingEntities = requiredEntities.filter(entity => !naissance[entity]);
+    
+    if (missingEntities.length > 0) {
+      const errorMsg = `Données manquantes pour la génération du PDF: ${missingEntities.join(', ')}`;
+      log(errorMsg);
+      return res.status(400).json({
+        success: false,
+        message: errorMsg,
+        missingEntities
+      });
     }
 
     // Préparer les données pour le PDF dans le format attendu
     const pdfData = {
-      numeroActe: naissance.numeroActe,
-      dateEtablissement: naissance.dateEtablissement,
-      mairie: naissance.mairie,
-      // Données de l'enfant (format plat)
-      nomEnfant: naissance.enfant.nom,
-      prenomsEnfant: naissance.enfant.prenom,
-      dateNaissance: naissance.enfant.dateNaissance,
-      heureNaissance: naissance.enfant.heureNaissance,
-      lieuNaissance: naissance.enfant.lieuNaissance,
-      sexe: naissance.enfant.sexe,
+      // Informations administratives
+      numeroActe: naissance.numeroActe || 'En attente',
+      dateEtablissement: formatDate(naissance.dateEtablissement) || 'Non spécifiée',
+      mairie: naissance.mairie?.nom || 'Mairie non spécifiée',
+      ville: naissance.mairie?.ville || '',
       
-      // Données du père (format plat)
-      nomPere: naissance.pere.nom,
-      prenomsPere: naissance.pere.prenom,
-      dateNaissancePere: naissance.pere.dateNaissance,
-      lieuNaissancePere: naissance.pere.lieuNaissance,
-      professionPere: naissance.pere.profession,
+      // Données de l'enfant
+      nomEnfant: naissance.enfant.nom || 'Non renseigné',
+      prenomsEnfant: naissance.enfant.prenom || 'Non renseigné',
+      dateNaissance: formatDate(naissance.enfant.dateNaissance),
+      heureNaissance: naissance.enfant.heureNaissance || 'Non spécifiée',
+      lieuNaissance: naissance.enfant.lieuNaissance || 'Non renseigné',
+      sexe: naissance.enfant.sexe || 'Non spécifié',
       
-      // Données de la mère (format plat)
-      nomMere: naissance.mere.nom,
-      prenomsMere: naissance.mere.prenom,
-      dateNaissanceMere: naissance.mere.dateNaissance,
-      lieuNaissanceMere: naissance.mere.lieuNaissance,
-      professionMere: naissance.mere.profession,
+      // Données du père
+      nomPere: naissance.pere.nom || 'Non renseigné',
+      prenomsPere: naissance.pere.prenom || 'Non renseigné',
+      dateNaissancePere: formatDate(naissance.pere.dateNaissance),
+      lieuNaissancePere: naissance.pere.lieuNaissance || 'Non renseigné',
+      professionPere: naissance.pere.profession || 'Non renseignée',
+      
+      // Données de la mère
+      nomMere: naissance.mere.nom || 'Non renseigné',
+      prenomsMere: naissance.mere.prenom || 'Non renseigné',
+      dateNaissanceMere: formatDate(naissance.mere.dateNaissance),
+      lieuNaissanceMere: naissance.mere.lieuNaissance || 'Non renseigné',
+      professionMere: naissance.mere.profession || 'Non renseignée',
       
       // Informations du déclarant
-      nomDeclarant: naissance.declarant.nom,
-      prenomsDeclarant: naissance.declarant.prenom,
-      lienDeclarant: naissance.lienDeclarant,
-      adresseDeclarant: naissance.adresseDeclarant,
+      nomDeclarant: naissance.declarant.nom || 'Non renseigné',
+      prenomsDeclarant: naissance.declarant.prenom || 'Non renseigné',
+      lienDeclarant: naissance.lienDeclarant || 'Non spécifié',
+      adresseDeclarant: naissance.adresseDeclarant || 'Non renseignée',
       
       // Observations
-      observations: naissance.observations
+      observations: naissance.observations || 'Aucune observation',
+      
+      // Métadonnées
+      createdAt: formatDate(naissance.createdAt),
+      createdBy: naissance.createdBy ? 
+        `${naissance.createdBy.prenom} ${naissance.createdBy.nom}` : 
+        'Utilisateur inconnu'
     };
 
+    log('Données préparées pour la génération du PDF');
+    
     // Générer le PDF
-    const pdfBuffer = await generatePdf('naissance', pdfData);
-
-    // Configurer les en-têtes de la réponse
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="acte-naissance-${pdfData.numeroActe}.pdf"`,
-      'Content-Length': pdfBuffer.length
-    });
-
-    // Envoyer le PDF
-    logger.info('PDF généré avec succès', { id: naissance._id });
-    res.send(pdfBuffer);
-
+    try {
+      log('Début de la génération du PDF...');
+      const pdfBuffer = await generateNaissancePdf(pdfData);
+      
+      if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
+        const errorMsg = 'Le buffer du PDF est invalide';
+        log(errorMsg, { 
+          type: typeof pdfBuffer, 
+          isBuffer: Buffer.isBuffer(pdfBuffer)
+        });
+        return res.status(500).json({
+          success: false,
+          message: errorMsg,
+          requestId: req.id
+        });
+      }
+      
+      // Créer un nom de fichier sécurisé
+      const safeFileName = `acte-naissance-${(pdfData.numeroActe || 'sans-numero')
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')}-${Date.now()}.pdf`;
+      
+      log('PDF généré avec succès', { 
+        bufferSize: pdfBuffer.length,
+        fileName: safeFileName
+      });
+      
+      // Configurer les en-têtes de la réponse
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${safeFileName}"`,
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'X-Generated-At': new Date().toISOString(),
+        'X-Acte-ID': id
+      });
+      
+      // Envoyer le PDF
+      return res.send(pdfBuffer);
+      
+    } catch (error) {
+      log('Erreur lors de la génération du PDF', {
+        error: error.message,
+        stack: error.stack
+      });
+      
+      // Gestion spécifique des erreurs de police
+      if (error.message.includes('font') || (error.stack && error.stack.includes('font'))) {
+        log('ERREUR DE POLICE DÉTECTÉE - Vérifiez les polices système', {
+          error: error.message
+        });
+      }
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la génération du PDF',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        requestId: req.id,
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error) {
-    logger.error('Erreur lors de la génération du PDF', { 
-      error: error.message,
-      stack: error.stack 
-    });
-    res.status(500).json({ 
+    const errorId = Math.random().toString(36).substr(2, 9);
+    const errorDetails = {
+      errorId,
+      timestamp: new Date().toISOString(),
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      acteId: id,
+      params: req.params,
+      query: req.query,
+      duration: Date.now() - startTime
+    };
+    
+    // Utiliser le logger de la requête s'il existe, sinon utiliser le logger par défaut
+    const errorLog = req.log || logger.error;
+    errorLog(`[${errorId}] Erreur lors de la génération du PDF`, errorDetails);
+    
+    res.status(500).json({
+      success: false,
       message: 'Une erreur est survenue lors de la génération du PDF',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      errorId,
+      timestamp: errorDetails.timestamp
     });
   }
 };

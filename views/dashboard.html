@@ -1078,35 +1078,149 @@
     function showActeDetails(acte) {
       // Créer un élément modal avec un ID unique
       const modalId = `acteModal-${Date.now()}`;
+      const details = acte.details || {};
+      const dateEnregistrement = acte.dateEnregistrement ? new Date(acte.dateEnregistrement) : null;
+      const dateNaissance = details.dateNaissance ? new Date(details.dateNaissance) : null;
+      
+      // Fonction pour formater une date
+      const formatDate = (date) => date ? date.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : 'Non renseigné';
 
       // Créer la structure du modal avec JavaScript pur
       const modal = document.createElement('div');
-      modal.className = 'modal';
+      modal.className = 'modal fade';
       modal.id = modalId;
       modal.tabIndex = '-1';
       modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
       modal.setAttribute('aria-labelledby', `${modalId}Label`);
+      
+      // Désactiver l'attribut aria-hidden qui cause des problèmes d'accessibilité
+      modal.removeAttribute('aria-hidden');
+
+      // Fonction pour générer une section d'information
+      const infoSection = (title, items) => {
+        if (!items.some(item => item.value)) return '';
+        return `
+          <div class="card mb-3">
+            <div class="card-header bg-light">
+              <h6 class="mb-0">${title}</h6>
+            </div>
+            <div class="card-body p-3">
+              <div class="row">
+                ${items.map(item => item.value ? `
+                  <div class="col-md-6 mb-2">
+                    <strong>${item.label}:</strong> ${item.value}
+                  </div>
+                ` : '').join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      // Générer le contenu spécifique selon le type d'acte
+      let specificContent = '';
+      
+      if (acte.type === 'naissance') {
+        specificContent = `
+          ${infoSection('INFORMATIONS DE L\'ENFANT', [
+            { label: 'Nom', value: details.nom },
+            { label: 'Prénom(s)', value: details.prenom },
+            { label: 'Date de naissance', value: dateNaissance ? dateNaissance.toLocaleDateString('fr-FR') : '' },
+            { label: 'Heure de naissance', value: details.heureNaissance || '' },
+            { label: 'Lieu de naissance', value: details.lieuNaissance || '' },
+            { label: 'Sexe', value: details.sexe === 'M' ? 'Masculin' : 'Féminin' },
+            { label: 'Poids', value: details.poids ? `${details.poids} kg` : '' },
+            { label: 'Taille', value: details.taille ? `${details.taille} cm` : '' }
+          ])}
+
+          ${infoSection('FILIATION - PÈRE', [
+            { label: 'Nom', value: details.nomPere },
+            { label: 'Prénom(s)', value: details.prenomPere },
+            { label: 'Date de naissance', value: details.dateNaissancePere },
+            { label: 'Lieu de naissance', value: details.lieuNaissancePere },
+            { label: 'Profession', value: details.professionPere },
+            { label: 'Nationalité', value: details.nationalitePere }
+          ])}
+
+          ${infoSection('FILIATION - MÈRE', [
+            { label: 'Nom', value: details.nomMere },
+            { label: 'Prénom(s)', value: details.prenomMere },
+            { label: 'Date de naissance', value: details.dateNaissanceMere },
+            { label: 'Lieu de naissance', value: details.lieuNaissanceMere },
+            { label: 'Profession', value: details.professionMere },
+            { label: 'Nationalité', value: details.nationaliteMere }
+          ])}
+
+          ${infoSection('DÉCLARATION', [
+            { label: 'Déclarant', value: details.nomDeclarant },
+            { label: 'Lien avec l\'enfant', value: details.lienDeclarant },
+            { label: 'Date de déclaration', value: formatDate(dateEnregistrement) },
+            { label: 'Numéro de pièce', value: details.numeroPieceDeclarant },
+            { label: 'Délivré le', value: details.dateDelivrancePieceDeclarant },
+            { label: 'Par', value: details.lieuDelivrancePieceDeclarant }
+          ])}
+        `;
+      } else {
+        // Pour les autres types d'actes (à compléter si nécessaire)
+        specificContent = `
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Affichage des détails en cours de développement pour ce type d'acte.
+          </div>
+        `;
+      }
 
       // Créer le contenu du modal
       modal.innerHTML = `
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
           <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="${modalId}Label">Détails de l'acte ${acte.numeroActe || 'N/A'}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            <div class="modal-header bg-primary text-white">
+              <div>
+                <h5 class="modal-title mb-0" id="${modalId}Label">
+                  <i class="fas fa-file-alt me-2"></i>
+                  ${getTypeLabel(acte.type).toUpperCase()} - ${acte.numeroActe || 'N/A'}
+                </h5>
+                <div class="text-white-50 small">
+                  Enregistré le ${formatDate(dateEnregistrement)}
+                  ${acte.mairie ? `• Mairie de ${acte.mairie}` : ''}
+                </div>
+              </div>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
-            <div class="modal-body">
-              <p><strong>Type:</strong> ${getTypeLabel(acte.type)}</p>
-              <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
-              <p><strong>Date d'enregistrement:</strong> ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}</p>
-              <p><strong>Mairie:</strong> ${acte.mairie || 'Non renseigné'}</p>
-              <hr>
+            <div class="modal-body p-0">
+              <div class="container-fluid p-4">
+                ${specificContent}
+                
+                <div class="card border-0 bg-light">
+                  <div class="card-body text-center text-muted small">
+                    <div class="mb-2">
+                      <i class="fas fa-shield-alt me-1"></i>
+                      Document officiel - Toute altération est passible de poursuites
+                    </div>
+                    <div class="text-uppercase">République du Tchad - Unité, Travail, Progrès</div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-              <button type="button" class="btn btn-primary" onclick="downloadActePdf('${acte._id}')">
-                <i class="fas fa-download"></i> Télécharger PDF
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Fermer
               </button>
+              <button type="button" class="btn btn-primary" onclick="downloadActePdf('${acte._id}')">
+                <i class="fas fa-file-pdf me-2"></i>Télécharger le PDF
+              </button>
+              ${acte.type === 'naissance' ? `
+                <button type="button" class="btn btn-success" onclick="editActe('${acte._id}')">
+                  <i class="fas fa-edit me-2"></i>Modifier
+                </button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -1153,25 +1267,107 @@
     }
 
     async function downloadActePdf(id) {
-      const token = checkAuth();
-      if (!token) return;
+      try {
+        console.log('Tentative de téléchargement du PDF pour l\'acte:', id);
+        const token = checkAuth();
+        if (!token) {
+          const errorMsg = 'Erreur d\'authentification: Veuillez vous reconnecter';
+          console.error(errorMsg);
+          showError(errorMsg);
+          return;
+        }
 
-      const url = `/api/actes/${id}/pdf`;
-      const headers = new Headers({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      });
+        showLoadingState();
+        console.log('Récupération du token d\'authentification...');
+        
+        const url = `/api/actes/${id}/pdf`;
+        console.log('URL de la requête:', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf',
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin'
+        });
 
-      const response = await fetch(url, { headers });
-      if (response.ok) {
+        console.log('Réponse reçue, statut:', response.status);
+
+        if (!response.ok) {
+          let errorMsg = `Erreur HTTP: ${response.status} ${response.statusText}`;
+          try {
+            const errorData = await response.json();
+            console.error('Détails de l\'erreur:', errorData);
+            errorMsg = errorData.error || errorData.message || errorMsg;
+            
+            // Vérifier si c'est une erreur de validation
+            if (errorData.errors) {
+              errorMsg += '\n' + errorData.errors.map(e => e.msg || e.message).join('\n');
+            }
+          } catch (e) {
+            console.error('Impossible de parser la réponse d\'erreur:', e);
+          }
+          
+          throw new Error(errorMsg);
+        }
+
+        // Vérifier que la réponse est bien un PDF
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/pdf')) {
+          const errorText = await response.text();
+          console.error('Réponse inattendue (pas un PDF):', errorText.substring(0, 500));
+          throw new Error('La réponse du serveur n\'est pas un PDF valide');
+        }
+
         const blob = await response.blob();
+        console.log('Taille du PDF reçu:', blob.size, 'octets');
+        
+        if (blob.size === 0) {
+          throw new Error('Le PDF reçu est vide');
+        }
+
+        const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `acte_${id}.pdf`;
+        link.href = downloadUrl;
+        link.download = `acte_${id}_${new Date().toISOString().split('T')[0]}.pdf`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        console.log('Déclenchement du téléchargement...');
         link.click();
-      } else {
-        console.error('Error downloading PDF:', response.statusText);
-        showError('Erreur lors du téléchargement du PDF');
+        
+        // Nettoyage
+        setTimeout(() => {
+          window.URL.revokeObjectURL(downloadUrl);
+          document.body.removeChild(link);
+          console.log('Nettoyage effectué');
+        }, 100);
+        
+      } catch (error) {
+        console.error('Erreur lors du téléchargement du PDF:', {
+          error: error.message,
+          stack: error.stack,
+          acteId: id,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Afficher un message d'erreur plus détaillé
+        let errorMessage = 'Erreur lors du téléchargement du PDF';
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
+        } else if (error.message.includes('401')) {
+          errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Le document demandé est introuvable.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        showError(errorMessage);
+      } finally {
+        hideLoadingState();
       }
     }
 

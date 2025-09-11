@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 const { logger } = require('../config/logger');
 const Acte = require('../models/Acte');
 const { generatePdf } = require('../services/pdfService');
@@ -14,42 +15,69 @@ const decesController = {};
  * @access Privé
  */
 decesController.generateDecesPdf = async (req, res) => {
+  const startTime = Date.now();
+  const { id } = req.params;
+  
+  // Fonction utilitaire pour formater les dates
+  const formatDate = (date) => {
+    if (!date) return 'Non spécifiée';
+    try {
+      return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
+    } catch (e) {
+      return date;
+    }
+  };
+
   try {
-    // Vérifier les erreurs de validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      logger.warn('Validation failed', { errors: errors.array() });
+    // Utiliser le logger passé dans la requête ou le logger par défaut
+    const log = req.log || ((message, data) => 
+      console.log(`[${new Date().toISOString()}] ${message}`, data));
+    
+    log(`Début génération PDF pour l'acte de décès: ${id}`);
+    
+    // Vérifier si l'ID est valide
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const errorMsg = `ID d'acte invalide: ${id}`;
+      log(errorMsg);
       return res.status(400).json({ 
         success: false,
-        errors: errors.array() 
+        message: errorMsg
       });
     }
 
-    const { id } = req.params;
-    
     // Récupérer l'acte de décès avec les données associées
+    log('Recherche de l\'acte dans la base de données...');
     const acte = await Acte.findOne({ _id: id, type: 'deces' })
       .populate('createdBy', 'nom prenom')
       .populate('mairie', 'nom ville')
-      .lean();
+      .lean()
+      .maxTimeMS(10000); // Timeout de 10 secondes
 
     if (!acte) {
-      logger.warn('Acte de décès non trouvé', { id });
+      const errorMsg = `Acte de décès non trouvé: ${id}`;
+      log(errorMsg);
       return res.status(404).json({ 
         success: false,
-        message: 'Acte de décès non trouvé' 
+        message: errorMsg
       });
     }
+    
+    log('Acte trouvé', {
+      _id: acte._id,
+      numeroActe: acte.numeroActe,
+      type: acte.type,
+      dateEnregistrement: acte.dateEnregistrement
+    });
 
-    // Formater les dates pour l'affichage
-    const formatDate = (date) => {
-      if (!date) return 'Non spécifiée';
-      try {
-        return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
-      } catch (e) {
-        return date;
-      }
-    };
+    // Vérifier que les détails existent
+    if (!acte.details) {
+      const errorMsg = 'Aucun détail trouvé pour cet acte de décès';
+      log(errorMsg);
+      return res.status(400).json({
+        success: false,
+        message: errorMsg
+      });
+    }
 
     // Préparer les données pour le PDF dans le format attendu
     const pdfData = {
@@ -87,49 +115,98 @@ decesController.generateDecesPdf = async (req, res) => {
         'Utilisateur inconnu'
     };
 
+    log('Données préparées pour la génération du PDF');
+    
     // Générer le PDF
-    const pdfBuffer = await generatePdf('deces', pdfData);
-
-    // Configurer les en-têtes de la réponse
-    const fileName = `acte-deces-${pdfData.numeroActe || 'sans-numero'}-${new Date().toISOString().split('T')[0]}.pdf`;
-    
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Length': pdfBuffer.length,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
-
-    // Envoyer le PDF
-    logger.info('PDF d\'acte de décès généré avec succès', { 
-      id: acte._id,
-      fileName,
-      size: `${(pdfBuffer.length / 1024).toFixed(2)} KB`
-    });
-    
-    res.send(pdfBuffer);
+    try {
+      log('Début de la génération du PDF...');
+      const pdfBuffer = await generatePdf('deces', pdfData);
+      
+      if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
+        const errorMsg = 'Le buffer du PDF est invalide';
+        log(errorMsg, { 
+          type: typeof pdfBuffer, 
+          isBuffer: Buffer.isBuffer(pdfBuffer)
+        });
+        return res.status(500).json({
+          success: false,
+          message: errorMsg,
+          requestId: req.id
+        });
+      }
+      
+      // Créer un nom de fichier sécurisé
+      const safeFileName = `acte-deces-${(pdfData.numeroActe || 'sans-numero')
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')}-${Date.now()}.pdf`;
+      
+      log('PDF généré avec succès', { 
+        bufferSize: pdfBuffer.length,
+        fileName: safeFileName
+      });
+      
+      // Configurer les en-têtes de la réponse
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${safeFileName}"`,
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'X-Generated-At': new Date().toISOString(),
+        'X-Acte-ID': id
+      });
+      
+      // Envoyer le PDF
+      return res.send(pdfBuffer);
+      
+    } catch (error) {
+      log('Erreur lors de la génération du PDF', {
+        error: error.message,
+        stack: error.stack
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la génération du PDF',
+        error: error.message,
+        requestId: req.id
+      });
+    }
 
   } catch (error) {
-    const errorId = Math.random().toString(36).substring(2, 9);
+    const errorId = Math.random().toString(36).substr(2, 9);
     const errorDetails = {
-      id: errorId,
+      errorId,
       timestamp: new Date().toISOString(),
-      path: req.originalUrl,
-      method: req.method,
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      acteId: id,
+      params: req.params,
+      query: req.query,
+      duration: Date.now() - startTime
     };
     
-    logger.error(`Erreur [${errorId}] lors de la génération du PDF de décès`, errorDetails);
+    logger.error(`[${errorId}] Erreur lors de la génération du PDF`, errorDetails);
     
-    res.status(500).json({ 
+    // Préparer la réponse d'erreur
+    const errorResponse = {
       success: false,
-      message: 'Une erreur est survenue lors de la génération du PDF de décès',
+      message: 'Une erreur est survenue lors de la génération du PDF',
       errorId,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+      timestamp: errorDetails.timestamp
+    };
+    
+    // En mode développement, ajouter plus de détails
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.error = error.message;
+      errorResponse.stack = error.stack;
+      errorResponse.details = errorDetails;
+    }
+    
+    res.status(500).json(errorResponse);
   }
 };
 

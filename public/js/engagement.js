@@ -408,13 +408,172 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gestion du bouton d'impression
-    $('#printBtn').click(function() {
-        const engagementId = urlParams.get('edit') || '';
+    // Fonction pour télécharger le PDF
+    function downloadPdf(engagementId) {
+        if (!engagementId) {
+            showAlert('error', 'Erreur', 'ID d\'engagement manquant');
+            return;
+        }
+
+        // Afficher un indicateur de chargement
+        const printBtn = $('#printBtn');
+        const originalText = printBtn.html();
+        printBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Téléchargement...');
+
+        // Récupérer le token JWT du stockage local
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // Créer un nouvel objet URL pour éviter la mise en cache
+        const url = new URL(`/api/engagements/${engagementId}/pdf`, window.location.origin);
+        url.searchParams.append('_', new Date().getTime()); // Éviter le cache
+
+        // Créer un lien temporaire pour le téléchargement
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        document.body.appendChild(link);
+
+        fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            cache: 'no-store'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Erreur lors du téléchargement du PDF');
+                });
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Créer une URL pour le blob
+            const url = window.URL.createObjectURL(blob);
+            
+            // Configurer le lien de téléchargement
+            link.href = url;
+            link.download = `engagement-${engagementId}-${new Date().toISOString().split('T')[0]}.pdf`;
+            
+            // Déclencher le téléchargement
+            link.click();
+            
+            // Nettoyer
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+        })
+        .catch(error => {
+            console.error('Erreur lors du téléchargement du PDF:', error);
+            showAlert('error', 'Erreur', error.message || 'Échec du téléchargement du PDF');
+        })
+        .finally(() => {
+            // Réactiver le bouton
+            printBtn.prop('disabled', false).html(originalText);
+        });
+    }
+
+// Initialisation après le chargement du DOM
+if (editId) {
+    // Charger les données existantes
+    loadEngagementData(editId);
+    // Changer le titre de la page
+    $('h1').text('Modifier un engagement de cial');
+    // Changer le texte du bouton de sauvegarde
+    $('#saveBtn').html('<i class="fas fa-save me-2"></i>Mettre à jour');
+    // Activer le bouton d'impression
+    $('#printBtn').prop('disabled', false);
+} else {
+    // Générer un numéro d'acte pour un nouvel engagement
+    generateNumeroActe();
+    // Désactiver le bouton d'impression pour un nouvel engagement
+    $('#printBtn').prop('disabled', true);
+}
+
+// Fonction pour charger les données d'un engagement existant
+function loadEngagementData(id) {
+    $.ajax({
+        url: `/api/engagements/${id}`,
+        type: 'GET',
+        success: function(response) {
+            const engagement = response.engagement || response; // Gérer les deux formats de réponse
+            
+            // Remplir le formulaire avec les données existantes
+            $('#numeroActe').val(engagement.numeroActe || '');
+            $('#dateEtablissement').val(engagement.dateEtablissement ? new Date(engagement.dateEtablissement).toISOString().split('T')[0] : '');
+            $('#lieuEtablissement').val(engagement.lieuEtablissement || '');
+            $('#dateDebutConcubinage').val(engagement.dateDebutConcubinage ? new Date(engagement.dateDebutConcubinage).toISOString().split('T')[0] : '');
+            $('#adresseCommune').val(engagement.adresseCommune || '');
+            $('#observations').val(engagement.observations || '');
+
+            // Remplir les informations du premier partenaire
+            if (engagement.concubin1) {
+                $('#concubin1_nom').val(engagement.concubin1.nom || '');
+                $('#concubin1_dateNaissance').val(engagement.concubin1.dateNaissance ? new Date(engagement.concubin1.dateNaissance).toISOString().split('T')[0] : '');
+                $('#concubin1_lieuNaissance').val(engagement.concubin1.lieuNaissance || '');
+                $('#concubin1_domicile').val(engagement.concubin1.domicile || '');
+            }
+
+            // Remplir les informations du deuxième partenaire
+            if (engagement.concubin2) {
+                $('#concubin2_nom').val(engagement.concubin2.nom || '');
+                $('#concubin2_dateNaissance').val(engagement.concubin2.dateNaissance ? new Date(engagement.concubin2.dateNaissance).toISOString().split('T')[0] : '');
+                $('#concubin2_lieuNaissance').val(engagement.concubin2.lieuNaissance || '');
+                $('#concubin2_domicile').val(engagement.concubin2.domicile || '');
+            }
+            
+            // Afficher les informations de fin d'engagement si applicable
+            if (engagement.statut === 'fini' && engagement.dateFinEngagement) {
+                const endInfo = `
+                    <div class="alert alert-info">
+                        <h5>Fin de l'engagement</h5>
+                        <p class="mb-0">Cet engagement a pris fin le ${new Date(engagement.dateFinEngagement).toLocaleDateString('fr-FR')}.</p>
+                    </div>
+                `;
+                $('.container-fluid').prepend(endInfo);
+            }
+            
+            // Afficher les informations de conversion si converti en mariage
+            if (engagement.statut === 'converti_en_mariage') {
+                const convertInfo = `
+                    <div class="alert alert-info">
+                        <h5>Converti en mariage</h5>
+                        <p class="mb-0">Cet engagement a été converti en acte de mariage.</p>
+                    </div>
+                `;
+                $('.container-fluid').prepend(convertInfo);
+            }
+        },
+        error: function(xhr) {
+            showAlert('danger', 'Erreur', 'Impossible de charger les données de l\'engagement');
+            console.error('Erreur lors du chargement des données:', xhr);
+        }
+    });
+}
+
+    // Gestion du bouton d'impression/PDF
+    $('#printBtn').click(function(e) {
+        e.preventDefault();
+        const engagementId = editId || '';
         if (engagementId) {
-            window.open(`/engagements/${engagementId}/print`, '_blank');
+            // Vérifier si la fonction downloadActePdf est disponible
+            if (typeof downloadActePdf === 'function') {
+                downloadActePdf('engagement', engagementId, 'printBtn')
+                    .catch(error => {
+                        console.error('Erreur lors du téléchargement du PDF:', error);
+                    });
+            } else {
+                console.error('La fonction downloadActePdf n\'est pas disponible');
+                showAlert('error', 'Erreur', 'Fonction de téléchargement non disponible. Veuillez recharger la page.');
+            }
         } else {
-            showAlert('warning', 'Avertissement', 'Veuvez enregistrer l\'engagement avant de l\'imprimer.');
+            showAlert('warning', 'Avertissement', 'Veuvez enregistrer l\'engagement avant de générer le PDF.');
         }
     });
 });

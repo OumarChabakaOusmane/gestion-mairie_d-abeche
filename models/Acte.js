@@ -18,6 +18,12 @@ const ActeSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  // Auteur de la création (utilisé par populate dans plusieurs contrôleurs)
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+  },
   numeroActe: {
   type: String,
   unique: true,

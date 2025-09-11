@@ -49,10 +49,42 @@ const mariageValidation = validate([
   check('officierEtatCivil').notEmpty().withMessage('Le nom de l\'officier d\'état civil est requis')
 ]);
 
-// Route pour générer un PDF d'acte de mariage
-router.get('/:id/pdf', 
+// Routes pour les actes de mariage
+router.post('/', 
   authenticate,
+  authorize(['admin', 'officier_etat_civil']),
+  mariageValidation,
+  mariageController.createMariage
+);
+
+router.get('/', 
+  authenticate,
+  mariageController.getAllMariages
+);
+
+router.get('/:id', 
+  authenticate,
+  mariageController.getMariageById
+);
+
+// Route pour générer le PDF d'un acte de mariage
+router.get('/:id/pdf',
+  authenticate,
+  check('id', 'ID invalide').isMongoId(),
   mariageController.generateMariagePdf
+);
+
+router.put('/:id', 
+  authenticate,
+  authorize(['admin', 'officier_etat_civil']),
+  mariageValidation,
+  mariageController.updateMariage
+);
+
+router.delete('/:id', 
+  authenticate,
+  authorize(['admin']),
+  mariageController.deleteMariage
 );
 
 module.exports = router;

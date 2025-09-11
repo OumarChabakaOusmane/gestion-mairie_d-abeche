@@ -3,7 +3,7 @@ const logger = require('./logger');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/wenaklabs', {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wenaklabs', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const { connectDB } = require('./config/db');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
@@ -73,16 +74,8 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
-// Connexion MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mairie', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log(' Connecté à MongoDB'))
-.catch(err => {
-  console.error('Erreur MongoDB:', err);
-  process.exit(1);
-});
+// Connexion MongoDB centralisée
+connectDB();
 
 // Middleware d'authentification
 const { authenticate: authMiddleware } = require('./middleware/auth');
@@ -116,11 +109,11 @@ console.log('8. Route dashboard chargée');
 const calendrierRoutes = require('./routes/calendrier');
 console.log('9. Route calendrier chargée');
 
-// Chargement de la route des conversations
+// Chargement de la route des conversations (déclaration sans montage immédiat)
+let conversationRoutes = null;
 try {
   console.log('Tentative de chargement de la route des conversations...');
-  const conversationRoutes = require('./routes/conversations');
-  app.use('/api/conversations', conversationRoutes);
+  conversationRoutes = require('./routes/conversations');
   console.log('9. Route conversations chargée avec succès!');
 } catch (error) {
   console.error('ERREUR lors du chargement de la route des conversations:', error);
@@ -163,44 +156,10 @@ process.on('uncaughtException', (error) => {
   if (process.env.NODE_ENV === 'production') process.exit(1);
 });
 
-// Middleware pour logger les requêtes entrantes
-app.use((req, res, next) => {
-  const start = Date.now();
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`, {
-      method: req.method,
-      url: req.originalUrl,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      user: req.user ? req.user.id : 'non authentifié',
-      ip: req.ip,
-      'user-agent': req.get('user-agent')
-    });
-  });
-  
-  next();
-});
+// Journalisation HTTP gérée par morgan + logger.stream
 
-// Middleware de journalisation des requêtes
-app.use((req, res, next) => {
-  const start = Date.now();
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`, {
-      method: req.method,
-      url: req.originalUrl,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      user: req.user ? req.user.id : 'non authentifié',
-      ip: req.ip
-    });
-  });
-  
-  next();
-});
+// Limitation du taux de requêtes pour l'API (avant le montage des routes)
+app.use('/api', apiLimiter);
 
 // Configuration des routes API
 console.log('=== CONFIGURATION DES ROUTES API ===');
@@ -227,24 +186,17 @@ console.log('Route /api/engagements configurée');
 // Route des naissances gérée plus haut dans le fichier
 
 
-// Configuration de la route des conversations
-try {
-  console.log('Configuration de la route /api/conversations...');
-  const conversationRoutes = require('./routes/conversations');
-  app.use('/api/conversations', conversationRoutes);
-  console.log('Route /api/conversations configurée avec succès!');
-} catch (error) {
-  console.error('ERREUR lors de la configuration de la route des conversations:', error);
-  process.exit(1);
-}
+// Configuration de la route des conversations (montage unique)
+console.log('Configuration de la route /api/conversations...');
+app.use('/api/conversations', conversationRoutes);
+console.log('Route /api/conversations configurée avec succès!');
 
 app.use('/api/calendrier', calendrierRoutes);
 console.log('Route /api/calendrier configurée');
 
 console.log('=== FIN DE LA CONFIGURATION DES ROUTES ===\n');
 
-// Limitation du taux de requêtes pour l'API
-app.use('/api/', apiLimiter);
+// Rate limiter déjà appliqué avant
 
 // Page d'accueil
 app.get('/', (req, res) => {

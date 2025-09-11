@@ -106,212 +106,429 @@ function generatePersonneSection(doc, data, y, title, boxHeight) {
  */
 const generateDecesPdf = (data) => {
   return new Promise((resolve, reject) => {
-    console.log('Début de la génération du PDF de décès');
+    const log = (message, meta = {}) => {
+      console.log(`[PDF Deces] ${message}`, meta);
+      logger.info(`[PDF Deces] ${message}`, meta);
+    };
+    
+    log('Début de la génération du PDF de décès', { data: JSON.stringify(data).substring(0, 500) });
+    
+    if (!data) {
+      const error = new Error('Aucune donnée fournie pour la génération du PDF');
+      log('Erreur: Aucune donnée fournie');
+      return reject(error);
+    }
+    
+    // Vérification des champs obligatoires
+    const requiredFields = [
+      'numeroActe', 'dateEnregistrement', 'mairie', 
+      'nomDefunt', 'prenomsDefunt', 'dateDeces', 'lieuDeces'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !data[field]);
+    if (missingFields.length > 0) {
+      const error = new Error(`Champs manquants: ${missingFields.join(', ')}`);
+      log('Erreur de validation des données', { missingFields });
+      return reject(error);
+    }
     
     try {
-      // Créer un nouveau document PDF
+      // Créer un nouveau document PDF avec des paramètres optimisés
       const doc = new PDFDocument({
         size: 'A4',
         margin: 50,
-        autoFirstPage: true
+        bufferPages: true,
+        autoFirstPage: false
       });
       
-      // Buffer pour stocker le PDF
       const chunks = [];
+      let hasError = false;
       
       // Gestion des événements
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('error', reject);
-      doc.on('end', () => {
-        console.log('PDF généré avec succès');
-        resolve(Buffer.concat(chunks));
+      doc.on('data', chunk => {
+        try {
+          chunks.push(chunk);
+        } catch (err) {
+          log('Erreur lors de la récupération des données du PDF', { error: err.message });
+          hasError = true;
+          reject(new Error('Erreur lors de la génération du contenu du PDF'));
+        }
       });
       
-      // Générer l'en-tête du document
-      generateHeader(doc, 'ACTE DE DÉCÈS');
+      doc.on('end', () => {
+        if (hasError) return;
+        try {
+          log('PDF généré avec succès', { bufferSize: chunks.reduce((a, b) => a + b.length, 0) });
+          resolve(Buffer.concat(chunks));
+        } catch (err) {
+          log('Erreur lors de la création du buffer final', { error: err.message, stack: err.stack });
+          reject(new Error('Erreur lors de la création du PDF'));
+        }
+      });
       
-      // Position Y initiale après l'en-tête
-      let y = 120;
+      doc.on('error', (err) => {
+        hasError = true;
+        log('Erreur PDFKit', { error: err.message, stack: err.stack });
+        reject(new Error('Erreur lors de la génération du PDF'));
+      });
       
-      // 1. Informations administratives
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(11)
-        .fillColor('#002689')
-        .text('INFORMATIONS ADMINISTRATIVES', 50, y, { width: 500 });
-        
-      // Cadre pour les informations administratives
-      const adminBoxHeight = 45;
-      doc
-        .roundedRect(50, y + 15, 500, adminBoxHeight, 3)
-        .lineWidth(0.5)
-        .stroke('#E0E0E0')
-        .fill('#F8F9FA');
-        
-      // Contenu des informations administratives
-      doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor('#333333')
-        .text(`N°: ${data.numeroActe || 'N/A'}`, 60, y + 25, { width: 180, lineBreak: false })
-        .text(`Mairie: ${data.mairie || 'N/A'}`, 250, y + 25, { width: 140, lineBreak: false })
-        .text(`Date: ${data.dateEnregistrement || 'N/A'}`, 400, y + 25, { width: 140, lineBreak: false });
-        
-      // Mettre à jour la position Y pour la section suivante
-      y += adminBoxHeight + 20;
+      // Création de la première page
+      doc.addPage();
       
-      // 2. Informations du défunt
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(11)
-        .fillColor('#002689')
-        .text('INFORMATIONS SUR LE DÉFUNT', 50, y, { width: 500 });
-        
-      // Cadre pour les informations du défunt
-      const defuntBoxHeight = 120;
-      doc
-        .roundedRect(50, y + 15, 500, defuntBoxHeight, 0)
-        .lineWidth(0.5)
-        .stroke('#E0E0E0')
-        .fill('#FFFFFF');
-        
-      // Contenu des informations du défunt
-      doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor('#333333')
-        .text('Nom:', 60, y + 25, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.nomDefunt || 'N/A').font('Helvetica')
-        
-        .text('Prénoms:', 300, y + 25, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.prenomsDefunt || 'N/A').font('Helvetica')
-        
-        .text('Né(e) le:', 60, y + 45, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.dateNaissanceDefunt || 'N/A').font('Helvetica')
-        
-        .text('À:', 220, y + 45, { width: 40, continued: true })
-        .font('Helvetica-Bold').text(data.lieuNaissanceDefunt || 'N/A').font('Helvetica')
-        
-        .text('Profession:', 60, y + 65, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.professionDefunt || 'N/A').font('Helvetica')
-        
-        .text('Domicile:', 300, y + 65, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.domicileDefunt || 'N/A').font('Helvetica')
-        
-        .text('Décédé(e) le:', 60, y + 85, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.dateDeces || 'N/A').font('Helvetica')
-        
-        .text('À:', 220, y + 85, { width: 40, continued: true })
-        .font('Helvetica-Bold').text(data.lieuDeces || 'N/A').font('Helvetica')
-        
-        .text('Heure:', 60, y + 105, { width: 100, continued: true })
-        .font('Helvetica-Bold').text(data.heureDeces || 'Non spécifiée').font('Helvetica')
-        
-        .text('Cause:', 300, y + 105, { width: 80, continued: true })
-        .font('Helvetica-Bold').text(data.causeDeces || 'Non spécifiée').font('Helvetica');
-        
-      // Mettre à jour la position Y pour la section suivante
-      y += defuntBoxHeight + 20;
-      
-      // 3. Informations du déclarant (si disponible)
-      if (data.declarant) {
-        doc
-          .font('Helvetica-Bold')
-          .fontSize(11)
-          .fillColor('#002689')
-          .text('INFORMATIONS DU DÉCLARANT', 50, y, { width: 500 });
-          
-        // Cadre pour les informations du déclarant
-        const declarantBoxHeight = 90;
-        doc
-          .roundedRect(50, y + 15, 500, declarantBoxHeight, 0)
-          .lineWidth(0.5)
-          .stroke('#E0E0E0')
-          .fill('#F8F9FA');
-          
-        // Contenu des informations du déclarant
-        doc
-          .font('Helvetica')
-          .fontSize(9)
-          .fillColor('#333333')
-          .text('Nom:', 60, y + 25, { width: 100, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.nom || 'N/A').font('Helvetica')
-          
-          .text('Prénoms:', 300, y + 25, { width: 100, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.prenoms || 'N/A').font('Helvetica')
-          
-          .text('Né(e) le:', 60, y + 45, { width: 100, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.dateNaissance || 'N/A').font('Helvetica')
-          
-          .text('À:', 220, y + 45, { width: 40, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.lieuNaissance || 'N/A').font('Helvetica')
-          
-          .text('Profession:', 60, y + 65, { width: 100, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.profession || 'N/A').font('Helvetica')
-          
-          .text('Domicile:', 300, y + 65, { width: 100, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.domicile || 'N/A').font('Helvetica')
-          
-          .text('Lien avec le défunt:', 60, y + 85, { width: 120, continued: true })
-          .font('Helvetica-Bold').text(data.declarant.lien || 'Non spécifié').font('Helvetica');
-          
-        // Mettre à jour la position Y pour la section suivante
-        y += declarantBoxHeight + 20;
+      // En-tête avec gestion d'erreur
+      try {
+        generateHeader(doc, 'ACTE DE DÉCÈS');
+      } catch (headerErr) {
+        log('Erreur lors de la génération de l\'en-tête', { error: headerErr.message });
+        doc.text('ACTE DE DÉCÈS', { align: 'center', fontSize: 16 });
       }
       
-      // 4. Signature
-      doc
-        .moveTo(100, y)
-        .lineTo(500, y)
-        .lineWidth(0.5)
-        .stroke('#CCCCCC');
+      // Fonction utilitaire sécurisée pour ajouter une ligne
+      const addLine = (label, value, y) => {
+        try {
+          doc
+            .fontSize(10)
+            .font('Helvetica')
+            .text(label || '', 50, y, { width: 150, continued: true })
+            .text(':', 200, y, { width: 10, continued: true })
+            .font('Helvetica-Bold')
+            .text(String(value || 'Non spécifié').substring(0, 100), 220, y, { width: 300 });
+          return y + 20;
+        } catch (err) {
+          log('Erreur lors de l\'ajout d\'une ligne', { label, value, error: err.message });
+          return y + 20; // Continue malgré l'erreur
+        }
+      };
+      
+      // Position Y initiale avec marge
+      let y = 100;
+      
+      try {
+        // Section Informations administratives
+        doc.fontSize(12).font('Helvetica-Bold').text('INFORMATIONS ADMINISTRATIVES', 50, y);
+        y = addLine('N\'acte', data.numeroActe, y + 20);
+        y = addLine('Mairie', data.mairie, y);
+        y = addLine('Date d\'enregistrement', data.dateEnregistrement, y);
         
-      // Texte de signature
-      doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor('#666666')
-        .text(`Fait à ${data.ville || data.mairie || 'N/A'}, le ${data.dateEnregistrement || ''}`, 300, y + 5, { align: 'right' })
-        .font('Helvetica-Bold')
-        .text('Le Maire', 450, y + 20, { align: 'right' })
-        .font('Helvetica')
-        .fontSize(8)
-        .fillColor('#999999')
-        .text('Cachet et signature', 450, y + 35, { align: 'right' });
+        // Section Informations du défunt
+        y += 10;
+        doc.fontSize(12).text('INFORMATIONS SUR LE DÉFUNT', 50, y);
+        y = addLine('Nom', data.nomDefunt, y + 20);
+        y = addLine('Prénoms', data.prenomsDefunt, y);
+        y = addLine('Date de naissance', data.dateNaissanceDefunt, y);
+        y = addLine('Lieu de naissance', data.lieuNaissanceDefunt, y);
+        y = addLine('Profession', data.professionDefunt, y);
+        y = addLine('Domicile', data.domicileDefunt, y);
+        y = addLine('Date du décès', data.dateDeces, y);
+        y = addLine('Heure du décès', data.heureDeces, y);
+        y = addLine('Lieu du décès', data.lieuDeces, y);
+        y = addLine('Cause du décès', data.causeDeces, y);
         
-      // Numéro de page
-      const pageNumber = `Page 1/1`;
-      doc
-        .fontSize(8)
-        .fillColor('#999999')
-        .text(pageNumber, 0, 800, { align: 'center', width: 600 });
+        // Section Informations du déclarant
+        if (data.nomDeclarant || data.prenomsDeclarant) {
+          y += 10;
+          doc.fontSize(12).text('INFORMATIONS DU DÉCLARANT', 50, y);
+          y = addLine('Nom', data.nomDeclarant, y + 20);
+          y = addLine('Prénoms', data.prenomsDeclarant, y);
+          y = addLine('Date de naissance', data.dateNaissanceDeclarant, y);
+          y = addLine('Lieu de naissance', data.lieuNaissanceDeclarant, y);
+          y = addLine('Profession', data.professionDeclarant, y);
+          y = addLine('Domicile', data.domicileDeclarant, y);
+          y = addLine('Lien avec le défunt', data.lienDeclarant, y);
+        }
+        
+        // Pied de page avec gestion d'erreur
+        try {
+          doc
+            .fontSize(8)
+            .font('Helvetica')
+            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 750);
+        } catch (footerErr) {
+          log('Erreur lors de l\'ajout du pied de page', { error: footerErr.message });
+        }
+        
+      } catch (contentErr) {
+        log('Erreur lors de la génération du contenu', { error: contentErr.message, stack: contentErr.stack });
+        // Essayer d'ajouter un message d'erreur dans le PDF
+        try {
+          doc.fontSize(10).text('Erreur lors de la génération du contenu du PDF', 50, 100);
+        } catch (e) {}
+      }
       
       // Finaliser le document
       doc.end();
       
     } catch (error) {
-      console.error('Erreur lors de la génération du PDF de décès:', error);
-      reject(error);
+      log('Erreur critique non gérée', { error: error.message, stack: error.stack });
+      reject(new Error(`Erreur lors de la génération du PDF: ${error.message}`));
+    }
+  });
+};
+
+// Importer la fonction de génération des actes de naissance
+const { generateNaissancePdf } = require('./pdfServiceNew.js');
+
+/**
+ * Génère un PDF pour un engagement de concubinage
+ * @param {Object} data - Les données de l'engagement de concubinage
+ * @returns {Promise<Buffer>} Le buffer du PDF généré
+ */
+const generateEngagementConcubinagePdf = (data) => {
+  return new Promise((resolve, reject) => {
+    const log = (message, meta = {}) => {
+      console.log(`[PDF Engagement] ${message}`, meta);
+      logger.info(`[PDF Engagement] ${message}`, meta);
+    };
+    
+    log('Début de la génération du PDF d\'engagement de concubinage', { 
+      data: JSON.stringify(data).substring(0, 500) 
+    });
+    
+    if (!data) {
+      const error = new Error('Aucune donnée fournie pour la génération du PDF');
+      log('Erreur: Aucune donnée fournie');
+      return reject(error);
+    }
+    
+    // Vérification des champs obligatoires
+    const requiredFields = [
+      'numeroActe', 'dateDebut', 'mairie', 'ville',
+      'concubin1.nom', 'concubin1.prenom', 'concubin2.nom', 'concubin2.prenom',
+      'lieuDebut'
+    ];
+    
+    const missingFields = requiredFields.filter(field => {
+      const parts = field.split('.');
+      let value = data;
+      for (const part of parts) {
+        value = value?.[part];
+        if (value === undefined) return true;
+      }
+      return !value;
+    });
+    
+    if (missingFields.length > 0) {
+      const error = new Error(`Champs manquants: ${missingFields.join(', ')}`);
+      log('Erreur de validation des données', { missingFields });
+      return reject(error);
+    }
+    
+    try {
+      // Créer un nouveau document PDF avec des paramètres optimisés
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50,
+        bufferPages: true,
+        autoFirstPage: false
+      });
+      
+      const chunks = [];
+      let hasError = false;
+      
+      // Gestion des événements
+      doc.on('data', chunk => {
+        try {
+          chunks.push(chunk);
+        } catch (err) {
+          log('Erreur lors de la récupération des données du PDF', { error: err.message });
+          hasError = true;
+          reject(new Error('Erreur lors de la génération du contenu du PDF'));
+        }
+      });
+      
+      doc.on('end', () => {
+        if (hasError) return;
+        try {
+          log('PDF généré avec succès', { bufferSize: chunks.reduce((a, b) => a + b.length, 0) });
+          resolve(Buffer.concat(chunks));
+        } catch (err) {
+          log('Erreur lors de la création du buffer final', { error: err.message, stack: err.stack });
+          reject(new Error('Erreur lors de la création du PDF'));
+        }
+      });
+      
+      doc.on('error', (err) => {
+        hasError = true;
+        log('Erreur PDFKit', { error: err.message, stack: err.stack });
+        reject(new Error('Erreur lors de la génération du PDF'));
+      });
+      
+      // Création de la première page
+      doc.addPage();
+      
+      // En-tête avec gestion d'erreur
+      try {
+        generateHeader(doc, 'ACTE D\'ENGAGEMENT DE CONCUBINAGE');
+      } catch (headerErr) {
+        log('Erreur lors de la génération de l\'en-tête', { error: headerErr.message });
+        doc.text('ACTE D\'ENGAGEMENT DE CONCUBINAGE', { align: 'center', fontSize: 16 });
+      }
+      
+      // Fonction utilitaire sécurisée pour ajouter une ligne
+      const addLine = (label, value, y) => {
+        try {
+          doc
+            .fontSize(10)
+            .font('Helvetica')
+            .text(label || '', 50, y, { width: 150, continued: true })
+            .text(':', 200, y, { width: 10, continued: true })
+            .font('Helvetica-Bold')
+            .text(String(value || 'Non spécifié').substring(0, 100), 220, y, { width: 300 });
+          return y + 20;
+        } catch (err) {
+          log('Erreur lors de l\'ajout d\'une ligne', { label, value, error: err.message });
+          return y + 20; // Continue malgré l'erreur
+        }
+      };
+      
+      // Position Y initiale avec marge
+      let y = 100;
+      
+      try {
+        // Section Informations administratives
+        doc.fontSize(12).font('Helvetica-Bold').text('INFORMATIONS ADMINISTRATIVES', 50, y);
+        y = addLine('N° d\'acte', data.numeroActe, y + 20);
+        y = addLine('Mairie', `${data.mairie} (${data.ville})`, y);
+        y = addLine('Date de l\'engagement', data.dateDebut, y);
+        y = addLine('Statut', data.statut || 'Actif', y);
+        
+        // Section Premier concubin
+        y += 10;
+        doc.fontSize(12).text('PREMIER CONJOINT', 50, y);
+        y = addLine('Nom', data.concubin1.nom, y + 20);
+        y = addLine('Prénom', data.concubin1.prenom, y);
+        y = addLine('Date de naissance', data.concubin1.dateNaissance, y);
+        y = addLine('Lieu de naissance', data.concubin1.lieuNaissance, y);
+        y = addLine('Profession', data.concubin1.profession, y);
+        y = addLine('Adresse', data.concubin1.adresse, y);
+        y = addLine('Nationalité', data.concubin1.nationalite, y);
+        y = addLine('Type de pièce', data.concubin1.typePiece, y);
+        y = addLine('N° de pièce', data.concubin1.numeroPiece, y);
+        
+        // Section Deuxième concubin
+        y += 10;
+        doc.fontSize(12).text('DEUXIÈME CONJOINT', 50, y);
+        y = addLine('Nom', data.concubin2.nom, y + 20);
+        y = addLine('Prénom', data.concubin2.prenom, y);
+        y = addLine('Date de naissance', data.concubin2.dateNaissance, y);
+        y = addLine('Lieu de naissance', data.concubin2.lieuNaissance, y);
+        y = addLine('Profession', data.concubin2.profession, y);
+        y = addLine('Adresse', data.concubin2.adresse, y);
+        y = addLine('Nationalité', data.concubin2.nationalite, y);
+        y = addLine('Type de pièce', data.concubin2.typePiece, y);
+        y = addLine('N° de pièce', data.concubin2.numeroPiece, y);
+        
+        // Section Témoins
+        if (data.temoins && data.temoins.length > 0) {
+          y += 10;
+          doc.fontSize(12).text('TÉMOINS', 50, y);
+          
+          data.temoins.forEach((temoin, index) => {
+            if (index > 0) y += 10;
+            y = addLine(`Témoin ${index + 1}`, 
+              `${temoin.nom || ''} ${temoin.prenom || ''}`.trim(), 
+              y + (index === 0 ? 20 : 0)
+            );
+            if (temoin.profession) y = addLine('Profession', temoin.profession, y);
+            if (temoin.adresse) y = addLine('Adresse', temoin.adresse, y);
+            if (temoin.residence) y = addLine('Résidence', temoin.residence, y);
+          });
+        }
+        
+        // Section Informations complémentaires
+        y += 10;
+        doc.fontSize(12).text('INFORMATIONS COMPLÉMENTAIRES', 50, y);
+        y = addLine('Lieu de l\'engagement', data.lieuDebut, y + 20);
+        y = addLine('Officier d\'état civil', data.officierEtatCivil, y);
+        y = addLine('Date de création', data.createdAt, y);
+        y = addLine('Créé par', data.createdBy, y);
+        
+        if (data.observations) {
+          y += 10;
+          doc.fontSize(12).text('OBSERVATIONS', 50, y);
+          y += 20;
+          doc.fontSize(10).text(data.observations, 50, y, { width: 500 });
+          y += 20;
+        }
+        
+        // Pied de page avec gestion d'erreur
+        try {
+          doc
+            .fontSize(8)
+            .font('Helvetica')
+            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 750);
+        } catch (footerErr) {
+          log('Erreur lors de l\'ajout du pied de page', { error: footerErr.message });
+        }
+        
+      } catch (contentErr) {
+        log('Erreur lors de la génération du contenu', { error: contentErr.message, stack: contentErr.stack });
+        // Essayer d'ajouter un message d'erreur dans le PDF
+        try {
+          doc.fontSize(10).text('Erreur lors de la génération du contenu du PDF', 50, 100);
+        } catch (e) {}
+      }
+      
+      // Finaliser le document
+      doc.end();
+      
+    } catch (error) {
+      log('Erreur critique non gérée', { error: error.message, stack: error.stack });
+      reject(new Error(`Erreur lors de la génération du PDF: ${error.message}`));
     }
   });
 };
 
 /**
  * Génère un PDF en fonction du type de document
- * @param {string} type - Le type de document (naissance, mariage, deces, etc.)
+ * @param {string} type - Le type de document (naissance, mariage, deces, engagement-concubinage, etc.)
  * @param {Object} data - Les données du document
  * @returns {Promise<Buffer>} Le buffer du PDF généré
  */
 const generatePdf = async (type, data) => {
+  console.log(`[PDF Service] Début génération PDF de type: ${type}`);
+  console.log(`[PDF Service] Données reçues:`, JSON.stringify(data, null, 2).substring(0, 500) + '...');
+  
   try {
+    let result;
+    
     switch (type.toLowerCase()) {
       case 'deces':
-        return await generateDecesPdf(data);
+        console.log('[PDF Service] Appel de generateDecesPdf');
+        result = await generateDecesPdf(data);
+        break;
+      case 'naissance':
+        console.log('[PDF Service] Appel de generateNaissancePdf');
+        result = await generateNaissancePdf(data);
+        break;
+      case 'engagement-concubinage':
+        console.log('[PDF Service] Appel de generateEngagementConcubinagePdf');
+        result = await generateEngagementConcubinagePdf(data);
+        break;
       default:
-        throw new Error('Type de document non pris en charge');
+        const errorMsg = `Type de document non pris en charge: ${type}`;
+        console.error(`[PDF Service] ${errorMsg}`);
+        throw new Error(errorMsg);
     }
+    
+    if (!result || !(result instanceof Buffer)) {
+      const errorMsg = 'Le résultat de la génération du PDF est invalide';
+      console.error(`[PDF Service] ${errorMsg}`, { 
+        type: typeof result,
+        isBuffer: Buffer.isBuffer(result)
+      });
+      throw new Error(errorMsg);
+    }
+    
+    console.log(`[PDF Service] PDF généré avec succès (${result.length} octets)`);
+    return result;
+    
   } catch (error) {
-    logger.error('Erreur lors de la génération du PDF', { error, type });
+    console.error('[PDF Service] Erreur critique lors de la génération du PDF:', {
+      type,
+      error: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 };
@@ -321,5 +538,6 @@ module.exports = {
   generateDecesPdf,
   generatePdf,
   generateHeader,
-  generatePersonneSection
+  generatePersonneSection,
+  generateEngagementConcubinagePdf
 };

@@ -56,7 +56,7 @@ exports.securityHeaders = helmet({
   hsts: true,
   frameguard: { action: 'deny' },
   noSniff: true,
-  xssFilter: true,
+  // xssFilter a été retiré de helmet v4+; ne pas l'utiliser
 });
 
 // Limitation du taux de requêtes
