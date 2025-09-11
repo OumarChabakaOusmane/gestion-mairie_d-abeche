@@ -1,7 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
-const { logger } = require('../config/logger');
+const logger = require('../config/logger');
 
 // Dossier de sortie pour les PDF générés
 const OUTPUT_DIR = path.join(__dirname, '../public/pdfs');

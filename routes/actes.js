@@ -77,8 +77,8 @@ router.post('/', authenticate, validateActeInput, async (req, res) => {
         type, 
         details,
         mairie,
-        createdBy: req.user?._id || 'system',
-        lastModifiedBy: req.user?._id || 'system'
+        // enregistrer uniquement si présent pour éviter les erreurs de cast
+        ...(req.user?._id && { createdBy: req.user._id, lastModifiedBy: req.user._id })
       });
       
       await acte.save();
@@ -307,7 +307,9 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
   };
   
   try {
-    logger.info('PDF route hit in routes/actes.js', { path: req.originalUrl });
+    if (logger && typeof logger.info === 'function') {
+      logger.info('PDF route hit in routes/actes.js', { path: req.originalUrl });
+    }
     log(`Début de génération du PDF pour l'acte`, { 
       acteId: req.params.id,
       user: req.user ? req.user._id : 'non authentifié'
@@ -366,7 +368,9 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       switch (acte.type) {
         case 'naissance': {
           log('Génération PDF de naissance depuis Acte');
-          logger.info('Using LOCAL naissance PDF generation (routes/actes.js)', { requestId, acteId: acte._id?.toString() });
+          if (logger && typeof logger.info === 'function') {
+            logger.info('Using LOCAL naissance PDF generation (routes/actes.js)', { requestId, acteId: acte._id?.toString() });
+          }
           const doc = new PDFDocument({ size: 'A4', margin: 50 });
           const fileName = `acte-naissance-${(acte.numeroActe || 'sans-numero')}.pdf`;
           res.setHeader('Content-Type', 'application/pdf');
@@ -384,8 +388,22 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
         }
           
         case 'mariage':
-          log('Appel du contrôleur de mariage');
-          controllerResponse = await mariageController.generateMariagePdf(controllerRequest, res);
+          log('Génération PDF de mariage via générateur local');
+          (function () {
+            const doc = new PDFDocument({ size: 'A4', margin: 50 });
+            const fileName = `acte-mariage-${(acte.numeroActe || 'sans-numero')}.pdf`;
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            doc.pipe(res);
+            try {
+              generateMariagePDF(doc, acte);
+              doc.end();
+              controllerResponse = res;
+            } catch (e) {
+              doc.destroy();
+              throw e;
+            }
+          })();
           break;
           
         case 'engagement-concubinage':
@@ -394,8 +412,22 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
           break;
           
         case 'deces':
-          log('Appel du contrôleur de décès');
-          controllerResponse = await decesController.generateDecesPdf(controllerRequest, res);
+          log('Génération PDF de décès via générateur local');
+          (function () {
+            const doc = new PDFDocument({ size: 'A4', margin: 50 });
+            const fileName = `acte-deces-${(acte.numeroActe || 'sans-numero')}.pdf`;
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            doc.pipe(res);
+            try {
+              generateDecesPDF(doc, acte);
+              doc.end();
+              controllerResponse = res;
+            } catch (e) {
+              doc.destroy();
+              throw e;
+            }
+          })();
           break;
           
         default:
@@ -485,6 +517,20 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
     
     return res.status(500).json(errorResponse);
   }
+});
+
+// Alias pour compatibilité avec l'ancien frontend
+// GET /api/actes/naissances/:id/pdf → redirige vers /api/actes/:id/pdf en conservant la méthode et les en-têtes
+router.get('/naissances/:id/pdf', authenticate, (req, res) => {
+  return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
+});
+
+// Alias mariage et engagement
+router.get('/mariages/:id/pdf', authenticate, (req, res) => {
+  return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
+});
+router.get('/engagements/:id/pdf', authenticate, (req, res) => {
+  return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
 });
 
 // Fonction pour générer un PDF d'acte de décès
@@ -651,9 +697,9 @@ function generateNaissancePDF(doc, acte) {
   
   // === EN-TÊTE CLASSIQUE ===
   // Conteneur de l'en-tête
-  doc.rect(margin, y, pageWidth, 80)
+  doc.rect(margin, y, pageWidth, 90)
      .fillColor('#f8f9fa').fill()
-     .strokeColor('#dee2e6').lineWidth(0.5).stroke();
+     .strokeColor('#ced4da').lineWidth(1).stroke();
 
   // Drapeau du Tchad
   doc.rect(margin + 10, y + 10, 20, 60).fillColor('#002689').fill(); // Bleu
@@ -662,37 +708,38 @@ function generateNaissancePDF(doc, acte) {
   doc.rect(margin + 10, y + 10, 60, 60).strokeColor('#000000').lineWidth(0.5).stroke();
 
   // Titres
-  doc.fontSize(14).font('Helvetica-Bold')
-     .text('RÉPUBLIQUE DU TCHAD', margin + 90, y + 15);
-  doc.fontSize(10).font('Helvetica-Oblique')
-     .text('Unité - Travail - Progrès', margin + 90, y + 35);
-  doc.fontSize(9).font('Helvetica')
-     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', margin + 90, y + 50);
+  doc.fillColor('#212529');
+  doc.fontSize(16).font('Helvetica-Bold')
+     .text('RÉPUBLIQUE DU TCHAD', margin + 90, y + 14);
+  doc.fontSize(11).font('Helvetica-Oblique')
+     .text('Unité - Travail - Progrès', margin + 90, y + 36);
+  doc.fontSize(10).font('Helvetica')
+     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', margin + 90, y + 54);
 
   // Numéro d'acte et date
-  doc.fontSize(10).font('Helvetica-Bold')
-     .text(`N° ${acte.numeroActe || 'En cours'}`, pageWidth - 100, y + 20, { width: 90, align: 'right' });
-  doc.fontSize(8).font('Helvetica')
+  doc.fontSize(11).font('Helvetica-Bold')
+     .text(`N° ${acte.numeroActe || 'En cours'}`, pageWidth - 120, y + 18, { width: 110, align: 'right' });
+  doc.fontSize(9).font('Helvetica')
      .text(`Fait le: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 
-           pageWidth - 100, y + 35, { width: 90, align: 'right' });
+           pageWidth - 120, y + 36, { width: 110, align: 'right' });
   
   y += 100;
   
   // === TITRE PRINCIPAL ===
-  doc.fontSize(18).font('Helvetica-Bold')
+  doc.fontSize(20).font('Helvetica-Bold')
      .text('ACTE DE NAISSANCE', margin, y, { align: 'center' });
-  doc.moveTo(margin + 100, y + 25).lineTo(pageWidth - 50, y + 25)
-     .strokeColor('#CE1126').lineWidth(1).stroke();
+  doc.moveTo(margin + 80, y + 28).lineTo(pageWidth - 30, y + 28)
+     .strokeColor('#CE1126').lineWidth(2).stroke();
   
   y += 50;
   
   // === DÉCLARATION OFFICIELLE ===
-  doc.fontSize(11).font('Helvetica')
-     .text('Nous, Officier de l\'État Civil, certifions que :', margin, y);
+  doc.fontSize(12).font('Helvetica')
+     .text('Nous, Officier de l\'État Civil, certifions que :', margin, y, { lineGap: 2 });
   y += 30;
   
   // === INFORMATIONS DE L'ENFANT ===
-  doc.fontSize(10).font('Helvetica-Bold').text('ENFANT', margin, y);
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#212529').text('ENFANT', margin, y);
   y += 15;
   
   // Grille d'informations
@@ -707,8 +754,8 @@ function generateNaissancePDF(doc, acte) {
   };
   
   // En-têtes de colonnes
-  doc.rect(margin, y, pageWidth, 20).fillColor('#f1f3f5').fill();
-  doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000');
+  doc.rect(margin, y, pageWidth, 22).fillColor('#eef2f7').fill();
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000');
   doc.text('INFORMATION', margin + 10, y + 7);
   doc.text('DÉTAIL', margin + pageWidth/2, y + 7);
   
@@ -716,15 +763,13 @@ function generateNaissancePDF(doc, acte) {
   
   // Lignes d'information
   const addInfoRow = (label, value, yPos) => {
-    doc.rect(margin, yPos, pageWidth, 20).fillColor('#ffffff').fill();
+    doc.rect(margin, yPos, pageWidth, 22).fillColor('#ffffff').fill();
     doc.moveTo(margin, yPos).lineTo(pageWidth + margin, yPos).strokeColor('#dee2e6').lineWidth(0.5).stroke();
-    
-    doc.fontSize(9).font('Helvetica').fillColor('#495057');
-    doc.text(label, margin + 10, yPos + 7);
+    doc.fontSize(10).font('Helvetica').fillColor('#495057');
+    doc.text(label, margin + 10, yPos + 8);
     doc.font('Helvetica-Bold').fillColor('#212529');
-    doc.text(value || 'Non renseigné', margin + pageWidth/2, yPos + 7);
-    
-    return yPos + 20;
+    doc.text(value || 'Non renseigné', margin + pageWidth/2, yPos + 8);
+    return yPos + 22;
   };
   
   // Ajout des informations
@@ -745,8 +790,8 @@ function generateNaissancePDF(doc, acte) {
   
   // FILIATION
   y += 20;
-  doc.rect(margin, y, pageWidth, 25).fillColor('#f1f3f5').fill();
-  doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+  doc.rect(margin, y, pageWidth, 25).fillColor('#eef2f7').fill();
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000')
      .text('FILIATION', margin + 10, y + 8);
   y += 25;
   
@@ -798,7 +843,7 @@ function generateNaissancePDF(doc, acte) {
 
   // FOOTER classique
   y += 30;
-  doc.fontSize(10).font('Helvetica-Oblique')
+  doc.fontSize(11).font('Helvetica-Oblique')
      .text(`Fait à ${acte.mairie || 'N\'Djamena'}, le ${new Date().toLocaleDateString('fr-FR', {
        year: 'numeric',
        month: 'long',
@@ -807,68 +852,108 @@ function generateNaissancePDF(doc, acte) {
   
   // SIGNATURE
   y += 50;
-  doc.fontSize(10).font('Helvetica')
-     .text('L\'Officier de l\'État Civil,', pageWidth - 150, y);
+  doc.fontSize(11).font('Helvetica')
+     .text('L\'Officier de l\'État Civil,', pageWidth - 170, y);
   
   y += 40;
-  doc.moveTo(pageWidth - 150, y).lineTo(pageWidth - 30, y)
+  doc.moveTo(pageWidth - 170, y).lineTo(pageWidth - 40, y)
      .strokeColor('#000000').lineWidth(0.5).stroke();
   
-  doc.fontSize(8).font('Helvetica')
-     .text('Signature et cachet', pageWidth - 150, y + 5);
+  doc.fontSize(9).font('Helvetica')
+     .text('Signature et cachet', pageWidth - 170, y + 6);
 }
 
 // Fonction pour générer un PDF d'acte de mariage
 function generateMariagePDF(doc, acte) {
   const details = acte.details;
-  
-  // En-tête officiel
+  const margin = 50;
+  const pageWidth = doc.page.width - (margin * 2);
+  let y = 50;
+
+  // === EN-TÊTE avec drapeau (aligné au modèle Naissance) ===
+  doc.rect(margin, y, pageWidth, 90)
+     .fillColor('#f8f9fa').fill()
+     .strokeColor('#ced4da').lineWidth(1).stroke();
+
+  // Drapeau du Tchad
+  doc.rect(margin + 10, y + 10, 20, 60).fillColor('#002689').fill(); // Bleu
+  doc.rect(margin + 30, y + 10, 20, 60).fillColor('#FFD100').fill(); // Jaune
+  doc.rect(margin + 50, y + 10, 20, 60).fillColor('#CE1126').fill(); // Rouge
+  doc.rect(margin + 10, y + 10, 60, 60).strokeColor('#000000').lineWidth(0.5).stroke();
+
+  // Titres
+  doc.fillColor('#212529');
+  doc.fontSize(16).font('Helvetica-Bold')
+     .text('RÉPUBLIQUE DU TCHAD', margin + 90, y + 14);
+  doc.fontSize(11).font('Helvetica-Oblique')
+     .text('Unité - Travail - Progrès', margin + 90, y + 36);
+  doc.fontSize(10).font('Helvetica')
+     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', margin + 90, y + 54);
+
+  // Numéro d'acte et date
+  doc.fontSize(11).font('Helvetica-Bold')
+     .text(`N° ${acte.numeroActe || 'En cours'}`, pageWidth - 120, y + 18, { width: 110, align: 'right' });
+  doc.fontSize(9).font('Helvetica')
+     .text(`Fait le: ${new Date(acte.dateEnregistrement || Date.now()).toLocaleDateString('fr-FR')}`, 
+           pageWidth - 120, y + 36, { width: 110, align: 'right' });
+
+  y += 100;
+
+  // === TITRE PRINCIPAL ===
   doc.fontSize(20).font('Helvetica-Bold')
-     .text('RÉPUBLIQUE DU TCHAD', { align: 'center' });
-  doc.fontSize(16)
-     .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', { align: 'center' });
-  doc.fontSize(14)
-     .text(acte.mairie || 'MAIRIE', { align: 'center' });
-  
-  doc.moveDown(2);
-  
-  // Titre de l'acte
-  doc.fontSize(18).font('Helvetica-Bold')
-     .text('ACTE DE MARIAGE', { align: 'center' });
-  
-  doc.moveDown(1);
-  
-  // Numéro d'acte
-  doc.fontSize(12).font('Helvetica')
-     .text(`N° ${acte.numeroActe}`, { align: 'right' });
-  
-  doc.moveDown(1);
-  
-  // Corps de l'acte
+     .text('ACTE DE MARIAGE', margin, y, { align: 'center' });
+  // Ligne décorative supprimée à la demande (pas de trait rouge)
+
+  y += 50;
   doc.fontSize(12).font('Helvetica');
   
-  const dateMariage = new Date(details.dateMariage).toLocaleDateString('fr-FR');
-  const dateEnregistrement = new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR');
+  const dateMariage = details.dateMariage ? new Date(details.dateMariage).toLocaleDateString('fr-FR') : '';
+  const dateEnregistrement = new Date(acte.dateEnregistrement || Date.now()).toLocaleDateString('fr-FR');
   
-  // Fonction pour formater les informations d'une personne
-  const formatPersonne = (prefix) => {
-    return `- Nom: ${details[`${prefix}Nom`] || 'Non renseigné'}
-- Prénoms: ${details[`${prefix}Prenom`] || 'Non renseigné'}
-- Date de naissance: ${details[`${prefix}DateNaissance`] ? new Date(details[`${prefix}DateNaissance`]).toLocaleDateString('fr-FR') : 'Non renseigné'}
-- Lieu de naissance: ${details[`${prefix}LieuNaissance`] || 'Non renseigné'}
-- Profession: ${details[`${prefix}Profession`] || 'Non renseigné'}
-- Adresse: ${details[`${prefix}Adresse`] || 'Non renseigné'}
-- Nationalité: ${details[`${prefix}Nationalite`] || 'Tchadienne'}
-- Pièce d'identité: ${details[`${prefix}TypePiece`] || 'CNI'} n°${details[`${prefix}NumeroPiece`] || 'Non renseigné'}`;
+  // Helpers pour lire soit les champs à plat, soit l'objet xxx_details
+  const readPerson = (rolePrefix) => {
+    const nested = details[`${rolePrefix}_details`] || {};
+    const get = (flatKey, nestedKey) => {
+      if (nestedKey && nested[nestedKey] !== undefined && nested[nestedKey] !== null && nested[nestedKey] !== '') return nested[nestedKey];
+      if (details[flatKey] !== undefined && details[flatKey] !== null && details[flatKey] !== '') return details[flatKey];
+      return undefined;
+    };
+    return {
+      nom: get(rolePrefix === 'conjoint1' ? 'conjoint1' : 'conjointe2', 'nom') || 'Non renseigné',
+      prenom: get(rolePrefix === 'conjoint1' ? 'prenomConjoint1' : 'prenomConjoint2', 'prenom') || 'Non renseigné',
+      dateNaissance: get(rolePrefix === 'conjoint1' ? 'dateNaissanceConjoint1' : 'dateNaissanceConjoint2', 'dateNaissance'),
+      lieuNaissance: get(rolePrefix === 'conjoint1' ? 'lieuNaissanceConjoint1' : 'lieuNaissanceConjoint2', 'lieuNaissance') || 'Non renseigné',
+      profession: get(rolePrefix === 'conjoint1' ? 'professionConjoint1' : 'professionConjoint2', 'profession') || 'Non renseigné',
+      adresse: get(rolePrefix === 'conjoint1' ? 'adresseConjoint1' : 'adresseConjoint2', 'adresse') || 'Non renseigné',
+      nationalite: get(rolePrefix === 'conjoint1' ? 'nationaliteConjoint1' : 'nationaliteConjoint2', 'nationalite') || 'Tchadienne',
+      typePiece: get(rolePrefix === 'conjoint1' ? 'typePieceConjoint1' : 'typePieceConjoint2', 'typePiece') || 'CNI',
+      numeroPiece: get(rolePrefix === 'conjoint1' ? 'numeroPieceConjoint1' : 'numeroPieceConjoint2', 'numeroPiece') || 'Non renseigné'
+    };
   };
 
-  const texte = `L'an ${new Date().getFullYear()}, le ${dateEnregistrement}, par devant nous, Officier de l'État Civil de ${acte.mairie}, ont été unis par les liens du mariage :
+  const conjoint1 = readPerson('conjoint1');
+  const conjoint2 = readPerson('conjoint2');
+
+  // Fonction pour formater les informations d'une personne
+  const formatPersonne = (p) => {
+    return `- Nom: ${p.nom}
+- Prénoms: ${p.prenom}
+- Date de naissance: ${p.dateNaissance ? new Date(p.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné'}
+- Lieu de naissance: ${p.lieuNaissance}
+- Profession: ${p.profession}
+- Adresse: ${p.adresse}
+- Nationalité: ${p.nationalite}
+- Pièce d'identité: ${p.typePiece} n°${p.numeroPiece}`;
+  };
+
+  const texte = `L'an ${new Date().getFullYear()}, le ${dateEnregistrement}, par devant nous, Officier de l'État Civil de ${acte.mairie || ''}, ont été unis
+par les liens du mariage :
 
 ÉPOUX :
-${formatPersonne('conjoint1')}
+${formatPersonne(conjoint1)}
 
 ÉPOUSE :
-${formatPersonne('conjoint2')}
+${formatPersonne(conjoint2)}
 
 Témoin 1: ${details.temoin1Nom || 'Non renseigné'}
 Témoin 2: ${details.temoin2Nom || 'Non renseigné'}
@@ -881,7 +966,29 @@ Contrat de mariage: ${details.contratMariage || 'Non'}
 
 Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`;
 
+  // Bloc texte principal
   doc.text(texte, { align: 'justify', lineGap: 5 });
+
+  // Témoins (si présents)
+  if (Array.isArray(details.temoins) && details.temoins.length) {
+    doc.moveDown(1);
+    doc.font('Helvetica-Bold').text('TÉMOINS:');
+    doc.font('Helvetica');
+    details.temoins.slice(0, 4).forEach((t, idx) => {
+      const li = `- ${t.nom || 'Nom inconnu'}${t.profession ? `, ${t.profession}` : ''}${t.residence ? `, ${t.residence}` : ''}`;
+      doc.text(li);
+    });
+  }
+
+  // Pied de page signature
+  doc.moveDown(2);
+  doc.fontSize(11).font('Helvetica-Oblique')
+     .text(`Fait à ${acte.mairie || ''}, le ${dateEnregistrement}`, { align: 'right' });
+  const baseY = doc.y + 20;
+  doc.fontSize(10).font('Helvetica')
+     .text('L\'Officier de l\'État Civil,', pageWidth - 170, baseY - 18);
+  doc.moveTo(pageWidth - 170, baseY).lineTo(pageWidth - 40, baseY)
+     .strokeColor('#000000').lineWidth(0.8).stroke();
   
   doc.moveDown(3);
   

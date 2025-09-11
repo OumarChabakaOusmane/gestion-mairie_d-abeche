@@ -8999,3 +8999,11 @@
   "stack": "Error: write EIO\n    at afterWriteDispatched (node:internal/stream_base_commons:161:15)\n    at writeGeneric (node:internal/stream_base_commons:152:3)\n    at Socket._writeGeneric (node:net:958:11)\n    at Socket._write (node:net:970:8)\n    at writeOrBuffer (node:internal/streams/writable:572:12)\n    at _write (node:internal/streams/writable:501:10)\n    at Writable.write (node:internal/streams/writable:510:10)\n    at console.value (node:internal/console/constructor:303:16)\n    at console.warn (node:internal/console/constructor:383:26)\n    at process.<anonymous> (/home/ben-chabaka/wenaklabs/app.js:149:11)",
   "name": "Error"
 }
+2025-09-11 11:31:47 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3000 {
+  "stack": "Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Object.<anonymous> (/home/ben-chabaka/wenaklabs/app.js:396:8)\n    at Module._compile (node:internal/modules/cjs/loader:1529:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)\n    at Module.load (node:internal/modules/cjs/loader:1275:32)\n    at Module._load (node:internal/modules/cjs/loader:1096:12)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)\n    at node:internal/main/run_main_module:28:49",
+  "name": "Error"
+}
+2025-09-11 12:06:47 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3000 {
+  "stack": "Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Object.<anonymous> (/home/ben-chabaka/wenaklabs/app.js:396:8)\n    at Module._compile (node:internal/modules/cjs/loader:1529:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)\n    at Module.load (node:internal/modules/cjs/loader:1275:32)\n    at Module._load (node:internal/modules/cjs/loader:1096:12)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)\n    at node:internal/main/run_main_module:28:49",
+  "name": "Error"
+}

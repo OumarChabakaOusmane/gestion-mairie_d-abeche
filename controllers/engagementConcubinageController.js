@@ -1,6 +1,6 @@
 const EngagementConcubinage = require('../models/EngagementConcubinage');
 const { generatePdf } = require('../services/pdfService');
-const { logger } = require('../config/logger');
+const logger = require('../config/logger');
 const mongoose = require('mongoose');
 
 /**
