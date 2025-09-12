@@ -73,7 +73,7 @@ router.get('/', async (req, res) => {
 
 router.get('/export', async (req, res) => {
   try {
-    const { type, startDate, endDate, format } = req.query;
+    const { type, startDate, endDate, format, mairie, createdBy } = req.query;
     
     // Construire la requête
     const query = {};
@@ -83,6 +83,8 @@ router.get('/export', async (req, res) => {
       query.dateEnregistrement = query.dateEnregistrement || {};
       query.dateEnregistrement.$lte = new Date(endDate);
     }
+    if (mairie) query.mairie = mairie;
+    if (createdBy) query.createdBy = createdBy;
     
     const actes = await Acte.find(query).sort({ dateEnregistrement: 1 });
     
@@ -92,7 +94,8 @@ router.get('/export', async (req, res) => {
         { label: 'Numéro', value: 'numeroActe' },
         { label: 'Type', value: 'type' },
         { label: 'Date', value: row => new Date(row.dateEnregistrement).toLocaleDateString() },
-        { label: 'Mairie', value: 'mairie' }
+        { label: 'Mairie', value: 'mairie' },
+        { label: 'Créé par', value: row => row.createdBy ? (row.createdBy.nom || row.createdBy.toString()) : '' }
       ];
       
       const json2csvParser = new Parser({ fields });
@@ -117,16 +120,19 @@ router.get('/export', async (req, res) => {
       doc.text(`Type: ${type === 'all' ? 'Tous' : type}`);
       if (startDate) doc.text(`À partir de: ${new Date(startDate).toLocaleDateString()}`);
       if (endDate) doc.text(`Jusqu'à: ${new Date(endDate).toLocaleDateString()}`);
+      if (mairie) doc.text(`Mairie: ${mairie}`);
+      if (createdBy) doc.text(`Créé par: ${createdBy}`);
       doc.moveDown();
       
       // Tableau des actes
       const table = {
-        headers: ['Numéro', 'Type', 'Date', 'Mairie'],
+        headers: ['Numéro', 'Type', 'Date', 'Mairie', 'Créé par'],
         rows: actes.map(acte => [
           acte.numeroActe,
           acte.type,
           new Date(acte.dateEnregistrement).toLocaleDateString(),
-          acte.mairie
+          acte.mairie,
+          acte.createdBy ? (acte.createdBy.nom || acte.createdBy.toString()) : ''
         ])
       };
       

@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 const Acte = require('../models/Acte');
-const { generatePdf } = require('../services/pdfService');
+const { generateDecesPdf } = require('../services/pdfServiceNew');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 
@@ -120,7 +120,7 @@ decesController.generateDecesPdf = async (req, res) => {
     // Générer le PDF
     try {
       log('Début de la génération du PDF...');
-      const pdfBuffer = await generatePdf('deces', pdfData);
+      const pdfBuffer = await generateDecesPdf(pdfData);
       
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
         const errorMsg = 'Le buffer du PDF est invalide';

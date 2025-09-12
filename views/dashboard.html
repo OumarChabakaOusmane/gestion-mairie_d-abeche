@@ -363,7 +363,7 @@
             <button class="btn btn-outline-light btn-sm" id="themeToggle">
               <i class="fas fa-moon" id="themeIcon"></i>
             </button>
-            <button class="btn btn-light btn-sm" id="refresh-btn">
+            <button class="btn btn-light btn-sm" id="refresh-btn" data-focus-default>
               <i class="fas fa-sync-alt me-2"></i>Actualiser
             </button>
             <button class="btn btn-outline-light btn-sm" id="exportBtn">
@@ -889,8 +889,8 @@
         }
 
         // Fallback si pas de details
-        if (!nomComplet && acte.nom) {
-          nomComplet = acte.nom;
+        if (!nomComplet && (acte.prenom || acte.nom)) {
+          nomComplet = `${acte.prenom || ''} ${acte.nom || ''}`.trim();
         }
 
         const acteId = acte._id || acte.id;
@@ -1130,8 +1130,8 @@
       if (acte.type === 'naissance') {
         specificContent = `
           ${infoSection('INFORMATIONS DE L\'ENFANT', [
-            { label: 'Nom', value: details.nom },
             { label: 'Prénom(s)', value: details.prenom },
+            { label: 'Nom', value: details.nom },
             { label: 'Date de naissance', value: dateNaissance ? dateNaissance.toLocaleDateString('fr-FR') : '' },
             { label: 'Heure de naissance', value: details.heureNaissance || '' },
             { label: 'Lieu de naissance', value: details.lieuNaissance || '' },
@@ -1141,8 +1141,8 @@
           ])}
 
           ${infoSection('FILIATION - PÈRE', [
-            { label: 'Nom', value: details.nomPere },
             { label: 'Prénom(s)', value: details.prenomPere },
+            { label: 'Nom', value: details.nomPere },
             { label: 'Date de naissance', value: details.dateNaissancePere },
             { label: 'Lieu de naissance', value: details.lieuNaissancePere },
             { label: 'Profession', value: details.professionPere },
@@ -1150,8 +1150,8 @@
           ])}
 
           ${infoSection('FILIATION - MÈRE', [
-            { label: 'Nom', value: details.nomMere },
             { label: 'Prénom(s)', value: details.prenomMere },
+            { label: 'Nom', value: details.nomMere },
             { label: 'Date de naissance', value: details.dateNaissanceMere },
             { label: 'Lieu de naissance', value: details.lieuNaissanceMere },
             { label: 'Profession', value: details.professionMere },
@@ -1245,6 +1245,16 @@
 
       // Gérer la fermeture de la modal
       const handleHidden = () => {
+        // Corriger le problème d'accessibilité: retirer le focus si l'élément est dans une modal cachée
+        if (document.activeElement && modal.contains(document.activeElement)) {
+          document.activeElement.blur();
+          // Rediriger le focus vers un élément visible
+          const focusTarget = document.querySelector('[data-focus-default]') || document.getElementById('globalSearch') || document.body;
+          if (focusTarget && typeof focusTarget.focus === 'function') {
+            focusTarget.focus({ preventScroll: true });
+          }
+        }
+        
         // Nettoyer les écouteurs d'événements
         modal.removeEventListener('shown.bs.modal', handleShown);
         modal.removeEventListener('hidden.bs.modal', handleHidden);

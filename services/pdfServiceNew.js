@@ -507,6 +507,7 @@ const generateNaissancePdf = async (data) => {
 // Exporter les fonctions du module
 module.exports = {
   generateNaissancePdf,
+  generateDecesPdf,
   generateHeader,
   generateFormSection,
   generateBasicInfoSection,

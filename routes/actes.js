@@ -590,84 +590,91 @@ function generateDecesPDF(doc, acte) {
   y += 30;
   
   // === INFORMATIONS DU DÉFUNT ===
-  doc.roundedRect(50, y, doc.page.width - 100, 200, 5)
+  doc.roundedRect(50, y, doc.page.width - 100, 220, 8)
      .fillColor('#ffffff').fill()
      .strokeColor('#002689').lineWidth(2).stroke();
   
   // Titre de section avec fond coloré
-  doc.rect(50, y, doc.page.width - 100, 25)
+  doc.rect(50, y, doc.page.width - 100, 30)
      .fillColor('#002689').fill();
-  doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
-     .text('DÉFUNT', 0, y + 8, { align: 'center' });
+  doc.fillColor('#ffffff').fontSize(14).font('Helvetica-Bold')
+     .text('INFORMATIONS DU DÉFUNT', 0, y + 10, { align: 'center' });
   
-  doc.fillColor('#000000').fontSize(11).font('Helvetica');
-  y += 35;
+  doc.fillColor('#000000').fontSize(12).font('Helvetica');
+  y += 40;
   
-  // Informations du défunt
-  doc.text('Nom:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.nomDefunt || 'Non renseigné'}`);
-  doc.font('Helvetica').text('Prénoms:', 300, y, { continued: true }).font('Helvetica-Bold').text(` ${details.prenomsDefunt || 'Non renseigné'}`);
+  // Informations du défunt avec meilleur espacement
+  doc.fontSize(12).font('Helvetica').text('Nom:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.nomDefunt || 'Non renseigné'}`);
+  doc.font('Helvetica').fontSize(12).text('Prénoms:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.prenomsDefunt || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Date de naissance:', 70, y, { continued: true }).font('Helvetica-Bold')
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Date de naissance:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13)
      .text(` ${details.dateNaissanceDefunt ? new Date(details.dateNaissanceDefunt).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
-  doc.font('Helvetica').text('Lieu de naissance:', 300, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.lieuNaissanceDefunt || 'Non renseigné'}`);
+  doc.font('Helvetica').fontSize(12).text('Lieu de naissance:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.lieuNaissanceDefunt || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Profession:', 70, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.professionDefunt || 'Non renseignée'}`);
-  doc.font('Helvetica').text('Domicile:', 300, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.domicileDefunt || 'Non renseigné'}`);
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Profession:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.professionDefunt || 'Non renseignée'}`);
+  doc.font('Helvetica').fontSize(12).text('Domicile:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.domicileDefunt || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Date du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Date du décès:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13)
      .text(` ${details.dateDeces ? new Date(details.dateDeces).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
-  doc.font('Helvetica').text('Heure du décès:', 300, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.heureDeces || 'Non spécifiée'}`);
+  doc.font('Helvetica').fontSize(12).text('Heure du décès:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.heureDeces || 'Non spécifiée'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Lieu du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.lieuDeces || 'Non renseigné'}`);
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Lieu du décès:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.lieuDeces || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Cause du décès:', 70, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.causeDeces || 'Non spécifiée'}`);
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Cause du décès:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.causeDeces || 'Non spécifiée'}`);
   
   y += 40;
   
   // === INFORMATIONS DU DÉCLARANT ===
-  doc.roundedRect(50, y, doc.page.width - 100, 120, 5)
+  doc.roundedRect(50, y, doc.page.width - 100, 140, 8)
      .fillColor('#ffffff').fill()
      .strokeColor('#002689').lineWidth(2).stroke();
   
   // Titre de section avec fond coloré
-  doc.rect(50, y, doc.page.width - 100, 25)
+  doc.rect(50, y, doc.page.width - 100, 30)
      .fillColor('#002689').fill();
-  doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
-     .text('DÉCLARANT', 0, y + 8, { align: 'center' });
+  doc.fillColor('#ffffff').fontSize(14).font('Helvetica-Bold')
+     .text('INFORMATIONS DU DÉCLARANT', 0, y + 10, { align: 'center' });
   
-  doc.fillColor('#000000').fontSize(11).font('Helvetica');
-  y += 35;
+  doc.fillColor('#000000').fontSize(12).font('Helvetica');
+  y += 40;
   
-  // Informations du déclarant
-  doc.text('Nom:', 70, y, { continued: true }).font('Helvetica-Bold').text(` ${details.nomDeclarant || 'Non renseigné'}`);
-  doc.font('Helvetica').text('Prénoms:', 300, y, { continued: true }).font('Helvetica-Bold').text(` ${details.prenomsDeclarant || 'Non renseigné'}`);
+  // Informations du déclarant avec meilleur espacement
+  doc.fontSize(12).font('Helvetica').text('Nom:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.nomDeclarant || 'Non renseigné'}`);
+  doc.font('Helvetica').fontSize(12).text('Prénoms:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.prenomsDeclarant || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Date de naissance:', 70, y, { continued: true }).font('Helvetica-Bold')
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Date de naissance:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13)
      .text(` ${details.dateNaissanceDeclarant ? new Date(details.dateNaissanceDeclarant).toLocaleDateString('fr-FR') : 'Non renseignée'}`);
-  doc.font('Helvetica').text('Lieu de naissance:', 300, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.lieuNaissanceDeclarant || 'Non renseigné'}`);
+  doc.font('Helvetica').fontSize(12).text('Lieu de naissance:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.lieuNaissanceDeclarant || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Profession:', 70, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.professionDeclarant || 'Non renseignée'}`);
-  doc.font('Helvetica').text('Domicile:', 300, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.domicileDeclarant || 'Non renseigné'}`);
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Profession:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.professionDeclarant || 'Non renseignée'}`);
+  doc.font('Helvetica').fontSize(12).text('Domicile:', 300, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.domicileDeclarant || 'Non renseigné'}`);
   
-  y += 20;
-  doc.font('Helvetica').text('Lien avec le défunt:', 70, y, { continued: true }).font('Helvetica-Bold')
-     .text(` ${details.lienDeclarant || 'Non spécifié'}`);
+  y += 25;
+  doc.font('Helvetica').fontSize(12).text('Lien avec le défunt:', 70, y, { continued: true })
+     .font('Helvetica-Bold').fontSize(13).text(` ${details.lienDeclarant || 'Non spécifié'}`);
   
   y += 40;
   
@@ -797,7 +804,7 @@ function generateNaissancePDF(doc, acte) {
   
   // Père
   y = addInfoRow('Père - Nom et prénom', 
-                `${details.prenomPere || ''} ${details.pere || details.nomPere || ''}`.trim(), 
+                `${details.nomPere || details.pere || ''} ${details.prenomPere || ''}`.trim(), 
                 y);
   
   if (details.dateNaissancePere) {
@@ -816,7 +823,7 @@ function generateNaissancePDF(doc, acte) {
   
   // Mère
   y = addInfoRow('Mère - Nom et prénom', 
-                `${details.prenomMere || ''} ${details.mere || details.nomMere || ''}`.trim(), 
+                `${details.nomMere || details.mere || ''} ${details.prenomMere || ''}`.trim(), 
                 y);
   
   if (details.dateNaissanceMere) {
@@ -1014,38 +1021,70 @@ function generateDecesPDF(doc, acte) {
   doc.rect(82, 15, 16, 48).fillColor('#CE1126').fill();
   doc.rect(50, 15, 48, 48).strokeColor('#ffffff').lineWidth(0.6).stroke();
 
-  // Titres
+  // Titres (centrés sur toute la largeur)
   doc.fillColor('#ffffff');
-  doc.fontSize(14).font('Helvetica-Bold').text('RÉPUBLIQUE DU TCHAD', 110, 16);
-  doc.fontSize(11).font('Helvetica-Oblique').text('Unité - Travail - Progrès', 110, 35);
-  doc.fontSize(10).font('Helvetica').text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', 110, 50);
+  const fullWidth = doc.page.width - 100;
+  doc
+    .fontSize(14)
+    .font('Helvetica-Bold')
+    .text('RÉPUBLIQUE DU TCHAD', 50, 16, { width: fullWidth, align: 'center' });
+  doc
+    .fontSize(11)
+    .font('Helvetica-Oblique')
+    .text('Unité - Travail - Progrès', 50, 35, { width: fullWidth, align: 'center' });
+  doc
+    .fontSize(10)
+    .font('Helvetica')
+    .text('MINISTÈRE DE L\'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE', 50, 50, { width: fullWidth, align: 'center' });
 
-  // Numéro + date (droite)
-  doc.fontSize(10).font('Helvetica-Bold').text(`N° ${acte.numeroActe || '—'}`, 0, 16, { align: 'right' });
-  doc.fontSize(9).font('Helvetica').text(`Fait le: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 0, 34, { align: 'right' });
+  // Numéro + date (centrés)
+  doc
+    .fontSize(10)
+    .font('Helvetica-Bold')
+    .text(`N° ${acte.numeroActe || '—'}`, 50, 66, { width: fullWidth, align: 'center' });
+  doc
+    .fontSize(9)
+    .font('Helvetica')
+    .text(`Fait le: ${new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR')}`, 50, 80, { width: fullWidth, align: 'center' });
 
-  // Titre principal
-  doc.moveDown(3);
-  doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000').text('ACTE DE DÉCÈS', { align: 'center' });
+  // Titre principal avec meilleure présentation
+  doc.moveDown(2);
+  doc.fontSize(20).font('Helvetica-Bold').fillColor('#000000').text('ACTE DE DÉCÈS', { align: 'center' });
   
+  // Ligne de séparation
+  doc.moveDown(0.5);
+  doc.strokeColor('#000000').lineWidth(1).moveTo(100, doc.y).lineTo(doc.page.width - 100, doc.y).stroke();
   doc.moveDown(1);
   
-  // Corps de l'acte
-  doc.fontSize(12).font('Helvetica');
+  // Corps de l'acte avec meilleure structure
+  doc.fontSize(13).font('Helvetica');
   
   const dateDeces = new Date(details.dateDeces).toLocaleDateString('fr-FR');
   const dateEnregistrement = new Date(acte.dateEnregistrement).toLocaleDateString('fr-FR');
   
-  const texte = `L'an ${new Date().getFullYear()}, le ${dateEnregistrement}, par devant nous, Officier de l'État Civil de ${acte.mairie}, a été dressé l'acte de décès de :
-
-${details.prenom || ''} ${details.nom || ''}
-
-décédé(e) le ${dateDeces}
-à ${details.lieuDeces || 'Non renseigné'}
-
-Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`;
-
-  doc.text(texte, { align: 'justify', lineGap: 5 });
+  // Introduction
+  doc.text(`L'an ${new Date().getFullYear()}, le ${dateEnregistrement}, par devant nous, Officier de l'État Civil de ${acte.mairie}, a été dressé l'acte de décès de :`, 
+           50, undefined, { width: fullWidth, align: 'justify', lineGap: 3 });
+  
+  doc.moveDown(1);
+  
+  // Nom du défunt en évidence
+  doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000')
+     .text(`${(details.nom || '').toUpperCase()} ${(details.prenom || '').toUpperCase()}`, 
+           50, undefined, { width: fullWidth, align: 'center', lineGap: 2 });
+  
+  doc.moveDown(1);
+  
+  // Détails du décès
+  doc.fontSize(13).font('Helvetica')
+     .text(`Décédé(e) le ${dateDeces} à ${details.lieuDeces || 'Non renseigné'}`, 
+           50, undefined, { width: fullWidth, align: 'justify', lineGap: 3 });
+  
+  doc.moveDown(1);
+  
+  // Conclusion
+  doc.text(`Dressé le ${dateEnregistrement} et signé par nous, Officier de l'État Civil.`, 
+           50, undefined, { width: fullWidth, align: 'justify', lineGap: 3 });
   
   doc.moveDown(3);
   
@@ -1118,7 +1157,7 @@ router.get('/recent', authenticate, async (req, res) => {
     const recentActes = await Acte.find()
       .sort({ dateEnregistrement: -1 })
       .limit(limit)
-      .select('type numeroActe nom prenom dateEnregistrement')
+      .select('type numeroActe details dateEnregistrement')
       .lean();
 
     // Formater la réponse
@@ -1126,8 +1165,9 @@ router.get('/recent', authenticate, async (req, res) => {
       id: acte._id,
       type: acte.type,
       numeroActe: acte.numeroActe,
-      nom: acte.nom,
-      prenom: acte.prenom,
+      nom: acte.details?.nom || '',
+      prenom: acte.details?.prenom || '',
+      details: acte.details,
       date: acte.dateEnregistrement,
       timeAgo: formatTimeAgo(acte.dateEnregistrement)
     }));

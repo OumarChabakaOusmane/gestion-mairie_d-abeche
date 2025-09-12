@@ -183,37 +183,91 @@ const generateDecesPdf = (data) => {
         doc.text('ACTE DE DÉCÈS', { align: 'center', fontSize: 16 });
       }
       
-      // Fonction utilitaire sécurisée pour ajouter une ligne
+      // Définir une zone de contenu centrée
+      const pageWidth = doc.page.width;
+      const leftMargin = doc.page.margins.left || 50;
+      const rightMargin = doc.page.margins.right || 50;
+      const usableWidth = pageWidth - leftMargin - rightMargin;
+      const contentWidth = usableWidth;
+      const startX = leftMargin;
+
+      // Bloc d'en-tête textuel centré (motto, ministère, numéro, date)
+      let headerY = 80;
+      const formatDate = (d) => {
+        if (!d) return '';
+        try { return new Date(d).toLocaleDateString('fr-FR'); } catch (_) { return String(d); }
+      };
+      doc
+        .font('Helvetica')
+        .fontSize(10)
+        .fillColor('#000000')
+        .text('Unité - Travail - Progrès', leftMargin, headerY, { width: usableWidth, align: 'center' });
+      headerY += 16;
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(11)
+        .text("MINISTÈRE DE L'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE", leftMargin, headerY, { width: usableWidth, align: 'center' });
+      headerY += 18;
+      if (data.numeroActe) {
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(11)
+          .text(`N° ${data.numeroActe}`, leftMargin, headerY, { width: usableWidth, align: 'center' });
+        headerY += 16;
+      }
+      if (data.dateEnregistrement) {
+        doc
+          .font('Helvetica')
+          .fontSize(10)
+          .text(`Fait le: ${formatDate(data.dateEnregistrement)}`, leftMargin, headerY, { width: usableWidth, align: 'center' });
+        headerY += 18;
+      }
+
+      // Titre centré explicite sous le bloc
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(16)
+        .fillColor('#000000')
+        .text('ACTE DE DÉCÈS', leftMargin, headerY, { width: usableWidth, align: 'center' });
+      headerY += 24;
+
+      // Fonction utilitaire sécurisée pour ajouter une ligne centrée
       const addLine = (label, value, y) => {
         try {
+          const line = `${label || ''}${label ? ' : ' : ''}${String(value || 'Non spécifié').substring(0, 200)}`;
           doc
             .fontSize(10)
             .font('Helvetica')
-            .text(label || '', 50, y, { width: 150, continued: true })
-            .text(':', 200, y, { width: 10, continued: true })
-            .font('Helvetica-Bold')
-            .text(String(value || 'Non spécifié').substring(0, 100), 220, y, { width: 300 });
-          return y + 20;
+            .fillColor('#000000')
+            .text(line, startX, y, { width: contentWidth, align: 'center' });
+          return y + 18;
         } catch (err) {
           log('Erreur lors de l\'ajout d\'une ligne', { label, value, error: err.message });
-          return y + 20; // Continue malgré l'erreur
+          return y + 18; // Continue malgré l'erreur
         }
       };
       
       // Position Y initiale avec marge
-      let y = 100;
+      let y = headerY + 8;
       
       try {
-        // Section Informations administratives
-        doc.fontSize(12).font('Helvetica-Bold').text('INFORMATIONS ADMINISTRATIVES', 50, y);
-        y = addLine('N\'acte', data.numeroActe, y + 20);
+        // Section Informations administratives (centrée)
+        doc
+          .fontSize(12)
+          .font('Helvetica-Bold')
+          .fillColor('#000000')
+          .text('INFORMATIONS ADMINISTRATIVES', startX, y, { width: contentWidth, align: 'center' });
+        y = addLine('N° d\'acte', data.numeroActe, y + 22);
         y = addLine('Mairie', data.mairie, y);
         y = addLine('Date d\'enregistrement', data.dateEnregistrement, y);
         
-        // Section Informations du défunt
-        y += 10;
-        doc.fontSize(12).text('INFORMATIONS SUR LE DÉFUNT', 50, y);
-        y = addLine('Nom', data.nomDefunt, y + 20);
+        // Section Informations du défunt (centrée)
+        y += 12;
+        doc
+          .fontSize(12)
+          .font('Helvetica-Bold')
+          .text('INFORMATIONS SUR LE DÉFUNT', startX, y, { width: contentWidth, align: 'center' });
+        y = addLine('Nom', data.nomDefunt, y + 22);
         y = addLine('Prénoms', data.prenomsDefunt, y);
         y = addLine('Date de naissance', data.dateNaissanceDefunt, y);
         y = addLine('Lieu de naissance', data.lieuNaissanceDefunt, y);
@@ -226,9 +280,12 @@ const generateDecesPdf = (data) => {
         
         // Section Informations du déclarant
         if (data.nomDeclarant || data.prenomsDeclarant) {
-          y += 10;
-          doc.fontSize(12).text('INFORMATIONS DU DÉCLARANT', 50, y);
-          y = addLine('Nom', data.nomDeclarant, y + 20);
+          y += 12;
+          doc
+            .fontSize(12)
+            .font('Helvetica-Bold')
+            .text('INFORMATIONS DU DÉCLARANT', startX, y, { width: contentWidth, align: 'center' });
+          y = addLine('Nom', data.nomDeclarant, y + 22);
           y = addLine('Prénoms', data.prenomsDeclarant, y);
           y = addLine('Date de naissance', data.dateNaissanceDeclarant, y);
           y = addLine('Lieu de naissance', data.lieuNaissanceDeclarant, y);
@@ -237,12 +294,16 @@ const generateDecesPdf = (data) => {
           y = addLine('Lien avec le défunt', data.lienDeclarant, y);
         }
         
-        // Pied de page avec gestion d'erreur
+        // Pied de page avec gestion d'erreur (centré)
         try {
           doc
             .fontSize(8)
             .font('Helvetica')
-            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 750);
+            .fillColor('#000000')
+            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`,
+                  leftMargin,
+                  750,
+                  { width: usableWidth, align: 'center' });
         } catch (footerErr) {
           log('Erreur lors de l\'ajout du pied de page', { error: footerErr.message });
         }

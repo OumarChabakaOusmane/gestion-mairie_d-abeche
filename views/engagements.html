@@ -172,8 +172,8 @@
                     <tr>
                         <td>${engagement.numeroActe || 'N/A'}</td>
                         <td>${new Date(engagement.dateDebutConcubinage).toLocaleDateString()}</td>
-                        <td>${engagement.concubin1.nom} ${engagement.concubin1.prenoms}</td>
-                        <td>${engagement.concubin2.nom} ${engagement.concubin2.prenoms}</td>
+                        <td>${engagement.concubin1.prenoms} ${engagement.concubin1.nom}</td>
+                        <td>${engagement.concubin2.prenoms} ${engagement.concubin2.nom}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td>
                             <a href="/engagement/${engagement._id}" class="btn btn-sm action-btn action-view" title="Voir">

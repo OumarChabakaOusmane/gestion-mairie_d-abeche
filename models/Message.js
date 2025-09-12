@@ -16,6 +16,10 @@ const messageSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  attachments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Document'
+  }],
   read: {
     type: Boolean,
     default: false

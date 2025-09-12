@@ -4,10 +4,10 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
-// Créer une nouvelle conversation
+// Créer une nouvelle conversation (avec pièces jointes optionnelles)
 router.post('/', async (req, res) => {
   try {
-    const { recipient, subject, content } = req.body;
+    const { recipient, subject, content, attachments } = req.body;
     const sender = req.user._id; // L'utilisateur connecté
     
     // Vérifier si une conversation existe déjà
@@ -28,7 +28,8 @@ router.post('/', async (req, res) => {
     const message = new Message({
       conversation: conversation._id,
       sender,
-      content
+      content,
+      attachments: Array.isArray(attachments) ? attachments : []
     });
     await message.save();
     
@@ -59,7 +60,7 @@ router.get('/', async (req, res) => {
       participants: userId
     })
     .populate('participants', 'name')
-    .populate('lastMessage')
+    .populate({ path: 'lastMessage', populate: { path: 'attachments', select: 'title type originalName' } })
     .sort({ updatedAt: -1 });
     
     res.json({
@@ -139,6 +140,7 @@ router.get('/:id/messages', async (req, res) => {
   try {
     const messages = await Message.find({ conversation: req.params.id })
       .populate('sender', 'name')
+      .populate('attachments', 'title type originalName')
       .sort({ createdAt: 1 });
     
     res.json({
@@ -156,12 +158,13 @@ router.get('/:id/messages', async (req, res) => {
 // Envoyer un message dans une conversation
 router.post('/:id/messages', async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, attachments } = req.body;
     
     const message = new Message({
       conversation: req.params.id,
       sender: req.user._id,
-      content
+      content,
+      attachments: Array.isArray(attachments) ? attachments : []
     });
     await message.save();
     
@@ -181,6 +184,42 @@ router.post('/:id/messages', async (req, res) => {
       success: false,
       error: err.message
     });
+  }
+});
+
+// Marquer un message comme lu
+router.post('/messages/:messageId/read', async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, error: 'Message non trouvé' });
+    }
+    // Vérifier que l'utilisateur appartient à la conversation
+    const conversation = await Conversation.findById(message.conversation);
+    if (!conversation || !conversation.participants.some(p => p.equals(req.user._id))) {
+      return res.status(403).json({ success: false, error: 'Accès non autorisé' });
+    }
+    await message.markAsRead();
+    res.json({ success: true, data: { id: message._id, read: message.read, readAt: message.readAt } });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Marquer tous les messages d'une conversation comme lus
+router.post('/:id/read-all', async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) {
+      return res.status(404).json({ success: false, error: 'Conversation non trouvée' });
+    }
+    if (!conversation.participants.some(p => p.equals(req.user._id))) {
+      return res.status(403).json({ success: false, error: 'Accès non autorisé' });
+    }
+    await Message.updateMany({ conversation: conversation._id, read: false }, { $set: { read: true, readAt: new Date() } });
+    res.json({ success: true, message: 'Messages marqués comme lus' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
   }
 });
 

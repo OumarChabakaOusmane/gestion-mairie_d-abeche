@@ -165,11 +165,11 @@ class Dashboard {
   getActeDescription(acte) {
     switch(acte.type) {
       case 'naissance':
-        return `${acte.prenomEnfant || ''} ${acte.nomEnfant || ''}`.trim() || 'Nouveau-né';
+        return `${acte.details?.prenom || ''} ${acte.details?.nom || ''}`.trim() || 'Nouveau-né';
       case 'mariage':
-        return `${acte.conjoint1Nom || ''} & ${acte.conjoint2Nom || ''}`.trim() || 'Mariage';
+        return `${acte.details?.conjoint1 || ''} & ${acte.details?.conjointe2 || ''}`.trim() || 'Mariage';
       case 'deces':
-        return `${acte.prenomDefunt || ''} ${acte.nomDefunt || ''}`.trim() || 'Décès';
+        return `${acte.details?.prenom || ''} ${acte.details?.nom || ''}`.trim() || 'Décès';
       default:
         return acte.numeroActe || 'Acte';
     }

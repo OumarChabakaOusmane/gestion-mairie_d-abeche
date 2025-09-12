@@ -88,6 +88,27 @@ class MessageSystem {
       newMessageForm.addEventListener('submit', (e) => this.createNewConversation(e));
     }
 
+    // Accessibility: prevent focused element from remaining inside an aria-hidden modal
+    const newMessageModal = document.getElementById('newMessageModal');
+    if (newMessageModal) {
+      newMessageModal.addEventListener('hide.bs.modal', () => {
+        if (document.activeElement && newMessageModal.contains(document.activeElement)) {
+          document.activeElement.blur();
+          // Move focus to a safe, visible element outside the modal
+          const defaultFocusTarget = document.querySelector('[data-focus-default]') || document.body;
+          if (defaultFocusTarget && typeof defaultFocusTarget.focus === 'function') {
+            defaultFocusTarget.focus({ preventScroll: true });
+          }
+        }
+      });
+      newMessageModal.addEventListener('shown.bs.modal', () => {
+        const firstFocusable = newMessageModal.querySelector('input, select, textarea, button');
+        if (firstFocusable) {
+          firstFocusable.focus({ preventScroll: true });
+        }
+      });
+    }
+
     // Search conversations
     const searchInput = document.getElementById('searchConversations');
     if (searchInput) {
@@ -352,6 +373,13 @@ class MessageSystem {
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('newMessageModal'));
         modal.hide();
+        // Restore focus to a visible control outside the modal to avoid aria-hidden focus
+        setTimeout(() => {
+          const focusTarget = document.querySelector('[data-focus-default]') || document.getElementById('searchConversations') || document.body;
+          if (focusTarget && typeof focusTarget.focus === 'function') {
+            focusTarget.focus({ preventScroll: true });
+          }
+        }, 0);
         
         // Reset form
         e.target.reset();
