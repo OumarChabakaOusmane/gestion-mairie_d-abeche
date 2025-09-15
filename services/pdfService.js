@@ -104,6 +104,51 @@ function generatePersonneSection(doc, data, y, title, boxHeight) {
  * @param {Object} data - Les données de l'acte de décès
  * @returns {Promise<Buffer>} Le buffer du PDF généré
  */
+// Fonction pour ajouter un en-tête de section
+const addSectionHeader = (doc, title, y) => {
+  doc
+    .fillColor('#f8f9fa')
+    .rect(50, y, 500, 25)
+    .fill()
+    .fillColor('#212529')
+    .font('Helvetica-Bold')
+    .fontSize(12)
+    .text(title, 55, y + 5);
+  
+  return y + 30;
+};
+
+// Fonction pour ajouter une ligne d'information
+const addInfoLine = (doc, label, value, x, y, width = 240) => {
+  doc
+    .fillColor('#6c757d')
+    .font('Helvetica')
+    .fontSize(10)
+    .text(label, x, y, { width, align: 'left' });
+    
+  doc
+    .fillColor('#212529')
+    .font('Helvetica')
+    .fontSize(10)
+    .text(value || 'Non renseigné', x + 100, y, { width: width - 100, align: 'left' });
+    
+  return y + 15;
+};
+
+// Fonction utilitaire pour formater les dates
+const formatDatePdf = (date) => {
+  if (!date) return 'Non spécifié';
+  try {
+    return new Date(date).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return 'Date invalide';
+  }
+};
+
 const generateDecesPdf = (data) => {
   return new Promise((resolve, reject) => {
     const log = (message, meta = {}) => {
@@ -183,54 +228,82 @@ const generateDecesPdf = (data) => {
         doc.text('ACTE DE DÉCÈS', { align: 'center', fontSize: 16 });
       }
       
-      // Définir une zone de contenu centrée
-      const pageWidth = doc.page.width;
-      const leftMargin = doc.page.margins.left || 50;
-      const rightMargin = doc.page.margins.right || 50;
-      const usableWidth = pageWidth - leftMargin - rightMargin;
-      const contentWidth = usableWidth;
-      const startX = leftMargin;
-
-      // Bloc d'en-tête textuel centré (motto, ministère, numéro, date)
-      let headerY = 80;
-      const formatDate = (d) => {
-        if (!d) return '';
-        try { return new Date(d).toLocaleDateString('fr-FR'); } catch (_) { return String(d); }
-      };
+      // Position de départ pour le contenu après l'en-tête
+      let currentY = 150;
+      
+      // Section Informations du défunt
+      currentY = addSectionHeader(doc, 'INFORMATIONS DU DÉFUNT', currentY);
+      currentY = addInfoLine(doc, 'Nom:', data.nomDefunt, 50, currentY);
+      currentY = addInfoLine(doc, 'Prénoms:', data.prenomsDefunt, 50, currentY);
+      currentY = addInfoLine(doc, 'Date de naissance:', formatDatePdf(data.dateNaissance), 50, currentY);
+      currentY = addInfoLine(doc, 'Lieu de naissance:', data.lieuNaissance, 50, currentY);
+      currentY = addInfoLine(doc, 'Date du décès:', formatDatePdf(data.dateDeces), 50, currentY);
+      currentY = addInfoLine(doc, 'Lieu du décès:', data.lieuDeces, 50, currentY);
+      currentY = addInfoLine(doc, 'Cause du décès:', data.causeDeces, 50, currentY);
+      currentY += 10; // Espacement
+      
+      // Section Informations familiales
+      currentY = addSectionHeader(doc, 'INFORMATIONS FAMILIALES', currentY);
+      currentY = addInfoLine(doc, 'Nom du père:', data.nomPere, 50, currentY);
+      currentY = addInfoLine(doc, 'Prénoms du père:', data.prenomsPere, 50, currentY);
+      currentY = addInfoLine(doc, 'Nom de la mère:', data.nomMere, 50, currentY);
+      currentY = addInfoLine(doc, 'Prénoms de la mère:', data.prenomsMere, 50, currentY);
+      currentY += 10; // Espacement
+      
+      // Section Informations du déclarant
+      currentY = addSectionHeader(doc, 'INFORMATIONS DU DÉCLARANT', currentY);
+      currentY = addInfoLine(doc, 'Nom:', data.nomDeclarant, 50, currentY);
+      currentY = addInfoLine(doc, 'Prénoms:', data.prenomsDeclarant, 50, currentY);
+      currentY = addInfoLine(doc, 'Date de naissance:', formatDatePdf(data.dateNaissanceDeclarant), 50, currentY);
+      currentY = addInfoLine(doc, 'Lien avec le défunt:', data.lienDeclarant, 50, currentY);
+      currentY = addInfoLine(doc, 'Adresse:', data.domicileDeclarant, 50, currentY);
+      currentY += 10; // Espacement
+      
+      // Section Informations administratives
+      currentY = addSectionHeader(doc, 'INFORMATIONS ADMINISTRATIVES', currentY);
+      currentY = addInfoLine(doc, 'Numéro d\'acte:', data.numeroActe, 50, currentY);
+      currentY = addInfoLine(doc, 'Date d\'enregistrement:', formatDatePdf(data.dateEnregistrement), 50, currentY);
+      currentY = addInfoLine(doc, 'Mairie:', data.mairie, 50, currentY);
+      currentY = addInfoLine(doc, 'Officier d\'état civil:', data.officierEtatCivil, 50, currentY);
+      
+      // Ajouter la signature et le cachet
+      const signatureY = 680;
+      
+      // Ligne de signature
+      doc
+        .moveTo(100, signatureY)
+        .lineTo(250, signatureY)
+        .stroke('#000000');
+        
+      // Texte de signature
       doc
         .font('Helvetica')
         .fontSize(10)
         .fillColor('#000000')
-        .text('Unité - Travail - Progrès', leftMargin, headerY, { width: usableWidth, align: 'center' });
-      headerY += 16;
+        .text('Signature et cachet', 100, signatureY + 5, { width: 150, align: 'center' });
+      
+      // Ajouter la devise nationale en bas de page
       doc
         .font('Helvetica-Bold')
         .fontSize(11)
-        .text("MINISTÈRE DE L'INTÉRIEUR ET DE LA SÉCURITÉ PUBLIQUE", leftMargin, headerY, { width: usableWidth, align: 'center' });
-      headerY += 18;
+        .fillColor('#000000')
+        .text('Unité - Travail - Progrès', 50, 750, { width: 500, align: 'center' });
+      
+      // Ajouter la date de génération
+      doc
+        .font('Helvetica')
+        .fontSize(9)
+        .fillColor('#6c757d')
+        .text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 770, { width: 500, align: 'right' });
+      
+      // Ajouter le numéro d'acte si disponible
       if (data.numeroActe) {
         doc
           .font('Helvetica-Bold')
           .fontSize(11)
-          .text(`N° ${data.numeroActe}`, leftMargin, headerY, { width: usableWidth, align: 'center' });
-        headerY += 16;
+          .text(`N° ${data.numeroActe}`, 50, 100, { width: 500, align: 'right' });
       }
-      if (data.dateEnregistrement) {
-        doc
-          .font('Helvetica')
-          .fontSize(10)
-          .text(`Fait le: ${formatDate(data.dateEnregistrement)}`, leftMargin, headerY, { width: usableWidth, align: 'center' });
-        headerY += 18;
-      }
-
-      // Titre centré explicite sous le bloc
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(16)
-        .fillColor('#000000')
-        .text('ACTE DE DÉCÈS', leftMargin, headerY, { width: usableWidth, align: 'center' });
-      headerY += 24;
-
+      
       // Fonction utilitaire sécurisée pour ajouter une ligne centrée
       const addLine = (label, value, y) => {
         try {
@@ -248,7 +321,7 @@ const generateDecesPdf = (data) => {
       };
       
       // Position Y initiale avec marge
-      let y = headerY + 8;
+      let y = 180; // Position après l'en-tête
       
       try {
         // Section Informations administratives (centrée)
@@ -259,7 +332,7 @@ const generateDecesPdf = (data) => {
           .text('INFORMATIONS ADMINISTRATIVES', startX, y, { width: contentWidth, align: 'center' });
         y = addLine('N° d\'acte', data.numeroActe, y + 22);
         y = addLine('Mairie', data.mairie, y);
-        y = addLine('Date d\'enregistrement', data.dateEnregistrement, y);
+        y = addLine('Date d\'enregistrement', formatDatePdf(data.dateEnregistrement), y);
         
         // Section Informations du défunt (centrée)
         y += 12;
@@ -269,12 +342,9 @@ const generateDecesPdf = (data) => {
           .text('INFORMATIONS SUR LE DÉFUNT', startX, y, { width: contentWidth, align: 'center' });
         y = addLine('Nom', data.nomDefunt, y + 22);
         y = addLine('Prénoms', data.prenomsDefunt, y);
-        y = addLine('Date de naissance', data.dateNaissanceDefunt, y);
-        y = addLine('Lieu de naissance', data.lieuNaissanceDefunt, y);
-        y = addLine('Profession', data.professionDefunt, y);
-        y = addLine('Domicile', data.domicileDefunt, y);
-        y = addLine('Date du décès', data.dateDeces, y);
-        y = addLine('Heure du décès', data.heureDeces, y);
+        y = addLine('Date de naissance', formatDatePdf(data.dateNaissance), y);
+        y = addLine('Lieu de naissance', data.lieuNaissance, y);
+        y = addLine('Date du décès', formatDatePdf(data.dateDeces), y);
         y = addLine('Lieu du décès', data.lieuDeces, y);
         y = addLine('Cause du décès', data.causeDeces, y);
         
@@ -287,26 +357,37 @@ const generateDecesPdf = (data) => {
             .text('INFORMATIONS DU DÉCLARANT', startX, y, { width: contentWidth, align: 'center' });
           y = addLine('Nom', data.nomDeclarant, y + 22);
           y = addLine('Prénoms', data.prenomsDeclarant, y);
-          y = addLine('Date de naissance', data.dateNaissanceDeclarant, y);
-          y = addLine('Lieu de naissance', data.lieuNaissanceDeclarant, y);
-          y = addLine('Profession', data.professionDeclarant, y);
-          y = addLine('Domicile', data.domicileDeclarant, y);
+          y = addLine('Date de naissance', formatDatePdf(data.dateNaissanceDeclarant), y);
           y = addLine('Lien avec le défunt', data.lienDeclarant, y);
+          y = addLine('Adresse', data.domicileDeclarant, y);
         }
         
-        // Pied de page avec gestion d'erreur (centré)
-        try {
-          doc
-            .fontSize(8)
-            .font('Helvetica')
-            .fillColor('#000000')
-            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`,
-                  leftMargin,
-                  750,
-                  { width: usableWidth, align: 'center' });
-        } catch (footerErr) {
-          log('Erreur lors de l\'ajout du pied de page', { error: footerErr.message });
-        }
+        // Ajouter la signature et le cachet
+        const signatureY = 680;
+        doc
+          .moveTo(100, signatureY)
+          .lineTo(250, signatureY)
+          .stroke('#000000');
+          
+        doc
+          .font('Helvetica')
+          .fontSize(10)
+          .fillColor('#000000')
+          .text('Signature et cachet', 100, signatureY + 5, { width: 150, align: 'center' });
+        
+        // Ajouter la devise nationale en bas de page
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(11)
+          .fillColor('#000000')
+          .text('Unité - Travail - Progrès', 50, 750, { width: 500, align: 'center' });
+        
+        // Ajouter la date de génération
+        doc
+          .font('Helvetica')
+          .fontSize(9)
+          .fillColor('#6c757d')
+          .text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 770, { width: 500, align: 'right' });
         
       } catch (contentErr) {
         log('Erreur lors de la génération du contenu', { error: contentErr.message, stack: contentErr.stack });
@@ -325,9 +406,6 @@ const generateDecesPdf = (data) => {
     }
   });
 };
-
-// Importer la fonction de génération des actes de naissance
-const { generateNaissancePdf } = require('./pdfServiceNew.js');
 
 /**
  * Génère un PDF pour un engagement de concubinage
@@ -598,7 +676,6 @@ const generatePdf = async (type, data) => {
 module.exports = {
   generateDecesPdf,
   generatePdf,
-  generateHeader,
-  generatePersonneSection,
-  generateEngagementConcubinagePdf
+  generateEngagementConcubinagePdf,
+  generateNaissancePdf: require('./pdfServiceNew.js').generateNaissancePdf
 };

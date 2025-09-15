@@ -2,17 +2,23 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const { connectDB } = require('./config/db');
+const { validateEnv } = require('./config/validateEnv');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const { securityHeaders, apiLimiter, sanitizeLogs, validateInputs } = require('./middleware/security');
+const { securityHeaders, apiLimiter, authLimiter, sanitizeLogs, validateInputs } = require('./middleware/security');
 const disableSourceMaps = require('./middleware/disableSourceMaps');
 const logger = require('./config/logger');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const crypto = require('crypto');
+
+// Valider les variables d'environnement au démarrage
+validateEnv();
 
 const app = express();
 const server = createServer(app);
@@ -23,6 +29,7 @@ const io = new Server(server, {
   }
 });
 const PORT = process.env.PORT || 3000;
+const APP_VERSION = process.env.APP_VERSION || '1.0.0';
 
 // Création du dossier de logs s'il n'existe pas
 const logDir = path.join(__dirname, 'logs');
@@ -31,6 +38,9 @@ if (!fs.existsSync(logDir)) {
 }
 
 // Middlewares
+// Faire confiance au proxy pour récupérer les IPs réelles (X-Forwarded-For)
+app.set('trust proxy', 1);
+
 app.use(cors({
   origin: function(origin, callback) {
     // Autoriser toutes les origines en développement
@@ -45,13 +55,17 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+  exposedHeaders: ['X-Request-Id'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(cookieParser());
 // Middleware pour gérer les données JSON et URL encodées
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Compression HTTP pour réduire la taille des réponses
+app.use(compression());
 
 // Middleware pour les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
@@ -60,12 +74,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(securityHeaders);
 app.use(disableSourceMaps);
 app.use(sanitizeLogs);
-app.use(morgan('combined', { stream: logger.stream }));
 
-// Configuration de sécurité avec Helmet (la CSP est gérée par le middleware securityHeaders)
-app.use(helmet({
-  contentSecurityPolicy: false
-}));
+// Ajout d'un identifiant de requête pour la corrélation des logs
+morgan.token('id', (req) => req.id);
+app.use((req, res, next) => {
+  req.id = req.headers['x-request-id'] || crypto.randomUUID();
+  res.setHeader('X-Request-Id', req.id);
+  next();
+});
+
+// Logger HTTP avec identifiant de requête
+app.use(morgan(':id :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"', { stream: logger.stream }));
+
+// Helmet déjà appliqué via securityHeaders (éviter les redondances)
 
 // Servir les fichiers statiques
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -139,6 +160,28 @@ console.log('10. Routes de test chargées avec succès!');
 
 console.log('=== FIN DU CHARGEMENT DES ROUTES ===\n');
 
+// Endpoints de santé
+app.get('/healthz', async (req, res) => {
+  const dbState = mongoose.connection.readyState; // 0=disconnected,1=connected,2=connecting,3=disconnecting
+  const healthy = dbState === 1;
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'ok' : 'degraded',
+    uptime: process.uptime(),
+    version: APP_VERSION,
+    db: dbState
+  });
+});
+
+app.get('/readyz', async (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const ready = dbState === 1;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? 'ready' : 'not-ready',
+    version: APP_VERSION,
+    db: dbState
+  });
+});
+
 // Middleware de débogage pour les erreurs non gérées
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -163,7 +206,8 @@ app.use('/api', apiLimiter);
 
 // Configuration des routes API
 console.log('=== CONFIGURATION DES ROUTES API ===');
-app.use('/api/auth', authRoutes);
+// Limitation plus stricte pour les routes d'authentification
+app.use('/api/auth', authLimiter, authRoutes);
 console.log('Route /api/auth configurée');
 
 app.use('/api/users', userRoutes);

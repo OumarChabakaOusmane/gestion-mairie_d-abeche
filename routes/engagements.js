@@ -86,7 +86,7 @@ router.post('/:id/terminer',
     check('motif').notEmpty().withMessage('Le motif de la rupture est requis'),
     check('dateFin').optional().isISO8601().withMessage('Date de fin invalide')
   ]),
-  engagementController.rompreEngagement
+  engagementController.terminateEngagement
 );
 
 router.delete('/:id', 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { check } = require('express-validator');
-const { auth } = require('../middleware/auth');
+const { authenticate: auth } = require('../middleware/auth');
 const naissanceController = require('../controllers/naissanceController');
 
 // @route   GET /api/naissances/:id/pdf

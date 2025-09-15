@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 const Acte = require('../models/Acte');
-const { generateDecesPdf } = require('../services/pdfServiceNew');
+const { generateDecesPdf } = require('../services/pdfService');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 

@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+logs
+coverage
+.git
+.gitignore
+uploads
+public/pdfs
+.env
+.DS_Store
+

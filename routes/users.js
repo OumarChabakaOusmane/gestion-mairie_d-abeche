@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middleware/auth');
+const userController = require('../controllers/userController');
+const { upload, handleUploadErrors } = require('../middleware/upload');
 
 // Appliquer le middleware d'authentification à toutes les routes
 router.use(authenticate);
@@ -112,6 +116,32 @@ router.put('/me/password', async (req, res) => {
   }
 });
 
+// Route pour obtenir les paramètres utilisateur
+router.get('/me/settings', async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('settings');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur non trouvé'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: user.settings || {}
+    });
+  } catch (err) {
+    console.error('Erreur dans GET /me/settings:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 // Route pour mettre à jour les paramètres utilisateur
 router.put('/me/settings', async (req, res) => {
   try {
@@ -126,10 +156,10 @@ router.put('/me/settings', async (req, res) => {
     res.json({
       success: true,
       message: 'Paramètres mis à jour avec succès',
-      data: user
+      data: user.settings
     });
   } catch (err) {
-    console.error('Erreur dans /me/settings:', err);
+    console.error('Erreur dans PUT /me/settings:', err);
     res.status(400).json({
       success: false,
       error: 'Erreur serveur',
@@ -288,5 +318,62 @@ router.delete('/:id', async (req, res) => {
     });
   }
 });
+
+// Routes pour la gestion des avatars
+/**
+ * @swagger
+ * /api/users/me/avatar:
+ *   post:
+ *     summary: Télécharge un nouvel avatar pour l'utilisateur connecté
+ *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar mis à jour avec succès
+ *       400:
+ *         description: Erreur de validation ou fichier invalide
+ *       401:
+ *         description: Non authentifié
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post('/me/avatar', 
+  upload.single('avatar'), 
+  handleUploadErrors, 
+  userController.uploadAvatar
+);
+
+/**
+ * @swagger
+ * /api/users/me/avatar:
+ *   delete:
+ *     summary: Supprime l'avatar de l'utilisateur connecté
+ *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Avatar supprimé avec succès
+ *       400:
+ *         description: Aucun avatar à supprimer
+ *       401:
+ *         description: Non authentifié
+ *       404:
+ *         description: Utilisateur non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.delete('/me/avatar', userController.deleteAvatar);
 
 module.exports = router;

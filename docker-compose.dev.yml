@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: wenaklabs-app
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/wenaklabs
+      - JWT_SECRET=changeme
+      - CORS_ORIGIN=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+volumes:
+  mongo_data:
+
+

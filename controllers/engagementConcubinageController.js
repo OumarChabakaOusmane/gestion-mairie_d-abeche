@@ -2,6 +2,99 @@ const EngagementConcubinage = require('../models/EngagementConcubinage');
 const { generatePdf } = require('../services/pdfService');
 const logger = require('../config/logger');
 const mongoose = require('mongoose');
+const { validationResult } = require('express-validator');
+const { body, param } = require('express-validator');
+
+// Middleware de validation pour les paramètres d'ID
+const validateIdParam = [
+  param('id')
+    .notEmpty().withMessage('L\'ID est requis')
+    .isMongoId().withMessage('ID invalide')
+];
+
+// Middleware de validation pour la création d'un engagement
+const validateCreateEngagement = [
+  body('concubin1.nom').notEmpty().withMessage('Le nom du premier concubin est requis'),
+  body('concubin1.prenoms').notEmpty().withMessage('Les prénoms du premier concubin sont requis'),
+  body('concubin1.dateNaissance').isISO8601().withMessage('Date de naissance invalide pour le premier concubin'),
+  body('concubin2.nom').notEmpty().withMessage('Le nom du deuxième concubin est requis'),
+  body('concubin2.prenoms').notEmpty().withMessage('Les prénoms du deuxième concubin sont requis'),
+  body('concubin2.dateNaissance').isISO8601().withMessage('Date de naissance invalide pour le deuxième concubin'),
+  body('dateDebutConcubinage').isISO8601().withMessage('Date de début de concubinage invalide'),
+  body('lieuEtablissement').notEmpty().withMessage('Le lieu d\'établissement est requis'),
+  body('officierEtatCivil').notEmpty().withMessage('Le nom de l\'officier d\'état civil est requis')
+];
+
+// Middleware de validation pour la mise à jour d'un engagement
+const validateUpdateEngagement = [
+  ...validateIdParam,
+  body('concubin1.nom').optional().notEmpty().withMessage('Le nom du premier concubin ne peut pas être vide'),
+  body('concubin1.prenoms').optional().notEmpty().withMessage('Les prénoms du premier concubin ne peuvent pas être vides'),
+  body('concubin2.nom').optional().notEmpty().withMessage('Le nom du deuxième concubin ne peut pas être vide'),
+  body('concubin2.prenoms').optional().notEmpty().withMessage('Les prénoms du deuxième concubin ne peuvent pas être vides'),
+  body('dateDebutConcubinage').optional().isISO8601().withMessage('Date de début de concubinage invalide')
+];
+
+// Middleware de validation pour la rupture d'un engagement
+const validateTerminateEngagement = [
+  ...validateIdParam,
+  body('motif').notEmpty().withMessage('Le motif de la rupture est requis')
+];
+
+// Gestionnaire d'erreurs centralisé
+const handleError = (res, error, context = '') => {
+  const errorId = Math.random().toString(36).substr(2, 9);
+  const errorMessage = error.message || 'Une erreur est survenue';
+  const errorStack = process.env.NODE_ENV === 'development' ? error.stack : undefined;
+  
+  logger.error(`${context} [${errorId}]`, {
+    error: errorMessage,
+    stack: errorStack,
+    errorId
+  });
+
+  // Gestion des erreurs de validation
+  if (error.name === 'ValidationError') {
+    const errors = Object.values(error.errors).map(err => ({
+      field: err.path,
+      message: err.message
+    }));
+    
+    return res.status(400).json({
+      success: false,
+      message: 'Erreur de validation des données',
+      errors,
+      errorId
+    });
+  }
+
+  // Gestion des erreurs de doublon
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyPattern)[0];
+    return res.status(409).json({
+      success: false,
+      message: `La valeur du champ ${field} est déjà utilisée`,
+      field,
+      errorId
+    });
+  }
+
+  // Gestion des erreurs Mongoose
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Identifiant invalide',
+      errorId
+    });
+  }
+
+  // Erreur serveur par défaut
+  res.status(500).json({
+    success: false,
+    message: process.env.NODE_ENV === 'development' ? errorMessage : 'Erreur serveur',
+    errorId: process.env.NODE_ENV === 'development' ? errorId : undefined
+  });
+};
 
 /**
  * Créer un nouvel engagement de concubinage
@@ -9,60 +102,98 @@ const mongoose = require('mongoose');
 /**
  * Crée un nouvel engagement de concubinage
  * @route POST /api/engagements
- * @access Privé
+ * @access Privé (admin, officier_etat_civil)
  * @param {Object} req - La requête HTTP
  * @param {Object} res - La réponse HTTP
  * @returns {Promise<void>}
  */
-exports.createEngagement = async (req, res) => {
-  try {
-    const engagementData = req.body;
-    
-    // Vérifier si un engagement similaire existe déjà
-    const existingEngagement = await EngagementConcubinage.findOne({
-      'concubin1.numeroPieceIdentite': engagementData.concubin1.numeroPieceIdentite,
-      'concubin2.numeroPieceIdentite': engagementData.concubin2.numeroPieceIdentite,
-      statut: 'actif'
-    });
+exports.createEngagement = [
+  ...validateCreateEngagement,
+  async (req, res) => {
+    try {
+      // Vérifier les erreurs de validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Erreur de validation des données',
+          errors: errors.array()
+        });
+      }
 
-    if (existingEngagement) {
-      return res.status(400).json({
-        success: false,
-        message: 'Un engagement de concubinage actif existe déjà entre ces deux personnes'
+      const engagementData = req.body;
+      
+      // Vérifier si un engagement similaire existe déjà
+      const existingEngagement = await EngagementConcubinage.findOne({
+        $or: [
+          {
+            'concubin1.numeroPieceIdentite': engagementData.concubin1.numeroPieceIdentite,
+            'concubin2.numeroPieceIdentite': engagementData.concubin2.numeroPieceIdentite,
+            statut: 'actif'
+          },
+          {
+            'concubin1.numeroPieceIdentite': engagementData.concubin2.numeroPieceIdentite,
+            'concubin2.numeroPieceIdentite': engagementData.concubin1.numeroPieceIdentite,
+            statut: 'actif'
+          }
+        ]
+      }).lean();
+
+      if (existingEngagement) {
+        return res.status(409).json({
+          success: false,
+          message: 'Un engagement de concubinage actif existe déjà entre ces deux personnes',
+          existingEngagementId: existingEngagement._id
+        });
+      }
+
+      // Nettoyer et valider les données
+      const cleanData = {
+        ...engagementData,
+        concubin1: {
+          ...engagementData.concubin1,
+          nom: engagementData.concubin1.nom.trim(),
+          prenoms: engagementData.concubin1.prenoms.trim(),
+          dateNaissance: new Date(engagementData.concubin1.dateNaissance)
+        },
+        concubin2: {
+          ...engagementData.concubin2,
+          nom: engagementData.concubin2.nom.trim(),
+          prenoms: engagementData.concubin2.prenoms.trim(),
+          dateNaissance: new Date(engagementData.concubin2.dateNaissance)
+        },
+        dateDebutConcubinage: new Date(engagementData.dateDebutConcubinage),
+        statut: 'actif',
+        createdBy: req.user.id,
+        mairie: req.user.mairie // Associer automatiquement à la mairie de l'utilisateur
+      };
+
+      const engagement = new EngagementConcubinage(cleanData);
+      await engagement.save();
+      
+      // Peupler les références pour la réponse
+      const savedEngagement = await EngagementConcubinage.findById(engagement._id)
+        .populate('createdBy', 'nom prenom')
+        .populate('mairie', 'nom ville')
+        .lean();
+      
+      logger.info('Engagement de concubinage créé avec succès', { 
+        engagementId: savedEngagement._id, 
+        userId: req.user.id,
+        mairie: req.user.mairie,
+        requestId: req.id
       });
+      
+      res.status(201).json({
+        success: true,
+        message: 'Engagement de concubinage créé avec succès',
+        data: savedEngagement
+      });
+    } catch (error) {
+      handleError(res, error, 'Erreur lors de la création de l\'engagement de concubinage');
     }
-
-    const engagement = new EngagementConcubinage({
-      ...engagementData,
-      createdBy: req.user.id
-    });
-    
-    await engagement.save();
-    
-    logger.info('Engagement de concubinage créé avec succès', { 
-      engagementId: engagement._id, 
-      userId: req.user.id 
-    });
-    
-    res.status(201).json({
-      success: true,
-      message: 'Engagement de concubinage créé avec succès',
-      data: engagement
-    });
-  } catch (error) {
-    logger.error('Erreur lors de la création de l\'engagement de concubinage', {
-      error: error.message,
-      stack: error.stack,
-      userId: req.user?.id
-    });
-    
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la création de l\'engagement de concubinage',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur'
-    });
   }
-};
+];
 
 /**
  * Récupère un engagement de concubinage par son ID
@@ -73,162 +204,252 @@ exports.createEngagement = async (req, res) => {
  * @param {Object} res - La réponse HTTP
  * @returns {Promise<void>}
  */
-exports.getEngagementById = async (req, res) => {
-  const { id } = req.params;
-  
-  try {
-    const engagement = await EngagementConcubinage.findById(id)
-      .populate('createdBy', 'nom prenom')
-      .populate('updatedBy', 'nom prenom')
-      .populate('mairie', 'nom ville')
-      .lean()
-      .maxTimeMS(10000); // 10 secondes timeout
+exports.getEngagementById = [
+  ...validateIdParam,
+  async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      // Vérifier si l'utilisateur a le droit d'accéder à cette mairie
+      const userMairie = req.user.mairie;
       
-    if (!engagement) {
-      logger.warn('Engagement de concubinage non trouvé', { engagementId: id });
-      return res.status(404).json({
-        success: false,
-        message: 'Engagement de concubinage non trouvé',
+      const query = { _id: id };
+      
+      // Si l'utilisateur n'est pas admin, filtrer par mairie
+      if (req.user.role !== 'admin') {
+        query.mairie = userMairie;
+      }
+      
+      const engagement = await EngagementConcubinage.findOne(query)
+        .populate('createdBy', 'nom prenom')
+        .populate('updatedBy', 'nom prenom')
+        .populate('mairie', 'nom ville')
+        .lean({ getters: true })
+        .maxTimeMS(10000); // 10 secondes timeout
+        
+      if (!engagement) {
+        logger.warn('Engagement de concubinage non trouvé ou accès non autorisé', { 
+          engagementId: id,
+          userId: req.user.id,
+          userMairie,
+          requestId: req.id
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Engagement de concubinage non trouvé ou accès non autorisé',
+          requestId: req.id
+        });
+      }
+      
+      // Formater les dates pour l'affichage
+      const formatDate = (date) => {
+        if (!date) return null;
+        return new Date(date).toISOString().split('T')[0];
+      };
+      
+      const formattedEngagement = {
+        ...engagement,
+        dateDebutConcubinage: formatDate(engagement.dateDebutConcubinage),
+        concubin1: {
+          ...engagement.concubin1,
+          dateNaissance: formatDate(engagement.concubin1.dateNaissance)
+        },
+        concubin2: {
+          ...engagement.concubin2,
+          dateNaissance: formatDate(engagement.concubin2.dateNaissance)
+        },
+        // Masquer les champs sensibles si l'utilisateur n'est pas admin ou officier
+        ...(req.user.role === 'utilisateur' ? {
+          concubin1: {
+            ...engagement.concubin1,
+            numeroPieceIdentite: '******',
+            adresse: '******'
+          },
+          concubin2: {
+            ...engagement.concubin2,
+            numeroPieceIdentite: '******',
+            adresse: '******'
+          }
+        } : {})
+      };
+      
+      logger.info('Engagement de concubinage récupéré avec succès', {
+        engagementId: id,
+        userId: req.user.id,
         requestId: req.id
       });
+      
+      res.json({
+        success: true,
+        data: formattedEngagement
+      });
+    } catch (error) {
+      handleError(res, error, 'Erreur lors de la récupération de l\'engagement de concubinage');
     }
-    
-    logger.info('Engagement de concubinage récupéré avec succès', {
-      engagementId: id,
-      requestId: req.id
-    });
-    
-    res.json({
-      success: true,
-      data: engagement
-    });
-  } catch (error) {
-    logger.error('Erreur lors de la récupération de l\'engagement de concubinage', {
-      error: error.message,
-      stack: error.stack,
-      engagementId: id,
-      userId: req.user?.id,
-      requestId: req.id
-    });
-    
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération de l\'engagement de concubinage',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
-      requestId: req.id
-    });
   }
-};
+];
 
 /**
  * Met à jour un engagement de concubinage existant
  * @route PUT /api/engagements/:id
- * @access Privé
+ * @access Privé (admin, officier_etat_civil)
  * @param {Object} req - La requête HTTP
  * @param {string} req.params.id - L'ID de l'engagement à mettre à jour
  * @param {Object} req.body - Les données de mise à jour
  * @param {Object} res - La réponse HTTP
  * @returns {Promise<void>}
  */
-exports.updateEngagement = async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
-  
-  try {
-    // Ne pas permettre de modifier le statut directement via cette route
-    if (updates.statut || updates.dateFin || updates.motifFin) {
-      delete updates.statut;
-    }
+exports.updateEngagement = [
+  ...validateUpdateEngagement,
+  async (req, res) => {
+    const { id } = req.params;
     
-    const engagement = await EngagementConcubinage.findByIdAndUpdate(
-      id,
-      { 
-        ...updates, 
-        updatedBy: req.user.id,
-        updatedAt: new Date()
-      },
-      { 
-        new: true, 
-        runValidators: true,
-        context: 'query'
+    try {
+      // Vérifier les erreurs de validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Erreur de validation des données',
+          errors: errors.array(),
+          requestId: req.id
+        });
       }
-    )
-    .populate('createdBy', 'nom prenom')
-    .populate('updatedBy', 'nom prenom')
-    .populate('mairie', 'nom ville');
-    
-    if (!engagement) {
-      logger.warn('Tentative de mise à jour d\'un engagement non trouvé', {
+      
+      const updates = req.body;
+      
+      // Construire la requête avec contrôle d'accès
+      const query = { _id: id };
+      
+      // Si l'utilisateur n'est pas admin, limiter à sa mairie
+      if (req.user.role !== 'admin') {
+        query.mairie = req.user.mairie;
+      }
+      
+      // Vérifier si l'engagement existe et est accessible
+      let engagement = await EngagementConcubinage.findOne(query);
+      
+      if (!engagement) {
+        logger.warn('Tentative de mise à jour d\'un engagement inexistant ou non autorisé', { 
+          engagementId: id,
+          userId: req.user.id,
+          userRole: req.user.role,
+          userMairie: req.user.mairie,
+          requestId: req.id
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Engagement de concubinage non trouvé ou accès non autorisé',
+          requestId: req.id
+        });
+      }
+      
+      // Vérifier si l'engagement peut être modifié (statut actif)
+      if (engagement.statut !== 'actif') {
+        return res.status(400).json({
+          success: false,
+          message: 'Seuls les engagements actifs peuvent être modifiés',
+          currentStatus: engagement.statut,
+          requestId: req.id
+        });
+      }
+      
+      // Nettoyer et valider les données de mise à jour
+      const cleanUpdates = {};
+      
+      // Champs autorisés pour la mise à jour
+      const allowedFields = [
+        'concubin1', 'concubin2', 'dateDebutConcubinage', 'lieuEtablissement',
+        'officierEtatCivil', 'regimeMatrimonial', 'observations'
+      ];
+      
+      // Filtrer et nettoyer les mises à jour
+      Object.keys(updates).forEach(key => {
+        if (allowedFields.includes(key)) {
+          if (key === 'concubin1' || key === 'concubin2') {
+            // Nettoyer les champs des concubins
+            cleanUpdates[key] = {
+              ...updates[key],
+              nom: updates[key].nom?.trim(),
+              prenoms: updates[key].prenoms?.trim(),
+              dateNaissance: updates[key].dateNaissance ? new Date(updates[key].dateNaissance) : undefined
+            };
+          } else if (key === 'dateDebutConcubinage') {
+            cleanUpdates[key] = new Date(updates[key]);
+          } else {
+            cleanUpdates[key] = updates[key];
+          }
+        }
+      });
+      
+      // Appliquer les mises à jour
+      Object.assign(engagement, cleanUpdates);
+      
+      // Mettre à jour les métadonnées
+      engagement.updatedBy = req.user.id;
+      engagement.updatedAt = new Date();
+      
+      // Sauvegarder avec validation
+      await engagement.save({ validateBeforeSave: true });
+      
+      // Récupérer l'engagement mis à jour avec les données peuplées
+      const updatedEngagement = await EngagementConcubinage.findById(id)
+        .populate('createdBy', 'nom prenom')
+        .populate('updatedBy', 'nom prenom')
+        .populate('mairie', 'nom ville')
+        .lean();
+      
+      logger.info('Engagement de concubinage mis à jour avec succès', { 
+        engagementId: id, 
+        userId: req.user.id,
+        updatedFields: Object.keys(cleanUpdates),
+        requestId: req.id
+      });
+      
+      res.json({
+        success: true,
+        message: 'Engagement de concubinage mis à jour avec succès',
+        data: updatedEngagement,
+        requestId: req.id
+      });
+      
+    } catch (error) {
+      // Gestion des erreurs de doublon
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyPattern)[0];
+        return res.status(409).json({
+          success: false,
+          message: `La valeur du champ ${field} est déjà utilisée`,
+          field,
+          requestId: req.id
+        });
+      }
+      
+      // Gestion des autres erreurs
+      logger.error('Erreur lors de la mise à jour de l\'engagement de concubinage', {
+        error: error.message,
+        stack: error.stack,
         engagementId: id,
         userId: req.user?.id,
         requestId: req.id
       });
       
-      return res.status(404).json({
+      res.status(500).json({
         success: false,
-        message: 'Engagement de concubinage non trouvé',
+        message: 'Erreur lors de la mise à jour de l\'engagement de concubinage',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
         requestId: req.id
       });
     }
-    
-    logger.info('Engagement de concubinage mis à jour avec succès', {
-      engagementId: engagement._id,
-      userId: req.user.id,
-      requestId: req.id,
-      updatedFields: Object.keys(updates)
-    });
-    
-    res.json({
-      success: true,
-      message: 'Engagement de concubinage mis à jour avec succès',
-      data: engagement
-    });
-  } catch (error) {
-    logger.error('Erreur lors de la mise à jour de l\'engagement de concubinage', {
-      error: error.message,
-      stack: error.stack,
-      engagementId: id,
-      userId: req.user?.id,
-      requestId: req.id
-    });
-    
-    // Gestion des erreurs de validation
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreur de validation des données',
-        errors: Object.values(error.errors).map(err => ({
-          field: err.path,
-          message: err.message
-        })),
-        requestId: req.id
-      });
-    }
-    
-    // Gestion des erreurs de doublon
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(409).json({
-        success: false,
-        message: `La valeur du champ ${field} est déjà utilisée`,
-        field,
-        requestId: req.id
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la mise à jour de l\'engagement de concubinage',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
-      requestId: req.id
-    });
   }
-};
+];
 
 /**
  * Rompt un engagement de concubinage existant
- * @route POST /api/engagements/:id/rompre
- * @access Privé (Admin/Officier d'état civil)
+ * @route POST /api/engagements/:id/terminer
+ * @access Privé (admin, officier_etat_civil)
  * @param {Object} req - La requête HTTP
  * @param {string} req.params.id - L'ID de l'engagement à rompre
  * @param {Object} req.body - Les données de rupture
@@ -236,113 +457,252 @@ exports.updateEngagement = async (req, res) => {
  * @param {Object} res - La réponse HTTP
  * @returns {Promise<void>}
  */
-exports.rompreEngagement = async (req, res) => {
-  const { id } = req.params;
-  const { motif } = req.body;
-  
-  // Vérifier que le motif est fourni
-  if (!motif || typeof motif !== 'string' || motif.trim().length === 0) {
-    logger.warn('Tentative de rompre un engagement sans motif valide', {
-      engagementId: id,
-      userId: req.user?.id,
-      requestId: req.id
-    });
+exports.terminateEngagement = [
+  ...validateTerminateEngagement,
+  async (req, res) => {
+    const { id } = req.params;
+    const { motif } = req.body;
     
-    return res.status(400).json({
-      success: false,
-      message: 'Un motif valide est requis pour rompre un engagement',
-      requestId: req.id
-    });
-  }
-  
-  try {
-    // Vérifier d'abord si l'engagement existe et est actif
-    const existingEngagement = await EngagementConcubinage.findOne({
-      _id: id,
-      statut: 'actif'
-    });
-    
-    if (!existingEngagement) {
-      logger.warn('Tentative de rompre un engagement non trouvé ou déjà rompu', {
-        engagementId: id,
-        userId: req.user?.id,
+    try {
+      // Vérifier les erreurs de validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Erreur de validation des données',
+          errors: errors.array(),
+          requestId: req.id
+        });
+      }
+      
+      // Construire la requête avec contrôle d'accès
+      const query = { _id: id };
+      
+      // Si l'utilisateur n'est pas admin, limiter à sa mairie
+      if (req.user.role !== 'admin') {
+        query.mairie = req.user.mairie;
+      }
+      
+      // Vérifier si l'engagement existe et est accessible
+      const engagement = await EngagementConcubinage.findOne(query);
+      
+      if (!engagement) {
+        logger.warn('Tentative de rupture d\'un engagement inexistant ou non autorisé', { 
+          engagementId: id,
+          userId: req.user.id,
+          userRole: req.user.role,
+          userMairie: req.user.mairie,
+          requestId: req.id
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Engagement de concubinage non trouvé ou accès non autorisé',
+          requestId: req.id
+        });
+      }
+      
+      // Vérifier si l'engagement peut être rompu (doit être actif)
+      if (engagement.statut !== 'actif') {
+        return res.status(400).json({
+          success: false,
+          message: `Impossible de rompre un engagement qui n'est pas actif (statut actuel: ${engagement.statut})`,
+          currentStatus: engagement.statut,
+          requestId: req.id
+        });
+      }
+      
+      // Mettre à jour l'engagement
+      const now = new Date();
+      engagement.statut = 'rompu';
+      engagement.dateFinConcubinage = now;
+      engagement.motifRupture = motif.trim();
+      engagement.updatedBy = req.user.id;
+      engagement.updatedAt = now;
+      
+      await engagement.save({ validateBeforeSave: true });
+      
+      // Récupérer l'engagement mis à jour avec les données peuplées
+      const updatedEngagement = await EngagementConcubinage.findById(id)
+        .populate('createdBy', 'nom prenom')
+        .populate('updatedBy', 'nom prenom')
+        .populate('mairie', 'nom ville')
+        .lean();
+      
+      logger.info('Engagement de concubinage rompu avec succès', { 
+        engagementId: id, 
+        userId: req.user.id,
+        motif: motif,
         requestId: req.id
       });
       
-      return res.status(404).json({
-        success: false,
-        message: 'Engagement de concubinage actif non trouvé',
+      res.json({
+        success: true,
+        message: 'Engagement de concubinage rompu avec succès',
+        data: updatedEngagement,
         requestId: req.id
       });
+      
+    } catch (error) {
+      handleError(res, error, 'Erreur lors de la rupture de l\'engagement de concubinage');
     }
-    
-    // Mettre à jour l'engagement avec les informations de rupture
-    const engagement = await EngagementConcubinage.findByIdAndUpdate(
-      id,
-      {
-        statut: 'rompu',
-        dateFin: new Date(),
-        motifFin: motif.trim(),
-        updatedBy: req.user.id,
-        updatedAt: new Date()
-      },
-      { 
-        new: true, 
-        runValidators: true,
-        context: 'query'
-      }
-    )
-    .populate('createdBy', 'nom prenom')
-    .populate('updatedBy', 'nom prenom')
-    .populate('mairie', 'nom ville');
-    
-    if (!engagement) {
-      throw new Error('Échec de la mise à jour de l\'engagement');
-    }
-    
-    logger.info('Engagement de concubinage rompu avec succès', {
-      engagementId: engagement._id,
-      userId: req.user.id,
-      requestId: req.id,
-      motif: engagement.motifFin,
-      dateFin: engagement.dateFin
-    });
-    
-    res.json({
-      success: true,
-      message: 'Engagement de concubinage rompu avec succès',
-      data: engagement
-    });
-  } catch (error) {
-    logger.error('Erreur lors de la rupture de l\'engagement de concubinage', {
-      error: error.message,
-      stack: error.stack,
-      engagementId: id,
-      userId: req.user?.id,
-      requestId: req.id
-    });
-    
-    // Gestion des erreurs de validation
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreur de validation des données',
-        errors: Object.values(error.errors).map(err => ({
-          field: err.path,
-          message: err.message
-        })),
-        requestId: req.id
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Une erreur est survenue lors de la rupture de l\'engagement de concubinage',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
-      requestId: req.id
-    });
   }
-};
+];
+
+/**
+ * Supprime un engagement de concubinage (marquage comme supprimé)
+ * @route DELETE /api/engagements/:id
+ * @access Privé (admin, officier_etat_civil)
+ * @param {Object} req - La requête HTTP
+ * @param {string} req.params.id - L'ID de l'engagement à supprimer
+ * @param {Object} res - La réponse HTTP
+ * @returns {Promise<void>}
+ */
+exports.deleteEngagement = [
+  ...validateIdParam,
+  async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      // Construire la requête avec contrôle d'accès
+      const query = { _id: id };
+      
+      // Si l'utilisateur n'est pas admin, limiter à sa mairie
+      if (req.user.role !== 'admin') {
+        query.mairie = req.user.mairie;
+      }
+      
+      // Vérifier si l'engagement existe et est accessible
+      const engagement = await EngagementConcubinage.findOne(query);
+      
+      if (!engagement) {
+        logger.warn('Tentative de suppression d\'un engagement inexistant ou non autorisé', { 
+          engagementId: id,
+          userId: req.user.id,
+          userRole: req.user.role,
+          userMairie: req.user.mairie,
+          requestId: req.id
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Engagement de concubinage non trouvé ou accès non autorisé',
+          requestId: req.id
+        });
+      }
+      
+      // Vérifier si l'engagement peut être supprimé (statut actif ou rompu)
+      if (!['actif', 'rompu'].includes(engagement.statut)) {
+        return res.status(400).json({
+          success: false,
+          message: `Impossible de supprimer un engagement avec le statut: ${engagement.statut}`,
+          currentStatus: engagement.statut,
+          requestId: req.id
+        });
+      }
+      
+      // Marquer comme supprimé (soft delete)
+      engagement.statut = 'supprime';
+      engagement.updatedBy = req.user.id;
+      engagement.updatedAt = new Date();
+      
+      await engagement.save({ validateBeforeSave: true });
+      
+      logger.info('Engagement de concubinage marqué comme supprimé', { 
+        engagementId: id, 
+        userId: req.user.id,
+        requestId: req.id
+      });
+      
+      res.json({
+        success: true,
+        message: 'Engagement de concubinage marqué comme supprimé avec succès',
+        data: { _id: id },
+        requestId: req.id
+      });
+      
+    } catch (error) {
+      handleError(res, error, 'Erreur lors de la suppression de l\'engagement de concubinage');
+    }
+  }
+];
+
+/**
+ * Génère un PDF pour un engagement de concubinage
+ * @route GET /api/engagements-concubinage/:id/pdf
+ * @access Privé
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Promise<void>}
+ */
+exports.generateEngagementPdf = [
+  ...validateIdParam,
+  async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      // Construire la requête avec contrôle d'accès
+      const query = { _id: id };
+      
+      // Si l'utilisateur n'est pas admin, limiter à sa mairie
+      if (req.user.role !== 'admin') {
+        query.mairie = req.user.mairie;
+      }
+      
+      // Récupérer l'engagement avec les données peuplées
+      const engagement = await EngagementConcubinage.findOne(query)
+        .populate('createdBy', 'nom prenom')
+        .populate('mairie', 'nom ville adresse')
+        .lean();
+      
+      if (!engagement) {
+        logger.warn('Tentative de génération PDF d\'un engagement inexistant ou non autorisé', { 
+          engagementId: id,
+          userId: req.user.id,
+          userRole: req.user.role,
+          userMairie: req.user.mairie,
+          requestId: req.id
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Engagement de concubinage non trouvé ou accès non autorisé',
+          requestId: req.id
+        });
+      }
+      
+      // Générer le PDF
+      const pdfBuffer = await generatePdf('engagement-concubinage', {
+        ...engagement,
+        // Formater les dates pour l'affichage
+        dateDebutConcubinage: engagement.dateDebutConcubinage?.toLocaleDateString('fr-FR'),
+        dateFinConcubinage: engagement.dateFinConcubinage?.toLocaleDateString('fr-FR'),
+        // Ajouter les informations de l'utilisateur connecté
+        generatedBy: `${req.user.prenom} ${req.user.nom}`,
+        generationDate: new Date().toLocaleDateString('fr-FR')
+      });
+      
+      // Envoyer le PDF en réponse
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename=engagement-concubinage-${id}.pdf`,
+        'Content-Length': pdfBuffer.length
+      });
+      
+      logger.info('PDF généré avec succès pour l\'engagement de concubinage', { 
+        engagementId: id, 
+        userId: req.user.id,
+        requestId: req.id
+      });
+      
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      handleError(res, error, 'Erreur lors de la génération du PDF de l\'engagement de concubinage');
+    }
+  }
+];
+
 
 /**
  * Supprime un engagement de concubinage
@@ -551,27 +911,58 @@ exports.listEngagements = async (req, res) => {
 };
 
 /**
- * Obtenir des statistiques sur les engagements de concubinage
+ * Obtient des statistiques sur les engagements de concubinage
+ * @route GET /api/engagements/stats
+ * @access Privé
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Promise<void>}
  */
 exports.getEngagementStats = async (req, res) => {
-    try {
-        const total = await EngagementConcubinage.countDocuments();
-        const byStatus = await EngagementConcubinage.aggregate([
-            { $group: { _id: '$statut', count: { $sum: 1 } } }
-        ]);
-        
-        res.json({
-            success: true,
-            data: { total, byStatus }
-        });
-    } catch (error) {
-        logger.error('Erreur lors de la récupération des statistiques:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Erreur lors de la récupération des statistiques',
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur'
-        });
+  try {
+    // Construire la requête avec contrôle d'accès
+    const matchStage = {};
+    
+    // Filtrage par mairie pour les non-admins
+    if (req.user.role !== 'admin') {
+      matchStage.mairie = new mongoose.Types.ObjectId(req.user.mairie);
     }
+    
+    // Agrégation pour obtenir les statistiques
+    const stats = await EngagementConcubinage.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: '$statut',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          statut: '$_id',
+          count: 1
+        }
+      },
+      { $sort: { statut: 1 } }
+    ]);
+    
+    // Calculer le total
+    const total = stats.reduce((sum, stat) => sum + stat.count, 0);
+    
+    // Formater la réponse
+    res.json({
+      success: true,
+      data: {
+        total,
+        stats
+      },
+      requestId: req.id
+    });
+    
+  } catch (error) {
+    handleError(res, error, 'Erreur lors de la récupération des statistiques des engagements');
+  }
 };
 
 /**

@@ -4,9 +4,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { body, param } = require('express-validator');
 const User = require('../models/User');
 const PendingUser = require('../models/PendingUser');
 const emailConfig = require('../config/email');
+const { validateInputs } = require('../middleware/security');
 
 // Configuration du transporteur email
 let transporter = null;
@@ -51,7 +53,16 @@ router.get('/current', async (req, res) => {
 });
 
 // Enregistrer un utilisateur avec OTP
-router.post('/register', async (req, res) => {
+router.post(
+  '/register',
+  [
+    body('name').isString().trim().isLength({ min: 2 }).withMessage('Nom invalide'),
+    body('email').isEmail().normalizeEmail().withMessage('Email invalide'),
+    body('password').isString().isLength({ min: 6 }).withMessage('Mot de passe trop court'),
+    body('role').optional().isIn(['admin', 'agent', 'superviseur']).withMessage('Rôle invalide')
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -133,7 +144,14 @@ router.post('/register', async (req, res) => {
 });
 
 // Vérifier le code OTP et créer le compte
-router.post('/verify-otp', async (req, res) => {
+router.post(
+  '/verify-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').isString().isLength({ min: 6, max: 6 }).withMessage('OTP invalide')
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const { email, otp } = req.body;
 
@@ -201,7 +219,13 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 // Renvoyer le code OTP
-router.post('/resend-otp', async (req, res) => {
+router.post(
+  '/resend-otp',
+  [
+    body('email').isEmail().normalizeEmail()
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -256,7 +280,14 @@ router.post('/resend-otp', async (req, res) => {
 });
 
 // Connecter un utilisateur
-router.post('/login', async (req, res) => {
+router.post(
+  '/login',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').isString().isLength({ min: 6 })
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -355,7 +386,11 @@ router.get('/confirm-email/:token', async (req, res) => {
 });
 
 // Mot de passe oublié
-router.post('/forgot-password', async (req, res) => {
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().normalizeEmail()],
+  validateInputs,
+  async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -473,7 +508,14 @@ router.get('/verify-reset-token/:token', async (req, res) => {
 });
 
 // Réinitialiser le mot de passe
-router.post('/reset-password/:token', async (req, res) => {
+router.post(
+  '/reset-password/:token',
+  [
+    param('token').isString().isLength({ min: 10 }).withMessage('Token invalide'),
+    body('password').isString().isLength({ min: 6 }).withMessage('Mot de passe trop court')
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
@@ -516,7 +558,14 @@ router.post('/reset-password/:token', async (req, res) => {
 });
 
 // Modifier le mot de passe (utilisateur connecté)
-router.post('/change-password', async (req, res) => {
+router.post(
+  '/change-password',
+  [
+    body('currentPassword').isString().isLength({ min: 6 }),
+    body('newPassword').isString().isLength({ min: 6 })
+  ],
+  validateInputs,
+  async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

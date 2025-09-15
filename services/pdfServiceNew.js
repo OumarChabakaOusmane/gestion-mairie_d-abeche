@@ -1,7 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
-const { logger } = require('../config/logger');
+const logger = require('../config/logger');
 
 // Configuration
 const CONFIG = {
@@ -20,10 +20,10 @@ const CONFIG = {
     BORDER: '#CCCCCC'
   },
   MARGINS: {
-    LEFT: 50,
-    RIGHT: 50,
-    TOP: 50,
-    BOTTOM: 50
+    LEFT: 35,
+    RIGHT: 35,
+    TOP: 40,
+    BOTTOM: 40
   },
   FLAG: {
     WIDTH: 90,
@@ -159,14 +159,20 @@ const generateFormSection = (doc, title, content, options = {}) => {
   const { y, height = 100, bgColor = CONFIG.COLORS.LIGHT_BG } = options;
   const sectionY = y || doc.y + 20;
   
+  // Vérifier si on a assez d'espace sur la page
+  if (sectionY + height > doc.page.height - 50) {
+    doc.addPage();
+    sectionY = 50;
+  }
+  
   // Dessiner le cadre de la section
   doc
     .roundedRect(
       CONFIG.MARGINS.LEFT, 
       sectionY, 
-      500, 
+      doc.page.width - (CONFIG.MARGINS.LEFT + CONFIG.MARGINS.RIGHT), 
       height, 
-      5
+      3
     )
     .stroke(CONFIG.COLORS.BORDER)
     .fill(bgColor);
@@ -175,16 +181,27 @@ const generateFormSection = (doc, title, content, options = {}) => {
   doc
     .font(CONFIG.FONTS.BOLD)
     .fontSize(12)
-    .fillColor(CONFIG.COLORS.PRIMARY)
-    .text(title, CONFIG.MARGINS.LEFT + 10, sectionY + 10);
-  
-  // Ajouter le contenu
-  doc
-    .font(CONFIG.FONTS.NORMAL)
-    .fontSize(11)
+    .fillColor('white')
+    .fillOpacity(0.8)
+    .rect(CONFIG.MARGINS.LEFT, sectionY, 150, 25)
+    .fillAndStroke(CONFIG.COLORS.PRIMARY, CONFIG.COLORS.PRIMARY)
+    .fillColor('white')
+    .text(title, CONFIG.MARGINS.LEFT + 10, sectionY + 8, {
+      width: 140,
+      align: 'left'
+    })
+    .fillOpacity(1)
     .fillColor(CONFIG.COLORS.TEXT);
   
-  return { y: sectionY, height };
+  // Positionner le curseur pour le contenu
+  doc.y = sectionY + 30;
+  
+  return { 
+    y: sectionY, 
+    height,
+    contentStartY: sectionY + 30,
+    contentWidth: doc.page.width - (CONFIG.MARGINS.LEFT + CONFIG.MARGINS.RIGHT + 20)
+  };
 };
 
 // Générer la section des informations de base
@@ -210,91 +227,127 @@ generateBasicInfoSection = (doc, data) => {
 };
 
 // Générer la section des informations de l'enfant
-generateChildInfoSection = (doc, data) => {
-  const { y } = generateFormSection(
+const generateChildInfoSection = (doc, data) => {
+  const section = generateFormSection(
     doc,
     'INFORMATIONS DE L\'ENFANT',
     null,
-    { height: 120, bgColor: '#E6F3FF' }
+    { height: 140, bgColor: '#E6F3FF' }
   );
   
-  doc
-    .text(`Nom: ${data.nomEnfant || 'N/A'}`, 60, y + 35)
-    .text(`Prénoms: ${data.prenomsEnfant || 'N/A'}`, 60, y + 55)
-    .text(
-      `Date de naissance: ${data.dateNaissance ? new Date(data.dateNaissance).toLocaleDateString('fr-FR') : 'N/A'}`,
-      60, 
-      y + 75
-    )
-    .text(`Heure de naissance: ${data.heureNaissance || 'N/A'}`, 300, y + 75)
-    .text(`Lieu de naissance: ${data.lieuNaissance || 'N/A'}`, 60, y + 95)
-    .text(
-      `Sexe: ${data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'N/A'}`,
-      300, 
-      y + 95
-    );
+  const startY = section.contentStartY;
+  const col1 = 60;
+  const col2 = 300;
+  const lineHeight = 20;
   
-  doc.moveDown(1);
+  // Fonction utilitaire pour ajouter une ligne de texte avec gestion du débordement
+  const addLine = (label, value, y, x = col1) => {
+    doc
+      .font(CONFIG.FONTS.BOLD)
+      .fontSize(10)
+      .text(`${label}: `, x, y, { width: 100, continued: true })
+      .font(CONFIG.FONTS.NORMAL)
+      .text(value || 'Non renseigné', { width: 200 });
+    return y + lineHeight;
+  };
+  
+  let currentY = startY;
+  
+  // Première ligne : Nom et Prénoms
+  currentY = addLine('Nom', data.nomEnfant, currentY, col1);
+  currentY = addLine('Prénoms', data.prenomsEnfant, currentY, col2);
+  
+  // Deuxième ligne : Date et Heure de naissance
+  const dateNaissance = data.dateNaissance ? 
+    new Date(data.dateNaissance).toLocaleDateString('fr-FR') : 'Non spécifiée';
+  currentY = addLine('Date de naissance', dateNaissance, currentY, col1);
+  currentY = addLine('Heure de naissance', data.heureNaissance || 'Non spécifiée', currentY - lineHeight, col2);
+  
+  // Troisième ligne : Lieu de naissance et Sexe
+  currentY = addLine('Lieu de naissance', data.lieuNaissance, currentY, col1);
+  const sexe = data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'Non spécifié';
+  addLine('Sexe', sexe, currentY - lineHeight, col2);
+  
+  // Mettre à jour la position Y du document
+  doc.y = currentY + 10;
 };
 
 // Générer la section des informations des parents
-generateParentsSection = (doc, data) => {
-  const { y } = generateFormSection(
+const generateParentsSection = (doc, data) => {
+  const section = generateFormSection(
     doc,
     'FILIATION',
     null,
-    { height: 180, bgColor: '#FFF9E6' }
+    { height: 200, bgColor: '#FFF9E6' }
   );
   
-  // Père
-  doc
-    .font(CONFIG.FONTS.BOLD)
-    .text('PÈRE:', 60, y + 40)
-    .font(CONFIG.FONTS.NORMAL)
-    .text(`Nom: ${data.nomPere || 'N/A'}`, 90, y + 40)
-    .text(`Prénoms: ${data.prenomsPere || 'N/A'}`, 90, y + 60);
+  const startY = section.contentStartY;
+  const col1 = 60;
+  const col2 = 320;
+  const lineHeight = 20;
+  const labelWidth = 120;
+  const valueWidth = 200;
+  
+  // Fonction utilitaire pour ajouter une ligne de texte
+  const addParentLine = (label, value, y, x, isBold = false) => {
+    doc
+      .font(isBold ? CONFIG.FONTS.BOLD : CONFIG.FONTS.NORMAL)
+      .fontSize(10)
+      .text(label, x, y, { width: labelWidth });
+      
+    if (value) {
+      doc
+        .font(CONFIG.FONTS.NORMAL)
+        .text(value, x + labelWidth, y, { width: valueWidth });
+    }
     
+    return y + lineHeight;
+  };
+  
+  // Section Père
+  let yPere = startY;
+  doc.font(CONFIG.FONTS.BOLD).fontSize(11).text('PÈRE', col1, yPere);
+  yPere += 20;
+  
+  yPere = addParentLine('Nom :', data.nomPere, yPere, col1);
+  yPere = addParentLine('Prénoms :', data.prenomsPere, yPere, col1);
+  
   if (data.dateNaissancePere) {
-    doc.text(
-      `Date de naissance: ${new Date(data.dateNaissancePere).toLocaleDateString('fr-FR')}`,
-      90,
-      y + 80
-    );
+    const birthDate = new Date(data.dateNaissancePere).toLocaleDateString('fr-FR');
+    yPere = addParentLine('Date de naissance :', birthDate, yPere, col1);
   }
   
   if (data.lieuNaissancePere) {
-    doc.text(`Lieu de naissance: ${data.lieuNaissancePere}`, 90, y + 100);
+    yPere = addParentLine('Lieu de naissance :', data.lieuNaissancePere, yPere, col1);
   }
   
   if (data.professionPere) {
-    doc.text(`Profession: ${data.professionPere}`, 90, y + 120);
+    yPere = addParentLine('Profession :', data.professionPere, yPere, col1);
   }
   
-  // Mère
-  doc
-    .font(CONFIG.FONTS.BOLD)
-    .text('MÈRE:', 300, y + 40)
-    .font(CONFIG.FONTS.NORMAL)
-    .text(`Nom: ${data.nomMere || 'N/A'}`, 330, y + 40)
-    .text(`Prénoms: ${data.prenomsMere || 'N/A'}`, 330, y + 60);
-    
+  // Section Mère
+  let yMere = startY;
+  doc.font(CONFIG.FONTS.BOLD).fontSize(11).text('MÈRE', col2, yMere);
+  yMere += 20;
+  
+  yMere = addParentLine('Nom :', data.nomMere, yMere, col2);
+  yMere = addParentLine('Prénoms :', data.prenomsMere, yMere, col2);
+  
   if (data.dateNaissanceMere) {
-    doc.text(
-      `Date de naissance: ${new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR')}`,
-      330,
-      y + 80
-    );
+    const birthDate = new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR');
+    yMere = addParentLine('Date de naissance :', birthDate, yMere, col2);
   }
   
   if (data.lieuNaissanceMere) {
-    doc.text(`Lieu de naissance: ${data.lieuNaissanceMere}`, 330, y + 100);
+    yMere = addParentLine('Lieu de naissance :', data.lieuNaissanceMere, yMere, col2);
   }
   
   if (data.professionMere) {
-    doc.text(`Profession: ${data.professionMere}`, 330, y + 120);
+    yMere = addParentLine('Profession :', data.professionMere, yMere, col2);
   }
   
-  doc.moveDown(3);
+  // Mettre à jour la position Y du document avec la plus grande des deux colonnes
+  doc.y = Math.max(yPere, yMere) + 10;
 };
 
 // Générer la section du déclarant (si disponible)
@@ -449,23 +502,146 @@ const generateNaissancePdf = async (data) => {
       
       // Générer le contenu du PDF
       try {
-        // 1. En-tête avec drapeau
+        // 1) En-tête (drapeau + titres République)
         generateHeader(doc);
         
-        // 2. Titre du document
+        // Filigrane diagonal « RÉPUBLIQUE DU TCHAD »
+        doc.save();
+        doc.rotate(-45, { origin: [150, 400] });
         doc
-          .fontSize(18)
           .font(CONFIG.FONTS.BOLD)
+          .fontSize(78)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .fillOpacity(0.10)
+          .text('RÉPUBLIQUE DU TCHAD', 0, 350, { align: 'left' });
+        doc.fillOpacity(1).restore();
+
+        // Numéro de document (haut-gauche)
+        doc
+          .font(CONFIG.FONTS.NORMAL)
+          .fontSize(10)
+          .fillColor('#6c757d')
+          .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20);
+
+        // Timbre officiel supprimé selon la demande
+
+        // 2) Titre principal et sous-titre
+        doc
+          .moveDown(2)
+          .fontSize(22)
+          .font(CONFIG.FONTS.BOLD)
+          .fillColor('#0e5b23')
           .text('ACTE DE NAISSANCE', { align: 'center' })
-          .moveDown(0.5);
+          .fontSize(12)
+          .fillColor('#212529')
+          .text("Extrait des registres de l'état civil", { align: 'center' })
+          .moveDown(0.8);
         
-        // 3. Sections du document
-        generateBasicInfoSection(doc, data);
-        generateChildInfoSection(doc, data);
-        generateParentsSection(doc, data);
-        generateDeclarantSection(doc, data);
-        generateObservationsSection(doc, data);
-        generateFooter(doc, data);
+        // 3) Informations sur l'enfant
+        doc
+          .moveDown(1)
+          .font(CONFIG.FONTS.BOLD)
+          .fontSize(13)
+          .fillColor('#0e5b23')
+          .text("INFORMATIONS SUR L'ENFANT");
+        doc.moveDown(0.5);
+
+        const colLeftX = 60;
+        const colRightX = 300;
+        const lineH = 18;
+        let y = doc.y;
+        const info = (label, value, x, yPos) => {
+          doc
+            .font(CONFIG.FONTS.BOLD)
+            .fillColor('#0e5b23')
+            .fontSize(10)
+            .text(`${label} `, x, yPos, { continued: true })
+            .font(CONFIG.FONTS.NORMAL)
+            .fillColor('#212529')
+            .text(value || 'Non spécifié');
+        };
+        const sexe = data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'Non spécifié';
+        info('Nom de famille :', data.nomEnfant, colLeftX, y); info('Prénom(s) :', data.prenomsEnfant, colRightX, y); y += lineH;
+        info('Sexe :', sexe, colLeftX, y); info('Date de naissance :', data.dateNaissance ? new Date(data.dateNaissance).toLocaleDateString('fr-FR') : 'Non spécifiée', colRightX, y); y += lineH;
+        info('Heure de naissance :', data.heureNaissance || 'Non spécifiée', colLeftX, y); info('Lieu de naissance :', data.lieuNaissance || 'Non spécifié', colRightX, y); y += lineH + 6;
+        doc.y = y;
+
+        // 4) Informations sur les parents
+        doc
+          .font(CONFIG.FONTS.BOLD)
+          .fontSize(13)
+          .fillColor('#0e5b23')
+          .text('INFORMATIONS SUR LES PARENTS');
+        doc.moveDown(0.5);
+        y = doc.y;
+        // Père
+        doc
+          .font(CONFIG.FONTS.NORMAL)
+          .fillColor('#212529')
+          .text('Père : ', colLeftX, y, { continued: true })
+          .font(CONFIG.FONTS.BOLD)
+          .text(`${data.nomPere || ''} ${data.prenomsPere || ''}`.trim());
+        y += lineH;
+        info('Date de naissance :', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
+        info('Lieu de naissance :', data.lieuNaissancePere || 'Non spécifié', colRightX, y); y += lineH;
+        // Mère
+        doc
+          .font(CONFIG.FONTS.NORMAL)
+          .fillColor('#212529')
+          .text('Mère : ', colLeftX, y, { continued: true })
+          .font(CONFIG.FONTS.BOLD)
+          .text(`${data.nomMere || ''} ${data.prenomsMere || ''}`.trim());
+        y += lineH;
+        info('Date de naissance :', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
+        info('Lieu de naissance :', data.lieuNaissanceMere || 'Non spécifié', colRightX, y); y += lineH + 6;
+        doc.y = y;
+
+        // 5) Déclaration de naissance
+        doc
+          .font(CONFIG.FONTS.BOLD)
+          .fontSize(13)
+          .fillColor('#0e5b23')
+          .text('DÉCLARATION DE NAISSANCE');
+        doc.moveDown(0.5);
+        y = doc.y;
+        info('Déclarée le :', data.dateEtablissement ? new Date(data.dateEtablissement).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
+        info('Heure :', data.heureDeclaration || 'Non spécifiée', colRightX, y); y += lineH;
+        const declarantTxt = data.declarant ? `${data.declarant.nom || ''} ${data.declarant.prenoms || ''}${data.declarant.qualite ? ` (${data.declarant.qualite})` : ''}`.trim() : 'Non spécifié';
+        info('Déclarant :', declarantTxt, colLeftX, y); y += lineH;
+        info('Lieu de déclaration :', data.mairie || 'Non spécifié', colLeftX, y); y += lineH;
+        info("Officier de l'état civil :", data.officierEtatCivil || 'Non spécifié', colLeftX, y); y += lineH + 6;
+        doc.y = y;
+
+        // 6) Mentions marginales (infos admin)
+        doc
+          .font(CONFIG.FONTS.BOLD)
+          .fontSize(13)
+          .fillColor('#0e5b23')
+          .text('MENTIONS MARGINALES');
+        doc.moveDown(0.5);
+        y = doc.y;
+        info("Numéro d'acte :", data.numeroActe || 'N/A', colLeftX, y); info('Volume :', data.volume || 'N/A', colRightX, y); y += lineH;
+        info("Date d'édition :", new Date().toLocaleDateString('fr-FR'), colLeftX, y); info('Registre :', 'Naissances 2023', colRightX, y); y += lineH + 12;
+        doc.y = y;
+
+        // 7) Signature
+        doc
+          .font(CONFIG.FONTS.NORMAL)
+          .fillColor('#212529')
+          .text(`Le Maire de ${data.mairie || ''},`, { align: 'right' })
+          .text((data.maire || '').toString(), { align: 'right' });
+        const sigX = doc.page.width - CONFIG.MARGINS.RIGHT - 250;
+        const sigY = doc.y + 5;
+        doc.moveTo(sigX, sigY).lineTo(sigX + 250, sigY).stroke('#000');
+        doc.fontSize(10).fillColor('#6c757d').text('Signature et cachet', sigX, sigY + 5, { width: 250, align: 'center' });
+
+        // 8) Pied de page
+        doc
+          .moveDown(2)
+          .fontSize(9)
+          .fillColor('#6c757d')
+          .text("Document officiel délivré par la Mairie centrale", { align: 'center' })
+          .text("Ce document est un modèle et n'a aucune valeur légale", { align: 'center' });
         
         // Finaliser le document
         log('Finalisation du document PDF...');
@@ -507,7 +683,6 @@ const generateNaissancePdf = async (data) => {
 // Exporter les fonctions du module
 module.exports = {
   generateNaissancePdf,
-  generateDecesPdf,
   generateHeader,
   generateFormSection,
   generateBasicInfoSection,

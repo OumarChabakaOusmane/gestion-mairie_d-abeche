@@ -1100,8 +1100,19 @@
       modal.setAttribute('aria-modal', 'true');
       modal.setAttribute('aria-labelledby', `${modalId}Label`);
       
-      // Désactiver l'attribut aria-hidden qui cause des problèmes d'accessibilité
-      modal.removeAttribute('aria-hidden');
+      // Gérer correctement l'accessibilité du modal
+      modal.setAttribute('aria-hidden', 'true');
+      
+      // Ajouter un gestionnaire d'événements pour gérer le focus
+      modal.addEventListener('shown.bs.modal', function() {
+        modal.setAttribute('aria-hidden', 'false');
+        const focusable = modal.querySelector('button, [href], [tabindex]');
+        if (focusable) focusable.focus();
+      });
+      
+      modal.addEventListener('hidden.bs.modal', function() {
+        modal.setAttribute('aria-hidden', 'true');
+      });
 
       // Fonction pour générer une section d'information
       const infoSection = (title, items) => {

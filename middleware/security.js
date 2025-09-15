@@ -66,6 +66,15 @@ exports.apiLimiter = rateLimit({
   message: 'Trop de requêtes depuis cette adresse IP, veuillez réessayer après 15 minutes'
 });
 
+// Limitation plus stricte pour les endpoints d'authentification
+exports.authLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 20, // max 20 requêtes d'authentification par IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Trop de tentatives. Réessayez dans quelques minutes.'
+});
+
 // Validation des entrées
 exports.validateInputs = (req, res, next) => {
   const errors = validationResult(req);

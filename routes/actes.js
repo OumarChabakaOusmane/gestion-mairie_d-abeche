@@ -367,23 +367,13 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
 
       switch (acte.type) {
         case 'naissance': {
-          log('Génération PDF de naissance depuis Acte');
+          log('Génération PDF de naissance via naissanceController (nouveau layout)');
           if (logger && typeof logger.info === 'function') {
-            logger.info('Using LOCAL naissance PDF generation (routes/actes.js)', { requestId, acteId: acte._id?.toString() });
+            logger.info('Routing to naissanceController.generateNaissancePdf', { requestId, acteId: acte._id?.toString() });
           }
-          const doc = new PDFDocument({ size: 'A4', margin: 50 });
-          const fileName = `acte-naissance-${(acte.numeroActe || 'sans-numero')}.pdf`;
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-          doc.pipe(res);
-          try {
-            generateNaissancePDF(doc, acte);
-            doc.end();
-            controllerResponse = res;
-          } catch (e) {
-            doc.destroy();
-            throw e;
-          }
+          // Indiquer clairement quel générateur est utilisé
+          try { res.setHeader('X-PDF-Generator', 'naissanceController/pdfServiceNew'); } catch (e) {}
+          controllerResponse = await naissanceController.generateNaissancePdf(controllerRequest, res);
           break;
         }
           
@@ -522,7 +512,7 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
 // Alias pour compatibilité avec l'ancien frontend
 // GET /api/actes/naissances/:id/pdf → redirige vers /api/actes/:id/pdf en conservant la méthode et les en-têtes
 router.get('/naissances/:id/pdf', authenticate, (req, res) => {
-  return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
+  return res.redirect(307, `/api/naissances/${req.params.id}/pdf`);
 });
 
 // Alias mariage et engagement
