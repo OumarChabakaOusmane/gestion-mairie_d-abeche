@@ -8,12 +8,58 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .form-section {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            margin-bottom: 25px;
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+        }
+        
+        .btn-outline-secondary {
+            border-color: #dee2e6;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #6c757d;
         }
 
         .section-title {
@@ -52,6 +98,69 @@
         .btn-save:hover {
             background-color: #27ae60;
         }
+        
+        /* Centrage et conteneur */
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .container {
+            margin: 0 auto;
+        }
+        
+        .form-section {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .form-section {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        }
+        
+        /* Amélioration de l'apparence générale */
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content {
+            padding-top: 20px;
+        }
+        
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            border-bottom-color: #0d6efd;
+            background-color: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: #0d6efd;
+            color: #0d6efd;
+        }
     </style>
 </head>
 
@@ -59,7 +168,7 @@
     <div id="app">
         <div id="sidebar-container"></div>
         <div class="main-content">
-            <div class="container-fluid py-4">
+            <div class="container py-4" style="max-width: 1200px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="h3 mb-0"><i class="fas fa-file-contract me-2"></i><span id="formTitle">Nouvel acte de
                             divorce</span></h1>
@@ -113,77 +222,211 @@
                         <div class="tab-pane fade show active" id="info" role="tabpanel">
                             <div class="form-section">
                                 <h3 class="section-title">Informations générales</h3>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="numeroActe" class="form-label">Numéro d'acte</label>
-                                        <input type="text" class="form-control" id="numeroActe" name="numeroActe"
-                                            readonly>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-light py-2">
+                                                <h5 class="card-title mb-0"><i class="fas fa-hashtag me-2"></i>Numérotation</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label for="numeroActe" class="form-label fw-bold">Numéro d'acte</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control form-control-lg text-center fw-bold" 
+                                                            id="numeroActe" name="numeroActe" readonly
+                                                            style="background-color: #f8f9fa;">
+                                                        <button type="button" class="btn btn-outline-primary" id="editNumeroActe">
+                                                            <i class="fas fa-edit me-1"></i> Modifier
+                                                        </button>
+                                                    </div>
+                                                    <div class="form-text text-muted mt-1">
+                                                        <i class="fas fa-info-circle me-1"></i> Format: AAAA-NNN (ex: 2023-001)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="dateEtablissement" class="form-label required-field">Date
-                                            d'établissement</label>
-                                        <input type="date" class="form-control" id="dateEtablissement"
-                                            name="dateEtablissement" required>
-                                        <div class="invalid-feedback">Ce champ est requis</div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lieuEtablissement" class="form-label required-field">Lieu
-                                            d'établissement</label>
-                                        <input type="text" class="form-control" id="lieuEtablissement"
-                                            name="lieuEtablissement" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="officierEtatCivil" class="form-label required-field">Officier d'état
-                                            civil</label>
-                                        <input type="text" class="form-control" id="officierEtatCivil"
-                                            name="officierEtatCivil" required>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="dateMariage" class="form-label required-field">Date du
-                                            mariage</label>
-                                        <input type="date" class="form-control" id="dateMariage" name="dateMariage"
-                                            required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lieuMariage" class="form-label required-field">Lieu du
-                                            mariage</label>
-                                        <input type="text" class="form-control" id="lieuMariage" name="lieuMariage"
-                                            required>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="dateDivorce" class="form-label required-field">Date du
-                                            divorce</label>
-                                        <input type="date" class="form-control" id="dateDivorce" name="dateDivorce"
-                                            required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="typeDivorce" class="form-label required-field">Type de
-                                            divorce</label>
-                                        <select class="form-select" id="typeDivorce" name="typeDivorce" required>
-                                            <option value="">Sélectionner un type</option>
-                                            <option value="par consentement mutuel">Par consentement mutuel</option>
-                                            <option value="pour faute">Pour faute</option>
-                                            <option value="pour altération définitive du lien conjugal">Pour altération
-                                                définitive du lien conjugal</option>
-                                        </select>
+                                    <div class="col-12 col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-light py-2">
+                                                <h5 class="card-title mb-0"><i class="far fa-calendar-alt me-2"></i>Date d'établissement</h5>
+                                            </div>
+                                            <div class="card-body d-flex flex-column">
+                                                <div class="mb-3">
+                                                    <label for="dateEtablissement" class="form-label required-field">
+                                                        Date d'établissement de l'acte
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">
+                                                            <i class="far fa-calendar"></i>
+                                                        </span>
+                                                        <input type="date" class="form-control" id="dateEtablissement"
+                                                            name="dateEtablissement" required>
+                                                    </div>
+                                                    <div class="invalid-feedback">Veuillez sélectionner une date d'établissement</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="regimeMatrimonial" class="form-label required-field">Régime
-                                        matrimonial</label>
-                                    <input type="text" class="form-control" id="regimeMatrimonial"
-                                        name="regimeMatrimonial" required>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header bg-light py-2">
+                                                <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt me-2"></i>Lieu d'établissement</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="lieuEtablissement" class="form-label required-field">
+                                                            Ville ou localité
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">
+                                                                <i class="fas fa-city"></i>
+                                                            </span>
+                                                            <input type="text" class="form-control" id="lieuEtablissement"
+                                                                name="lieuEtablissement" required
+                                                                placeholder="Ex: N'Djamena">
+                                                        </div>
+                                                        <div class="invalid-feedback">Veuillez indiquer le lieu d'établissement</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="officierEtatCivil" class="form-label required-field">
+                                                            Officier d'état civil
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">
+                                                                <i class="fas fa-user-tie"></i>
+                                                            </span>
+                                                            <input type="text" class="form-control" id="officierEtatCivil"
+                                                                name="officierEtatCivil" required
+                                                                placeholder="Nom et prénom de l'officier">
+                                                        </div>
+                                                        <div class="invalid-feedback">Veuillez indiquer le nom de l'officier d'état civil</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="motifs" class="form-label required-field">Motifs du divorce</label>
-                                    <textarea class="form-control" id="motifs" name="motifs" rows="3"
-                                        required></textarea>
+                                <!-- Section Informations sur le mariage -->
+                                <div class="card mt-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0"><i class="fas fa-ring me-2"></i>Informations sur le mariage</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="dateMariage" class="form-label required-field">
+                                                    Date du mariage
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="far fa-calendar-alt"></i>
+                                                    </span>
+                                                    <input type="date" class="form-control" id="dateMariage" 
+                                                        name="dateMariage" required>
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez sélectionner la date du mariage</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="lieuMariage" class="form-label required-field">
+                                                    Lieu du mariage
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="lieuMariage" 
+                                                        name="lieuMariage" required
+                                                        placeholder="Ex: Mairie de N'Djamena">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer le lieu du mariage</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Section Informations sur le divorce -->
+                                <div class="card mt-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0"><i class="fas fa-gavel me-2"></i>Informations sur le divorce</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="dateDivorce" class="form-label required-field">
+                                                    Date du divorce
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="far fa-calendar-times"></i>
+                                                    </span>
+                                                    <input type="date" class="form-control" id="dateDivorce" 
+                                                        name="dateDivorce" required>
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez sélectionner la date du divorce</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="typeDivorce" class="form-label required-field">
+                                                    Type de divorce
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-balance-scale"></i>
+                                                    </span>
+                                                    <select class="form-select" id="typeDivorce" name="typeDivorce" required>
+                                                        <option value="">Sélectionner un type</option>
+                                                        <option value="par consentement mutuel">Par consentement mutuel</option>
+                                                        <option value="pour faute">Pour faute</option>
+                                                        <option value="pour altération définitive du lien conjugal">
+                                                            Pour altération définitive du lien conjugal
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez sélectionner un type de divorce</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="regimeMatrimonial" class="form-label required-field">
+                                                    Régime matrimonial
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-file-contract"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="regimeMatrimonial"
+                                                        name="regimeMatrimonial" required
+                                                        placeholder="Ex: Communauté réduite aux acquêts">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer le régime matrimonial</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Section Motifs du divorce -->
+                                <div class="card mt-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0"><i class="fas fa-clipboard-list me-2"></i>Motifs du divorce</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="motifs" class="form-label required-field">
+                                                Décrivez les motifs du divorce
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-comment-alt"></i>
+                                                </span>
+                                                <textarea class="form-control" id="motifs" name="motifs" 
+                                                    rows="4" required
+                                                    placeholder="Décrivez en détail les motifs du divorce (obligatoire)"></textarea>
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i> Soyez aussi précis que possible dans votre description.
+                                            </div>
+                                            <div class="invalid-feedback">Veuillez décrire les motifs du divorce</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -191,139 +434,337 @@
                         <!-- Onglet Informations sur l'époux -->
                         <div class="tab-pane fade" id="epoux" role="tabpanel">
                             <div class="form-section">
-                                <h3 class="section-title">Informations sur l'époux</h3>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_nom" class="form-label required-field">Nom</label>
-                                        <input type="text" class="form-control" id="epoux_nom" name="epoux.nom"
-                                            required>
+                                <h3 class="section-title mb-4">
+                                    <i class="fas fa-user-tie me-2"></i>Informations sur l'époux
+                                </h3>
+                                
+                                <!-- Carte d'identité de l'époux -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-id-card me-2"></i>Identité de l'époux
+                                        </h5>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_prenoms" class="form-label required-field">Prénoms</label>
-                                        <input type="text" class="form-control" id="epoux_prenoms" name="epoux.prenoms"
-                                            required>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="epouxNom" class="form-label required-field">
+                                                    Nom de famille
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouxNom" 
+                                                        name="epouxNom" required
+                                                        placeholder="Entrez le nom de famille">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir le nom de famille</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouxPrenom" class="form-label required-field">
+                                                    Prénom(s)
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-signature"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouxPrenom" 
+                                                        name="epouxPrenom" required
+                                                        placeholder="Entrez le(s) prénom(s)">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir au moins un prénom</div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="epoux_dateNaissance" class="form-label required-field">Date de
+                                                    naissance</label>
+                                                <input type="date" class="form-control" id="epoux_dateNaissance"
+                                                    name="epoux_dateNaissance" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="epoux_lieuNaissance" class="form-label required-field">Lieu de
+                                                    naissance</label>
+                                                <input type="text" class="form-control" id="epoux_lieuNaissance"
+                                                    name="epoux_lieuNaissance" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="epoux_profession" class="form-label">Profession</label>
+                                            <input type="text" class="form-control" id="epoux_profession"
+                                                name="epoux_profession">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="epoux_adresse" class="form-label required-field">Adresse</label>
+                                            <input type="text" class="form-control" id="epoux_adresse" name="epoux_adresse"
+                                                required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="epoux_nationalite"
+                                                    class="form-label required-field">Nationalité</label>
+                                                <input type="text" class="form-control" id="epoux_nationalite"
+                                                    name="epoux_nationalite" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="epoux_typePieceIdentite" class="form-label required-field">Type de
+                                                    pièce</label>
+                                                <select class="form-select" id="epoux_typePieceIdentite"
+                                                    name="epoux_typePieceIdentite" required>
+                                                    <option value="">Sélectionner</option>
+                                                    <option value="CNI">CNI</option>
+                                                    <option value="Passeport">Passeport</option>
+                                                    <option value="Acte de naissance">Acte de naissance</option>
+                                                    <option value="Autre">Autre</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="epoux_numeroPieceIdentite" class="form-label required-field">
+                                                N° de pièce d'identité
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-id-card"></i>
+                                                </span>
+                                                <input type="text" class="form-control" id="epoux_numeroPieceIdentite"
+                                                    name="epoux_numeroPieceIdentite" required
+                                                    placeholder="Numéro de la pièce d'identité">
+                                            </div>
+                                            <div class="invalid-feedback">Veuillez saisir le numéro de la pièce d'identité</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_dateNaissance" class="form-label required-field">Date de
-                                            naissance</label>
-                                        <input type="date" class="form-control" id="epoux_dateNaissance"
-                                            name="epoux.dateNaissance" required>
+
+                                <!-- Carte des informations complémentaires -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>Informations complémentaires
+                                        </h5>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_lieuNaissance" class="form-label required-field">Lieu de
-                                            naissance</label>
-                                        <input type="text" class="form-control" id="epoux_lieuNaissance"
-                                            name="epoux.lieuNaissance" required>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="epoux_profession" class="form-label">
+                                                    Profession
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-briefcase"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epoux_profession"
+                                                        name="epoux_profession"
+                                                        placeholder="Profession actuelle">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epoux_nationalite" class="form-label required-field">
+                                                    Nationalité
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-flag"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epoux_nationalite"
+                                                        name="epoux_nationalite" required
+                                                        placeholder="Nationalité">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer la nationalité</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="epoux_adresse" class="form-label required-field">
+                                                    Adresse complète
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epoux_adresse" 
+                                                        name="epoux_adresse" required
+                                                        placeholder="Adresse complète de résidence">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir l'adresse complète</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epoux_profession" class="form-label">Profession</label>
-                                    <input type="text" class="form-control" id="epoux_profession"
-                                        name="epoux.profession">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epoux_adresse" class="form-label required-field">Adresse</label>
-                                    <input type="text" class="form-control" id="epoux_adresse" name="epoux.adresse"
-                                        required>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_nationalite"
-                                            class="form-label required-field">Nationalité</label>
-                                        <input type="text" class="form-control" id="epoux_nationalite"
-                                            name="epoux.nationalite" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epoux_typePieceIdentite" class="form-label required-field">Type de
-                                            pièce</label>
-                                        <select class="form-select" id="epoux_typePieceIdentite"
-                                            name="epoux.typePieceIdentite" required>
-                                            <option value="">Sélectionner</option>
-                                            <option value="CNI">CNI</option>
-                                            <option value="Passeport">Passeport</option>
-                                            <option value="Acte de naissance">Acte de naissance</option>
-                                            <option value="Autre">Autre</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epoux_numeroPieceIdentite" class="form-label required-field">N° de
-                                        pièce</label>
-                                    <input type="text" class="form-control" id="epoux_numeroPieceIdentite"
-                                        name="epoux.numeroPieceIdentite" required>
                                 </div>
                             </div>
                         </div>
                         <!-- Onglet Informations sur l'épouse -->
                         <div class="tab-pane fade" id="epouse" role="tabpanel">
                             <div class="form-section">
-                                <h3 class="section-title">Informations sur l'épouse</h3>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_nom" class="form-label required-field">Nom</label>
-                                        <input type="text" class="form-control" id="epouse_nom" name="epouse.nom"
-                                            required>
+                                <h3 class="section-title mb-4">
+                                    <i class="fas fa-female me-2"></i>Informations sur l'épouse
+                                </h3>
+                                
+                                <!-- Carte d'identité de l'épouse -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-id-card me-2"></i>Identité de l'épouse
+                                        </h5>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_prenoms" class="form-label required-field">Prénoms</label>
-                                        <input type="text" class="form-control" id="epouse_prenoms"
-                                            name="epouse.prenoms" required>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="epouse_nom" class="form-label required-field">
+                                                    Nom de famille
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_nom" 
+                                                        name="epouse_nom" required
+                                                        placeholder="Entrez le nom de famille">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir le nom de famille</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_prenoms" class="form-label required-field">
+                                                    Prénom(s)
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-signature"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_prenoms" 
+                                                        name="epouse_prenoms" required
+                                                        placeholder="Entrez le(s) prénom(s)">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir au moins un prénom</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_dateNaissance" class="form-label required-field">
+                                                    Date de naissance
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="far fa-calendar"></i>
+                                                    </span>
+                                                    <input type="date" class="form-control" id="epouse_dateNaissance"
+                                                        name="epouse_dateNaissance" required>
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez sélectionner la date de naissance</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_lieuNaissance" class="form-label required-field">
+                                                    Lieu de naissance
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_lieuNaissance"
+                                                        name="epouse_lieuNaissance" required
+                                                        placeholder="Ville et pays de naissance">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer le lieu de naissance</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_dateNaissance" class="form-label required-field">Date de
-                                            naissance</label>
-                                        <input type="date" class="form-control" id="epouse_dateNaissance"
-                                            name="epouse.dateNaissance" required>
+
+                                <!-- Carte des informations complémentaires -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light py-2">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>Informations complémentaires
+                                        </h5>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_lieuNaissance" class="form-label required-field">Lieu de
-                                            naissance</label>
-                                        <input type="text" class="form-control" id="epouse_lieuNaissance"
-                                            name="epouse.lieuNaissance" required>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="epouse_profession" class="form-label">
+                                                    Profession
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-briefcase"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_profession"
+                                                        name="epouse_profession"
+                                                        placeholder="Profession actuelle">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_nationalite" class="form-label required-field">
+                                                    Nationalité
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-flag"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_nationalite"
+                                                        name="epouse_nationalite" required
+                                                        placeholder="Nationalité">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer la nationalité</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="epouse_adresse" class="form-label required-field">
+                                                    Adresse complète
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_adresse" 
+                                                        name="epouse_adresse" required
+                                                        placeholder="Adresse complète de résidence">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir l'adresse complète</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_typePieceIdentite" class="form-label required-field">
+                                                    Type de pièce d'identité
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-address-card"></i>
+                                                    </span>
+                                                    <select class="form-select" id="epouse_typePieceIdentite"
+                                                        name="epouse_typePieceIdentite" required>
+                                                        <option value="">Sélectionner</option>
+                                                        <option value="CNI">CNI</option>
+                                                        <option value="Passeport">Passeport</option>
+                                                        <option value="Acte de naissance">Acte de naissance</option>
+                                                        <option value="Autre">Autre</option>
+                                                    </select>
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez sélectionner un type de pièce</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="epouse_numeroPieceIdentite" class="form-label required-field">
+                                                    N° de pièce d'identité
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-hashtag"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="epouse_numeroPieceIdentite"
+                                                        name="epouse_numeroPieceIdentite" required
+                                                        placeholder="Numéro de la pièce d'identité">
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez saisir le numéro de la pièce d'identité</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epouse_profession" class="form-label">Profession</label>
-                                    <input type="text" class="form-control" id="epouse_profession"
-                                        name="epouse.profession">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epouse_adresse" class="form-label required-field">Adresse</label>
-                                    <input type="text" class="form-control" id="epouse_adresse" name="epouse.adresse"
-                                        required>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_nationalite"
-                                            class="form-label required-field">Nationalité</label>
-                                        <input type="text" class="form-control" id="epouse_nationalite"
-                                            name="epouse.nationalite" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="epouse_typePieceIdentite" class="form-label required-field">Type de
-                                            pièce</label>
-                                        <select class="form-select" id="epouse_typePieceIdentite"
-                                            name="epouse.typePieceIdentite" required>
-                                            <option value="">Sélectionner</option>
-                                            <option value="CNI">CNI</option>
-                                            <option value="Passeport">Passeport</option>
-                                            <option value="Acte de naissance">Acte de naissance</option>
-                                            <option value="Autre">Autre</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="epouse_numeroPieceIdentite" class="form-label required-field">N° de
-                                        pièce</label>
-                                    <input type="text" class="form-control" id="epouse_numeroPieceIdentite"
-                                        name="epouse.numeroPieceIdentite" required>
                                 </div>
                             </div>
                         </div>
+                        <!-- Boutons de navigation -->
+                        <div class="d-flex justify-content-between mt-4 mb-4">
+                            <button type="button" class="btn btn-outline-secondary" id="prevTabBtn">
+                                <i class="fas fa-arrow-left me-2"></i>Précédent
+                            </button>
+                            <button type="button" class="btn btn-primary" id="nextTabBtn">
+                                Suivant<i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+
                         <!-- Onglet Enfants -->
                         <div class="tab-pane fade" id="enfants" role="tabpanel">
                             <div class="form-section">
@@ -405,6 +846,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Gestion de l'édition du numéro d'acte
+            $('#editNumeroActe').click(function() {
+                const input = $('#numeroActe');
+                if (input.prop('readonly')) {
+                    input.prop('readonly', false).removeClass('form-control-lg text-center fw-bold').addClass('border-primary');
+                    $(this).html('<i class="fas fa-check"></i>');
+                } else {
+                    // Validation du format du numéro d'acte (exemple: 2023-001)
+                    const numeroActe = input.val().trim();
+                    if (numeroActe && !/^\d{4}-\d{3,}$/.test(numeroActe)) {
+                        alert('Format de numéro d\'acte invalide. Utilisez le format: AAAA-NNN (ex: 2023-001)');
+                        return;
+                    }
+                    input.prop('readonly', true).addClass('form-control-lg text-center fw-bold').removeClass('border-primary');
+                    $(this).html('<i class="fas fa-edit"></i>');
+                }
+            });
+            // Générer un numéro d'acte automatique au chargement
+            function generateNumeroActe() {
+                const now = new Date();
+                const year = now.getFullYear();
+                // Générer un numéro séquentiel (à remplacer par un appel API pour le prochain numéro disponible)
+                const randomNum = Math.floor(100 + Math.random() * 900);
+                return `${year}-${randomNum}`;
+            }
+
+            // Initialiser le numéro d'acte
+            if ($('#numeroActe').val() === '') {
+                $('#numeroActe').val(generateNumeroActe());
+            }
+
             // Gestion des onglets
             const triggerTabList = [].slice.call(document.querySelectorAll('#divorceTabs button'));
             triggerTabList.forEach(function (triggerEl) {
@@ -612,6 +1084,75 @@
 
             // Charger les données au chargement de la page
             loadDivorceData();
+
+            // Gestion de la navigation entre les onglets
+            const tabs = ['info', 'epoux', 'epouse', 'enfants', 'documents'];
+            
+            // Fonction pour activer un onglet spécifique
+            function activateTab(tabId) {
+                // Masquer tous les onglets
+                $('.tab-pane').removeClass('show active');
+                // Désactiver tous les liens d'onglet
+                $('.nav-link').removeClass('active');
+                // Activer l'onglet sélectionné
+                $(`#${tabId}`).addClass('show active');
+                // Activer le lien d'onglet correspondant
+                $(`[href="#${tabId}"]`).addClass('active');
+                
+                // Mettre à jour les boutons de navigation
+                updateNavButtons(tabId);
+            }
+            
+            // Mettre à jour l'état des boutons de navigation
+            function updateNavButtons(currentTabId) {
+                const currentIndex = tabs.indexOf(currentTabId);
+                const prevTab = tabs[currentIndex - 1];
+                const nextTab = tabs[currentIndex + 1];
+                
+                // Gérer le bouton Précédent
+                if (currentIndex === 0) {
+                    $('#prevTabBtn').prop('disabled', true);
+                } else {
+                    $('#prevTabBtn').prop('disabled', false);
+                    $('#prevTabBtn').off('click').on('click', function() {
+                        activateTab(prevTab);
+                    });
+                }
+                
+                // Gérer le bouton Suivant
+                if (currentIndex === tabs.length - 1) {
+                    $('#nextTabBtn').prop('disabled', true);
+                } else {
+                    $('#nextTabBtn').prop('disabled', false);
+                    $('#nextTabBtn').off('click').on('click', function() {
+                        // Valider l'onglet actuel avant de passer au suivant
+                        const form = document.getElementById('divorceForm');
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            form.classList.add('was-validated');
+                            return;
+                        }
+                        activateTab(nextTab);
+                    });
+                }
+                
+                // Mettre à jour le texte du bouton Suivant si c'est le dernier onglet
+                if (currentIndex === tabs.length - 2) {
+                    $('#nextTabBtn').html('Terminer <i class="fas fa-check ms-2"></i>');
+                } else {
+                    $('#nextTabBtn').html('Suivant <i class="fas fa-arrow-right ms-2"></i>');
+                }
+            }
+            
+            // Initialiser les boutons de navigation
+            updateNavButtons('info');
+            
+            // Gérer le clic sur les onglets
+            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                const targetTab = $(e.target).attr('href').substring(1);
+                updateNavButtons(targetTab);
+            });
         });
     </script>
 </body>

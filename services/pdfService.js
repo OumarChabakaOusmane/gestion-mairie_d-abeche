@@ -2,620 +2,527 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../config/logger');
+const { generateNaissancePdf } = require('./pdfServiceNew');
+const generateDecesPdf = require('./generateDecesPdf');
 
-// Dossier de sortie pour les PDF générés
-const OUTPUT_DIR = path.join(__dirname, '../public/pdfs');
+// Configuration
+const CONFIG = {
+  OUTPUT_DIR: path.join(__dirname, '../public/pdfs'),
+  FONTS: {
+    NORMAL: 'Helvetica',
+    BOLD: 'Helvetica-Bold',
+    ITALIC: 'Helvetica-Oblique'
+  },
+  COLORS: {
+    PRIMARY: '#002689',    // Bleu du drapeau
+    SECONDARY: '#FFD100',  // Jaune du drapeau
+    ACCENT: '#CE1126',     // Rouge du drapeau
+    TEXT: '#333333',
+    LIGHT_BG: '#F8F9FA',
+    BORDER: '#CCCCCC'
+  },
+  MARGINS: {
+    LEFT: 50,
+    RIGHT: 50,
+    TOP: 40,
+    BOTTOM: 40
+  },
+  FLAG: {
+    WIDTH: 80,
+    HEIGHT: 48,
+    X: 50,
+    Y: 40
+  }
+};
 
-// Créer le dossier de sortie s'il n'existe pas
-if (!fs.existsSync(OUTPUT_DIR)) {
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+// Gestion des erreurs
+class PdfGenerationError extends Error {
+  constructor(message, code = 'PDF_GENERATION_ERROR', details = {}) {
+    super(message);
+    this.name = 'PdfGenerationError';
+    this.code = code;
+    this.details = details;
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
-/**
- * Génère l'en-tête du document avec le drapeau du Tchad
- * @param {PDFDocument} doc - L'instance PDFKit
- * @param {string} title - Le titre du document (optionnel)
- */
-function generateHeader(doc, title = '') {
-  // 1. Drapeau du Tchad (bandes verticales)
-  const flagX = 50;
-  const flagY = 30;
-  const flagWidth = 90;
-  const flagHeight = 50;
-  const stripeWidth = flagWidth / 3;
+// Fonctions utilitaires
+const utils = {
+  // Créer le dossier de sortie s'il n'existe pas
+  ensureOutputDir: () => {
+    if (!fs.existsSync(CONFIG.OUTPUT_DIR)) {
+      fs.mkdirSync(CONFIG.OUTPUT_DIR, { recursive: true });
+    }
+  },
   
-  // Contour du drapeau avec fond blanc
-  doc
-    .lineWidth(1.5)
-    .rect(flagX, flagY, flagWidth, flagHeight)
-    .fillAndStroke('white', 'black');
+  // Formater une date au format français
+  formatDate: (dateStr) => {
+    if (!dateStr) return 'Non spécifiée';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateStr;
+    }
+  },
   
-  // Bandes du drapeau (bleu, jaune, rouge)
-  doc
-    .fillColor('#002689') // Bleu
-    .rect(flagX, flagY, stripeWidth, flagHeight)
-    .fill()
-    .fillColor('#FFD100') // Jaune
-    .rect(flagX + stripeWidth, flagY, stripeWidth, flagHeight)
-    .fill()
-    .fillColor('#CE1126') // Rouge
-    .rect(flagX + (stripeWidth * 2), flagY, stripeWidth, flagHeight)
-    .fill();
+  // Créer un document PDF de base
+  createPdfDocument: () => {
+    return new PDFDocument({
+      size: 'A4',
+      margins: {
+        top: CONFIG.MARGINS.TOP,
+        bottom: CONFIG.MARGINS.BOTTOM,
+        left: CONFIG.MARGINS.LEFT,
+        right: CONFIG.MARGINS.RIGHT
+      },
+      bufferPages: true,
+      autoFirstPage: false
+    });
+  },
   
-  // 2. En-tête avec titre et devise
-  const headerX = flagX + flagWidth + 20;
-  const headerY = flagY + 5;
-  
-  // Texte de l'en-tête
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(14)
-    .fillColor('#000000')
-    .text('RÉPUBLIQUE DU TCHAD', headerX, headerY)
-    .font('Helvetica')
-    .fontSize(10)
-    .text('Unité - Travail - Progrès', headerX, headerY + 20);
+  // Configurer les gestionnaires d'événements du document
+  setupDocumentHandlers: (doc) => {
+    return new Promise((resolve, reject) => {
+      const chunks = [];
+      let hasError = false;
+      
+      doc.on('data', chunk => chunks.push(chunk));
+      
+      doc.on('end', () => {
+        if (!hasError) {
+          resolve(Buffer.concat(chunks));
+        }
+      });
+      
+      doc.on('error', (err) => {
+        hasError = true;
+        reject(new PdfGenerationError(
+          'Erreur lors de la génération du PDF',
+          'PDF_GENERATION_ERROR',
+          { error: err.message, stack: err.stack }
+        ));
+      });
+    });
+  }
+};
+
+// Fonctions de génération de contenu
+const contentGenerators = {
+  // Générer l'en-tête avec le drapeau du Tchad
+  generateHeader: (doc) => {
+    const { X, Y, WIDTH, HEIGHT } = CONFIG.FLAG;
+    const stripeWidth = WIDTH / 3;
     
-  // Titre du document
-  if (title) {
+    // Dessiner le drapeau avec contour
     doc
-      .font('Helvetica-Bold')
+      .rect(X, Y, WIDTH, HEIGHT)
+      .fillAndStroke('white', 'black');
+    
+    // Bandes du drapeau
+    doc
+      .fillColor(CONFIG.COLORS.PRIMARY)
+      .rect(X, Y, stripeWidth, HEIGHT)
+      .fill()
+      .fillColor(CONFIG.COLORS.SECONDARY)
+      .rect(X + stripeWidth, Y, stripeWidth, HEIGHT)
+      .fill()
+      .fillColor(CONFIG.COLORS.ACCENT)
+      .rect(X + (stripeWidth * 2), Y, stripeWidth, HEIGHT)
+      .fill();
+    
+    // Texte de l'en-tête
+    doc
+      .fillColor('black')
+      .font(CONFIG.FONTS.BOLD)
       .fontSize(16)
-      .text(title, headerX, headerY + 40);
+      .text('RÉPUBLIQUE DU TCHAD', 180, 50, { align: 'center', width: 300 })
+      .fontSize(12)
+      .text('Unité - Travail - Progrès', 180, 70, { align: 'center', width: 300 });
+  },
+  
+  // Générer l'en-tête d'un acte
+  generateActeHeader: (doc, title, data) => {
+    // 1) En-tête avec drapeau
+    contentGenerators.generateHeader(doc);
+    
+    // 2) Filigrane
+    doc.save();
+    doc.rotate(-45, { origin: [150, 400] });
+    doc
+      .font(CONFIG.FONTS.BOLD)
+      .fontSize(78)
+      .fillColor(CONFIG.COLORS.PRIMARY)
+      .fillOpacity(0.10)
+      .text('RÉPUBLIQUE DU TCHAD', 0, 350, { align: 'left' });
+    doc.fillOpacity(1).restore();
+    
+    // 3) Numéro de document
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(10)
+      .fillColor('#6c757d')
+      .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20);
+    
+    // 4) Titre principal et sous-titre
+    doc
+      .moveDown(3)
+      .fontSize(22)
+      .font(CONFIG.FONTS.BOLD)
+      .fillColor(CONFIG.COLORS.PRIMARY)
+      .text(title, { 
+        align: 'center',
+        y: 120
+      })
+      .fontSize(12)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text("Extrait des registres de l'état civil", { 
+        align: 'center',
+        y: 150
+      })
+      .moveDown(0.8);
+      
+    return 180; // Retourne la position Y après l'en-tête
+  },
+  
+  // Générer une section avec titre et contenu
+  generateSection: (doc, title, content, options = {}) => {
+    const { y = doc.y, color = CONFIG.COLORS.PRIMARY } = options;
+    
+    // Titre de la section
+    doc
+      .font(CONFIG.FONTS.BOLD)
+      .fontSize(13)
+      .fillColor(color)
+      .text(title, { y: y + 10 });
+      
+    // Retourne la position Y après le titre
+    return y + 20;
+  },
+  
+  // Générer une ligne d'information
+  generateInfoLine: (doc, label, value, x, y, options = {}) => {
+    const { labelWidth = 150, valueWidth = 300, lineHeight = 20 } = options;
+    
+    doc
+      .font(CONFIG.FONTS.BOLD)
+      .fontSize(10)
+      .fillColor(CONFIG.COLORS.PRIMARY)
+      .text(`${label}: `, x, y, { 
+        width: labelWidth, 
+        continued: true 
+      })
+      .font(CONFIG.FONTS.NORMAL)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text(value || 'Non spécifié', x + labelWidth + 10, y, {
+        width: valueWidth
+      });
+      
+    return y + lineHeight;
+  },
+  
+  // Générer un cadre pour une section
+  generateSectionBox: (doc, x, y, width, height, options = {}) => {
+    const { 
+      fillColor = CONFIG.COLORS.LIGHT_BG,
+      strokeColor = CONFIG.COLORS.BORDER,
+      radius = 5 
+    } = options;
+    
+    // Dessiner un rectangle avec coins arrondis
+    doc
+      .roundedRect(x, y, width, height, radius)
+      .fillAndStroke(fillColor, strokeColor);
+      
+    // Retourne la position Y à l'intérieur du cadre
+    return y + 15;
+  }
+};
+
+// Générateur pour l'acte d'engagement de concubinage
+const generateEngagementConcubinagePdf = async (data) => {
+  // Vérifier les champs obligatoires
+  const requiredFields = [
+    'numeroActe', 'dateDebut', 'mairie', 'ville',
+    'concubin1.nom', 'concubin1.prenom', 'concubin2.nom', 'concubin2.prenom',
+    'lieuDebut'
+  ];
+  
+  const missingFields = requiredFields.filter(field => {
+    const parts = field.split('.');
+    let value = data;
+    for (const part of parts) {
+      value = value?.[part];
+      if (value === undefined) return true;
+    }
+    return !value;
+  });
+  
+  if (missingFields.length > 0) {
+    throw new PdfGenerationError(
+      `Champs manquants: ${missingFields.join(', ')}`,
+      'MISSING_REQUIRED_FIELDS',
+      { missingFields }
+    );
   }
   
-  return flagY + flagHeight + 20; // Retourne la position Y après l'en-tête
-}
-
-/**
- * Génère une section pour une personne (défunt, déclarant, etc.)
- * @param {PDFDocument} doc - L'instance PDFKit
- * @param {Object} data - Les données de la personne
- * @param {number} y - Position Y de départ
- * @param {string} title - Titre de la section
- * @param {number} boxHeight - Hauteur de la boîte
- * @returns {number} - Nouvelle position Y
- */
-function generatePersonneSection(doc, data, y, title, boxHeight) {
-  // Titre de section avec fond coloré
-  doc
-    .fillColor('#002689')
-    .rect(50, y, 500, 22)
-    .fill();
-    
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(11)
-    .fillColor('#FFFFFF')
-    .text(title, 60, y + 5, { width: 480 });
-
-  // Cadre pour les informations
-  doc
-    .roundedRect(50, y + 22, 500, boxHeight, 0)
-    .lineWidth(0.5)
-    .stroke('#E0E0E0')
-    .fill('#F8F9FA');
-    
-  return y + boxHeight + 15;
-}
-
-/**
- * Génère un PDF pour un acte de décès
- * @param {Object} data - Les données de l'acte de décès
- * @returns {Promise<Buffer>} Le buffer du PDF généré
- */
-// Fonction pour ajouter un en-tête de section
-const addSectionHeader = (doc, title, y) => {
-  doc
-    .fillColor('#f8f9fa')
-    .rect(50, y, 500, 25)
-    .fill()
-    .fillColor('#212529')
-    .font('Helvetica-Bold')
-    .fontSize(12)
-    .text(title, 55, y + 5);
+  // Créer le document PDF
+  const doc = utils.createPdfDocument();
   
-  return y + 30;
-};
-
-// Fonction pour ajouter une ligne d'information
-const addInfoLine = (doc, label, value, x, y, width = 240) => {
-  doc
-    .fillColor('#6c757d')
-    .font('Helvetica')
-    .fontSize(10)
-    .text(label, x, y, { width, align: 'left' });
-    
-  doc
-    .fillColor('#212529')
-    .font('Helvetica')
-    .fontSize(10)
-    .text(value || 'Non renseigné', x + 100, y, { width: width - 100, align: 'left' });
-    
-  return y + 15;
-};
-
-// Fonction utilitaire pour formater les dates
-const formatDatePdf = (date) => {
-  if (!date) return 'Non spécifié';
+  // Configurer les gestionnaires d'événements
+  const pdfPromise = utils.setupDocumentHandlers(doc);
+  
+  // Ajouter une page
+  doc.addPage();
+  
   try {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    // Générer l'en-tête de l'acte
+    let y = contentGenerators.generateActeHeader(doc, "ACTE D'ENGAGEMENT DE CONCUBINAGE", data);
+    
+    // Section des concubins
+    y = contentGenerators.generateSection(doc, 'INFORMATIONS SUR LES CONCUBINS', {}, { y });
+    
+    // Fonction utilitaire pour formater les informations personnelles
+    const formatPersonne = (personne) => ({
+      nomComplet: `${personne.prenom || ''} ${personne.nom || ''}`.trim(),
+      dateNaissance: utils.formatDate(personne.dateNaissance),
+      lieuNaissance: personne.lieuNaissance || 'Non spécifié',
+      profession: personne.profession || 'Non spécifiée',
+      adresse: personne.adresse || 'Non spécifiée',
+      nationalite: personne.nationalite || 'Tchadienne'
     });
-  } catch (e) {
-    return 'Date invalide';
+    
+    const concubin1 = formatPersonne(data.concubin1);
+    const concubin2 = formatPersonne(data.concubin2);
+    
+    // Afficher les informations du premier concubin dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 100);
+    y = contentGenerators.generateInfoLine(doc, 'Premier(e) concubin(e)', '', 80, y);
+    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', concubin1.nomComplet, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', concubin1.dateNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'À', concubin1.lieuNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Profession', concubin1.profession, 80, y + 5);
+    
+    // Espacement avant le deuxième concubin
+    y += 20;
+    
+    // Afficher les informations du deuxième concubin dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y, 480, 100);
+    y = contentGenerators.generateInfoLine(doc, 'Deuxième concubin(e)', '', 80, y);
+    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', concubin2.nomComplet, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', concubin2.dateNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'À', concubin2.lieuNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Profession', concubin2.profession, 80, y + 5);
+    
+    // Section des détails de l'engagement
+    y += 30;
+    y = contentGenerators.generateSection(doc, "DÉTAILS DE L'ENGAGEMENT", {}, { y, color: CONFIG.COLORS.ACCENT });
+    
+    // Afficher les détails dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 120);
+    y = contentGenerators.generateInfoLine(doc, 'Date de l\'engagement', utils.formatDate(data.dateDebut), 80, y + 15);
+    y = contentGenerators.generateInfoLine(doc, 'Lieu de l\'engagement', data.lieuDebut, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Mairie', data.mairie, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Ville', data.ville, 80, y + 10);
+    
+    // Ajouter une section pour les témoins si disponibles
+    if (data.temoins && data.temoins.length > 0) {
+      y += 20;
+      y = contentGenerators.generateSection(doc, 'TÉMOINS', {}, { y, color: CONFIG.COLORS.SECONDARY });
+      
+      // Afficher les témoins dans un cadre
+      y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 40 + (data.temoins.length * 30));
+      
+      data.temoins.forEach((temoins, index) => {
+        y = contentGenerators.generateInfoLine(
+          doc, 
+          `Témoin ${index + 1}`, 
+          `${temoins.prenom || ''} ${temoins.nom || ''}`.trim(), 
+          80, 
+          index === 0 ? y + 15 : y + 10
+        );
+      });
+    }
+    
+    // Pied de page avec la signature
+    y += 30;
+    doc
+      .moveTo(100, y)
+      .lineTo(500, y)
+      .stroke(CONFIG.COLORS.BORDER);
+      
+    doc
+      .font(CONFIG.FONTS.ITALIC)
+      .fontSize(10)
+      .fillColor('#6c757d')
+      .text(
+        `Fait à ${data.ville || 'N\'Djamena'}, le ${utils.formatDate(data.dateDebut)}`, 
+        350, 
+        y + 10
+      );
+      
+    // Espace pour la signature
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(10)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text('Signature et cachet de l\'officier d\'état civil', 350, y + 40);
+    
+    // Finaliser le document
+    doc.end();
+    
+    // Attendre la fin de la génération du PDF
+    return await pdfPromise;
+    
+  } catch (error) {
+    // En cas d'erreur, terminer le document et propager l'erreur
+    if (!doc._ended) {
+      doc.end();
+    }
+    
+    throw error instanceof PdfGenerationError 
+      ? error 
+      : new PdfGenerationError(
+          'Erreur lors de la génération du PDF',
+          'PDF_GENERATION_ERROR',
+          { originalError: error.message, stack: error.stack }
+        );
   }
 };
 
-const generateDecesPdf = (data) => {
-  return new Promise((resolve, reject) => {
-    const log = (message, meta = {}) => {
-      console.log(`[PDF Deces] ${message}`, meta);
-      logger.info(`[PDF Deces] ${message}`, meta);
-    };
+// Génère un PDF pour un acte de mariage
+const generateMariagePdf = async (data) => {
+  // Créer le document PDF
+  const doc = utils.createPdfDocument();
+  
+  // Configurer les gestionnaires d'événements
+  const pdfPromise = utils.setupDocumentHandlers(doc);
+  
+  // Ajouter une page
+  doc.addPage();
+  
+  try {
+    // Générer l'en-tête de l'acte
+    let y = contentGenerators.generateActeHeader(doc, "ACTE DE MARIAGE", data);
     
-    log('Début de la génération du PDF de décès', { data: JSON.stringify(data).substring(0, 500) });
+    // Section des époux
+    y = contentGenerators.generateSection(doc, 'INFORMATIONS SUR LES ÉPOUX', {}, { y });
     
-    if (!data) {
-      const error = new Error('Aucune donnée fournie pour la génération du PDF');
-      log('Erreur: Aucune donnée fournie');
-      return reject(error);
-    }
-    
-    // Vérification des champs obligatoires
-    const requiredFields = [
-      'numeroActe', 'dateEnregistrement', 'mairie', 
-      'nomDefunt', 'prenomsDefunt', 'dateDeces', 'lieuDeces'
-    ];
-    
-    const missingFields = requiredFields.filter(field => !data[field]);
-    if (missingFields.length > 0) {
-      const error = new Error(`Champs manquants: ${missingFields.join(', ')}`);
-      log('Erreur de validation des données', { missingFields });
-      return reject(error);
-    }
-    
-    try {
-      // Créer un nouveau document PDF avec des paramètres optimisés
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        bufferPages: true,
-        autoFirstPage: false
-      });
-      
-      const chunks = [];
-      let hasError = false;
-      
-      // Gestion des événements
-      doc.on('data', chunk => {
-        try {
-          chunks.push(chunk);
-        } catch (err) {
-          log('Erreur lors de la récupération des données du PDF', { error: err.message });
-          hasError = true;
-          reject(new Error('Erreur lors de la génération du contenu du PDF'));
-        }
-      });
-      
-      doc.on('end', () => {
-        if (hasError) return;
-        try {
-          log('PDF généré avec succès', { bufferSize: chunks.reduce((a, b) => a + b.length, 0) });
-          resolve(Buffer.concat(chunks));
-        } catch (err) {
-          log('Erreur lors de la création du buffer final', { error: err.message, stack: err.stack });
-          reject(new Error('Erreur lors de la création du PDF'));
-        }
-      });
-      
-      doc.on('error', (err) => {
-        hasError = true;
-        log('Erreur PDFKit', { error: err.message, stack: err.stack });
-        reject(new Error('Erreur lors de la génération du PDF'));
-      });
-      
-      // Création de la première page
-      doc.addPage();
-      
-      // En-tête avec gestion d'erreur
-      try {
-        generateHeader(doc, 'ACTE DE DÉCÈS');
-      } catch (headerErr) {
-        log('Erreur lors de la génération de l\'en-tête', { error: headerErr.message });
-        doc.text('ACTE DE DÉCÈS', { align: 'center', fontSize: 16 });
-      }
-      
-      // Position de départ pour le contenu après l'en-tête
-      let currentY = 150;
-      
-      // Section Informations du défunt
-      currentY = addSectionHeader(doc, 'INFORMATIONS DU DÉFUNT', currentY);
-      currentY = addInfoLine(doc, 'Nom:', data.nomDefunt, 50, currentY);
-      currentY = addInfoLine(doc, 'Prénoms:', data.prenomsDefunt, 50, currentY);
-      currentY = addInfoLine(doc, 'Date de naissance:', formatDatePdf(data.dateNaissance), 50, currentY);
-      currentY = addInfoLine(doc, 'Lieu de naissance:', data.lieuNaissance, 50, currentY);
-      currentY = addInfoLine(doc, 'Date du décès:', formatDatePdf(data.dateDeces), 50, currentY);
-      currentY = addInfoLine(doc, 'Lieu du décès:', data.lieuDeces, 50, currentY);
-      currentY = addInfoLine(doc, 'Cause du décès:', data.causeDeces, 50, currentY);
-      currentY += 10; // Espacement
-      
-      // Section Informations familiales
-      currentY = addSectionHeader(doc, 'INFORMATIONS FAMILIALES', currentY);
-      currentY = addInfoLine(doc, 'Nom du père:', data.nomPere, 50, currentY);
-      currentY = addInfoLine(doc, 'Prénoms du père:', data.prenomsPere, 50, currentY);
-      currentY = addInfoLine(doc, 'Nom de la mère:', data.nomMere, 50, currentY);
-      currentY = addInfoLine(doc, 'Prénoms de la mère:', data.prenomsMere, 50, currentY);
-      currentY += 10; // Espacement
-      
-      // Section Informations du déclarant
-      currentY = addSectionHeader(doc, 'INFORMATIONS DU DÉCLARANT', currentY);
-      currentY = addInfoLine(doc, 'Nom:', data.nomDeclarant, 50, currentY);
-      currentY = addInfoLine(doc, 'Prénoms:', data.prenomsDeclarant, 50, currentY);
-      currentY = addInfoLine(doc, 'Date de naissance:', formatDatePdf(data.dateNaissanceDeclarant), 50, currentY);
-      currentY = addInfoLine(doc, 'Lien avec le défunt:', data.lienDeclarant, 50, currentY);
-      currentY = addInfoLine(doc, 'Adresse:', data.domicileDeclarant, 50, currentY);
-      currentY += 10; // Espacement
-      
-      // Section Informations administratives
-      currentY = addSectionHeader(doc, 'INFORMATIONS ADMINISTRATIVES', currentY);
-      currentY = addInfoLine(doc, 'Numéro d\'acte:', data.numeroActe, 50, currentY);
-      currentY = addInfoLine(doc, 'Date d\'enregistrement:', formatDatePdf(data.dateEnregistrement), 50, currentY);
-      currentY = addInfoLine(doc, 'Mairie:', data.mairie, 50, currentY);
-      currentY = addInfoLine(doc, 'Officier d\'état civil:', data.officierEtatCivil, 50, currentY);
-      
-      // Ajouter la signature et le cachet
-      const signatureY = 680;
-      
-      // Ligne de signature
-      doc
-        .moveTo(100, signatureY)
-        .lineTo(250, signatureY)
-        .stroke('#000000');
-        
-      // Texte de signature
-      doc
-        .font('Helvetica')
-        .fontSize(10)
-        .fillColor('#000000')
-        .text('Signature et cachet', 100, signatureY + 5, { width: 150, align: 'center' });
-      
-      // Ajouter la devise nationale en bas de page
-      doc
-        .font('Helvetica-Bold')
-        .fontSize(11)
-        .fillColor('#000000')
-        .text('Unité - Travail - Progrès', 50, 750, { width: 500, align: 'center' });
-      
-      // Ajouter la date de génération
-      doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor('#6c757d')
-        .text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 770, { width: 500, align: 'right' });
-      
-      // Ajouter le numéro d'acte si disponible
-      if (data.numeroActe) {
-        doc
-          .font('Helvetica-Bold')
-          .fontSize(11)
-          .text(`N° ${data.numeroActe}`, 50, 100, { width: 500, align: 'right' });
-      }
-      
-      // Fonction utilitaire sécurisée pour ajouter une ligne centrée
-      const addLine = (label, value, y) => {
-        try {
-          const line = `${label || ''}${label ? ' : ' : ''}${String(value || 'Non spécifié').substring(0, 200)}`;
-          doc
-            .fontSize(10)
-            .font('Helvetica')
-            .fillColor('#000000')
-            .text(line, startX, y, { width: contentWidth, align: 'center' });
-          return y + 18;
-        } catch (err) {
-          log('Erreur lors de l\'ajout d\'une ligne', { label, value, error: err.message });
-          return y + 18; // Continue malgré l'erreur
-        }
-      };
-      
-      // Position Y initiale avec marge
-      let y = 180; // Position après l'en-tête
-      
-      try {
-        // Section Informations administratives (centrée)
-        doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .fillColor('#000000')
-          .text('INFORMATIONS ADMINISTRATIVES', startX, y, { width: contentWidth, align: 'center' });
-        y = addLine('N° d\'acte', data.numeroActe, y + 22);
-        y = addLine('Mairie', data.mairie, y);
-        y = addLine('Date d\'enregistrement', formatDatePdf(data.dateEnregistrement), y);
-        
-        // Section Informations du défunt (centrée)
-        y += 12;
-        doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('INFORMATIONS SUR LE DÉFUNT', startX, y, { width: contentWidth, align: 'center' });
-        y = addLine('Nom', data.nomDefunt, y + 22);
-        y = addLine('Prénoms', data.prenomsDefunt, y);
-        y = addLine('Date de naissance', formatDatePdf(data.dateNaissance), y);
-        y = addLine('Lieu de naissance', data.lieuNaissance, y);
-        y = addLine('Date du décès', formatDatePdf(data.dateDeces), y);
-        y = addLine('Lieu du décès', data.lieuDeces, y);
-        y = addLine('Cause du décès', data.causeDeces, y);
-        
-        // Section Informations du déclarant
-        if (data.nomDeclarant || data.prenomsDeclarant) {
-          y += 12;
-          doc
-            .fontSize(12)
-            .font('Helvetica-Bold')
-            .text('INFORMATIONS DU DÉCLARANT', startX, y, { width: contentWidth, align: 'center' });
-          y = addLine('Nom', data.nomDeclarant, y + 22);
-          y = addLine('Prénoms', data.prenomsDeclarant, y);
-          y = addLine('Date de naissance', formatDatePdf(data.dateNaissanceDeclarant), y);
-          y = addLine('Lien avec le défunt', data.lienDeclarant, y);
-          y = addLine('Adresse', data.domicileDeclarant, y);
-        }
-        
-        // Ajouter la signature et le cachet
-        const signatureY = 680;
-        doc
-          .moveTo(100, signatureY)
-          .lineTo(250, signatureY)
-          .stroke('#000000');
-          
-        doc
-          .font('Helvetica')
-          .fontSize(10)
-          .fillColor('#000000')
-          .text('Signature et cachet', 100, signatureY + 5, { width: 150, align: 'center' });
-        
-        // Ajouter la devise nationale en bas de page
-        doc
-          .font('Helvetica-Bold')
-          .fontSize(11)
-          .fillColor('#000000')
-          .text('Unité - Travail - Progrès', 50, 750, { width: 500, align: 'center' });
-        
-        // Ajouter la date de génération
-        doc
-          .font('Helvetica')
-          .fontSize(9)
-          .fillColor('#6c757d')
-          .text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 770, { width: 500, align: 'right' });
-        
-      } catch (contentErr) {
-        log('Erreur lors de la génération du contenu', { error: contentErr.message, stack: contentErr.stack });
-        // Essayer d'ajouter un message d'erreur dans le PDF
-        try {
-          doc.fontSize(10).text('Erreur lors de la génération du contenu du PDF', 50, 100);
-        } catch (e) {}
-      }
-      
-      // Finaliser le document
-      doc.end();
-      
-    } catch (error) {
-      log('Erreur critique non gérée', { error: error.message, stack: error.stack });
-      reject(new Error(`Erreur lors de la génération du PDF: ${error.message}`));
-    }
-  });
-};
-
-/**
- * Génère un PDF pour un engagement de concubinage
- * @param {Object} data - Les données de l'engagement de concubinage
- * @returns {Promise<Buffer>} Le buffer du PDF généré
- */
-const generateEngagementConcubinagePdf = (data) => {
-  return new Promise((resolve, reject) => {
-    const log = (message, meta = {}) => {
-      console.log(`[PDF Engagement] ${message}`, meta);
-      logger.info(`[PDF Engagement] ${message}`, meta);
-    };
-    
-    log('Début de la génération du PDF d\'engagement de concubinage', { 
-      data: JSON.stringify(data).substring(0, 500) 
+    // Fonction utilitaire pour formater les informations personnelles
+    const formatPersonne = (prefix) => ({
+      nomComplet: `${data[`${prefix}Prenom`] || ''} ${data[`${prefix}Nom`] || ''}`.trim(),
+      dateNaissance: utils.formatDate(data[`dateNaissance${prefix}`]),
+      lieuNaissance: data[`lieuNaissance${prefix}`] || 'Non spécifié',
+      profession: data[`profession${prefix}`] || 'Non spécifiée',
+      adresse: data[`adresse${prefix}`] || 'Non spécifiée',
+      nationalite: data[`nationalite${prefix}`] || 'Tchadienne',
+      pere: data[`pere${prefix}`] || 'Non renseigné',
+      mere: data[`mere${prefix}`] || 'Non renseignée'
     });
     
-    if (!data) {
-      const error = new Error('Aucune donnée fournie pour la génération du PDF');
-      log('Erreur: Aucune donnée fournie');
-      return reject(error);
+    const epoux1 = formatPersonne('Conjoint1');
+    const epoux2 = formatPersonne('Conjoint2');
+    
+    // Afficher les informations du premier époux dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 120);
+    y = contentGenerators.generateInfoLine(doc, 'Premier époux/épouse', '', 80, y);
+    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', epoux1.nomComplet, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', epoux1.dateNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'À', epoux1.lieuNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Profession', epoux1.profession, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Fils de', `${epoux1.pere} et de ${epoux1.mere}`, 80, y + 5);
+    
+    // Espacement avant le deuxième époux
+    y += 20;
+    
+    // Afficher les informations du deuxième époux dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y, 480, 120);
+    y = contentGenerators.generateInfoLine(doc, 'Deuxième époux/épouse', '', 80, y);
+    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', epoux2.nomComplet, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', epoux2.dateNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'À', epoux2.lieuNaissance, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Profession', epoux2.profession, 80, y + 5);
+    y = contentGenerators.generateInfoLine(doc, 'Fils de', `${epoux2.pere} et de ${epoux2.mere}`, 80, y + 5);
+    
+    // Section des détails du mariage
+    y += 30;
+    y = contentGenerators.generateSection(doc, "DÉTAILS DU MARIAGE", {}, { y, color: CONFIG.COLORS.ACCENT });
+    
+    // Afficher les détails dans un cadre
+    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 100);
+    y = contentGenerators.generateInfoLine(doc, 'Date du mariage', utils.formatDate(data.dateMariage), 80, y + 15);
+    y = contentGenerators.generateInfoLine(doc, 'Lieu du mariage', data.lieuMariage, 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Régime matrimonial', data.regimeMatrimonial || 'Non spécifié', 80, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Contrat de mariage', data.contratMariage ? 'Oui' : 'Non', 80, y + 10);
+    
+    // Ajouter une section pour les témoins si disponibles
+    if (data.temoins && data.temoins.length > 0) {
+      y += 20;
+      y = contentGenerators.generateSection(doc, 'TÉMOINS', {}, { y, color: CONFIG.COLORS.SECONDARY });
+      
+      // Afficher les témoins dans un cadre
+      y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 40 + (data.temoins.length * 30));
+      
+      data.temoins.forEach((temoin, index) => {
+        y = contentGenerators.generateInfoLine(
+          doc, 
+          `Témoin ${index + 1}`, 
+          `${temoin.prenom || ''} ${temoin.nom || ''}`.trim(), 
+          80, 
+          index === 0 ? y + 15 : y + 10
+        );
+      });
     }
     
-    // Vérification des champs obligatoires
-    const requiredFields = [
-      'numeroActe', 'dateDebut', 'mairie', 'ville',
-      'concubin1.nom', 'concubin1.prenom', 'concubin2.nom', 'concubin2.prenom',
-      'lieuDebut'
-    ];
+    // Pied de page avec la signature
+    y += 30;
+    doc
+      .moveTo(100, y)
+      .lineTo(500, y)
+      .stroke(CONFIG.COLORS.BORDER);
+      
+    doc
+      .font(CONFIG.FONTS.ITALIC)
+      .fontSize(10)
+      .fillColor('#6c757d')
+      .text(
+        `Fait à ${data.ville || 'N\'Djamena'}, le ${utils.formatDate(data.dateMariage)}`, 
+        350, 
+        y + 10
+      );
+      
+    // Espace pour la signature
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(10)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text('Signature et cachet de l\'officier d\'état civil', 350, y + 40);
     
-    const missingFields = requiredFields.filter(field => {
-      const parts = field.split('.');
-      let value = data;
-      for (const part of parts) {
-        value = value?.[part];
-        if (value === undefined) return true;
-      }
-      return !value;
-    });
+    // Finaliser le document
+    doc.end();
     
-    if (missingFields.length > 0) {
-      const error = new Error(`Champs manquants: ${missingFields.join(', ')}`);
-      log('Erreur de validation des données', { missingFields });
-      return reject(error);
-    }
+    // Attendre la fin de la génération du PDF
+    return await pdfPromise;
     
-    try {
-      // Créer un nouveau document PDF avec des paramètres optimisés
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        bufferPages: true,
-        autoFirstPage: false
-      });
-      
-      const chunks = [];
-      let hasError = false;
-      
-      // Gestion des événements
-      doc.on('data', chunk => {
-        try {
-          chunks.push(chunk);
-        } catch (err) {
-          log('Erreur lors de la récupération des données du PDF', { error: err.message });
-          hasError = true;
-          reject(new Error('Erreur lors de la génération du contenu du PDF'));
-        }
-      });
-      
-      doc.on('end', () => {
-        if (hasError) return;
-        try {
-          log('PDF généré avec succès', { bufferSize: chunks.reduce((a, b) => a + b.length, 0) });
-          resolve(Buffer.concat(chunks));
-        } catch (err) {
-          log('Erreur lors de la création du buffer final', { error: err.message, stack: err.stack });
-          reject(new Error('Erreur lors de la création du PDF'));
-        }
-      });
-      
-      doc.on('error', (err) => {
-        hasError = true;
-        log('Erreur PDFKit', { error: err.message, stack: err.stack });
-        reject(new Error('Erreur lors de la génération du PDF'));
-      });
-      
-      // Création de la première page
-      doc.addPage();
-      
-      // En-tête avec gestion d'erreur
-      try {
-        generateHeader(doc, 'ACTE D\'ENGAGEMENT DE CONCUBINAGE');
-      } catch (headerErr) {
-        log('Erreur lors de la génération de l\'en-tête', { error: headerErr.message });
-        doc.text('ACTE D\'ENGAGEMENT DE CONCUBINAGE', { align: 'center', fontSize: 16 });
-      }
-      
-      // Fonction utilitaire sécurisée pour ajouter une ligne
-      const addLine = (label, value, y) => {
-        try {
-          doc
-            .fontSize(10)
-            .font('Helvetica')
-            .text(label || '', 50, y, { width: 150, continued: true })
-            .text(':', 200, y, { width: 10, continued: true })
-            .font('Helvetica-Bold')
-            .text(String(value || 'Non spécifié').substring(0, 100), 220, y, { width: 300 });
-          return y + 20;
-        } catch (err) {
-          log('Erreur lors de l\'ajout d\'une ligne', { label, value, error: err.message });
-          return y + 20; // Continue malgré l'erreur
-        }
-      };
-      
-      // Position Y initiale avec marge
-      let y = 100;
-      
-      try {
-        // Section Informations administratives
-        doc.fontSize(12).font('Helvetica-Bold').text('INFORMATIONS ADMINISTRATIVES', 50, y);
-        y = addLine('N° d\'acte', data.numeroActe, y + 20);
-        y = addLine('Mairie', `${data.mairie} (${data.ville})`, y);
-        y = addLine('Date de l\'engagement', data.dateDebut, y);
-        y = addLine('Statut', data.statut || 'Actif', y);
-        
-        // Section Premier concubin
-        y += 10;
-        doc.fontSize(12).text('PREMIER CONJOINT', 50, y);
-        y = addLine('Nom', data.concubin1.nom, y + 20);
-        y = addLine('Prénom', data.concubin1.prenom, y);
-        y = addLine('Date de naissance', data.concubin1.dateNaissance, y);
-        y = addLine('Lieu de naissance', data.concubin1.lieuNaissance, y);
-        y = addLine('Profession', data.concubin1.profession, y);
-        y = addLine('Adresse', data.concubin1.adresse, y);
-        y = addLine('Nationalité', data.concubin1.nationalite, y);
-        y = addLine('Type de pièce', data.concubin1.typePiece, y);
-        y = addLine('N° de pièce', data.concubin1.numeroPiece, y);
-        
-        // Section Deuxième concubin
-        y += 10;
-        doc.fontSize(12).text('DEUXIÈME CONJOINT', 50, y);
-        y = addLine('Nom', data.concubin2.nom, y + 20);
-        y = addLine('Prénom', data.concubin2.prenom, y);
-        y = addLine('Date de naissance', data.concubin2.dateNaissance, y);
-        y = addLine('Lieu de naissance', data.concubin2.lieuNaissance, y);
-        y = addLine('Profession', data.concubin2.profession, y);
-        y = addLine('Adresse', data.concubin2.adresse, y);
-        y = addLine('Nationalité', data.concubin2.nationalite, y);
-        y = addLine('Type de pièce', data.concubin2.typePiece, y);
-        y = addLine('N° de pièce', data.concubin2.numeroPiece, y);
-        
-        // Section Témoins
-        if (data.temoins && data.temoins.length > 0) {
-          y += 10;
-          doc.fontSize(12).text('TÉMOINS', 50, y);
-          
-          data.temoins.forEach((temoin, index) => {
-            if (index > 0) y += 10;
-            y = addLine(`Témoin ${index + 1}`, 
-              `${temoin.nom || ''} ${temoin.prenom || ''}`.trim(), 
-              y + (index === 0 ? 20 : 0)
-            );
-            if (temoin.profession) y = addLine('Profession', temoin.profession, y);
-            if (temoin.adresse) y = addLine('Adresse', temoin.adresse, y);
-            if (temoin.residence) y = addLine('Résidence', temoin.residence, y);
-          });
-        }
-        
-        // Section Informations complémentaires
-        y += 10;
-        doc.fontSize(12).text('INFORMATIONS COMPLÉMENTAIRES', 50, y);
-        y = addLine('Lieu de l\'engagement', data.lieuDebut, y + 20);
-        y = addLine('Officier d\'état civil', data.officierEtatCivil, y);
-        y = addLine('Date de création', data.createdAt, y);
-        y = addLine('Créé par', data.createdBy, y);
-        
-        if (data.observations) {
-          y += 10;
-          doc.fontSize(12).text('OBSERVATIONS', 50, y);
-          y += 20;
-          doc.fontSize(10).text(data.observations, 50, y, { width: 500 });
-          y += 20;
-        }
-        
-        // Pied de page avec gestion d'erreur
-        try {
-          doc
-            .fontSize(8)
-            .font('Helvetica')
-            .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, 750);
-        } catch (footerErr) {
-          log('Erreur lors de l\'ajout du pied de page', { error: footerErr.message });
-        }
-        
-      } catch (contentErr) {
-        log('Erreur lors de la génération du contenu', { error: contentErr.message, stack: contentErr.stack });
-        // Essayer d'ajouter un message d'erreur dans le PDF
-        try {
-          doc.fontSize(10).text('Erreur lors de la génération du contenu du PDF', 50, 100);
-        } catch (e) {}
-      }
-      
-      // Finaliser le document
+  } catch (error) {
+    // En cas d'erreur, terminer le document et propager l'erreur
+    if (!doc._ended) {
       doc.end();
-      
-    } catch (error) {
-      log('Erreur critique non gérée', { error: error.message, stack: error.stack });
-      reject(new Error(`Erreur lors de la génération du PDF: ${error.message}`));
     }
-  });
+    
+    throw error instanceof PdfGenerationError 
+      ? error 
+      : new PdfGenerationError(
+          'Erreur lors de la génération du PDF de mariage',
+          'PDF_GENERATION_ERROR',
+          { originalError: error.message, stack: error.stack }
+        );
+  }
 };
 
 /**
@@ -640,6 +547,10 @@ const generatePdf = async (type, data) => {
         console.log('[PDF Service] Appel de generateNaissancePdf');
         result = await generateNaissancePdf(data);
         break;
+      case 'mariage':
+        console.log('[PDF Service] Appel de generateMariagePdf');
+        result = await generateMariagePdf(data);
+        break;
       case 'engagement-concubinage':
         console.log('[PDF Service] Appel de generateEngagementConcubinagePdf');
         result = await generateEngagementConcubinagePdf(data);
@@ -652,7 +563,7 @@ const generatePdf = async (type, data) => {
     
     if (!result || !(result instanceof Buffer)) {
       const errorMsg = 'Le résultat de la génération du PDF est invalide';
-      console.error(`[PDF Service] ${errorMsg}`, { 
+      console.error(`[PDF Service] ${errorMsg}`, {
         type: typeof result,
         isBuffer: Buffer.isBuffer(result)
       });
@@ -672,10 +583,10 @@ const generatePdf = async (type, data) => {
   }
 };
 
-// Exporter les fonctions
+// Exporter les fonctions du module
 module.exports = {
-  generateDecesPdf,
   generatePdf,
   generateEngagementConcubinagePdf,
-  generateNaissancePdf: require('./pdfServiceNew.js').generateNaissancePdf
+  generateMariagePdf,
+  PdfGenerationError
 };

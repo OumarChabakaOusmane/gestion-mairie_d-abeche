@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-// Simple test route
-router.get('/test', (req, res) => {
-  console.log('Simple test route called');
-  res.json({ status: 'success', message: 'Simple test route is working' });
+// Healthcheck for test routing
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'simple-test route OK' });
 });
 
 module.exports = router;
+
+

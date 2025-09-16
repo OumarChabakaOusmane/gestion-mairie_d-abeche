@@ -10,8 +10,9 @@ Solution complète de gestion municipale moderne développée avec Node.js, Mong
 - **Calendrier** : Planification d'événements et rendez-vous municipaux
 - **Gestion Utilisateurs** : Système de rôles et permissions sécurisé
 - **Tableau de Bord** : Vue d'ensemble avec indicateurs de performance
+- **Gestion des Comptes** : Gestion des comptes utilisateurs
 
-## 🛠️ Technologies
+## Technologies
 
 - **Backend** : Node.js, Express.js
 - **Base de données** : MongoDB avec Mongoose
@@ -21,13 +22,13 @@ Solution complète de gestion municipale moderne développée avec Node.js, Mong
 - **Documents** : PDFKit, jsPDF
 - **Email** : Nodemailer
 
-## 📋 Prérequis
+## Prérequis
 
 - Node.js (v16 ou supérieur)
 - MongoDB (v4.4 ou supérieur)
 - npm ou yarn
 
-## 🔧 Installation
+## Installation
 
 1. **Cloner le projet**
 ```bash
@@ -59,7 +60,7 @@ SMTP_PASS=your_app_password
 CORS_ORIGIN=http://localhost:3000
 ```
 
-## 🚀 Démarrage
+## Démarrage
 
 **Mode développement**
 ```bash
@@ -73,7 +74,7 @@ npm start
 
 L'application sera accessible sur `http://localhost:3000`
 
-## 📁 Structure du projet
+## Structure du projet
 
 ```
 wenaklabs/
@@ -96,14 +97,14 @@ wenaklabs/
 └── package.json
 ```
 
-## 🔐 Authentification
+## Authentification
 
 Le système utilise JWT pour l'authentification :
 - Tokens stockés dans les cookies HTTP-only
 - Middleware d'authentification sur toutes les routes protégées
 - Système de rôles (admin, utilisateur)
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentification
 - `POST /api/auth/login` - Connexion

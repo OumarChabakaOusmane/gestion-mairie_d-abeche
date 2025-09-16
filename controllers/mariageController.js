@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { logger } = require('../config/logger');
 const Mariage = require('../models/Mariage');
-const { generatePdf } = require('../services/pdfService');
+const { generatePdf } = require('../services/pdfService.unified');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 
@@ -212,49 +212,38 @@ mariageController.generateMariagePdf = async (req, res) => {
     const pdfData = {
       // Informations générales
       numeroActe: mariage.numeroActe || 'En attente',
-      dateEnregistrement: formatDate(mariage.dateEnregistrement) || 'Non spécifiée',
-      mairie: mariage.mairie?.nom || 'Mairie non spécifiée',
-      ville: mariage.mairie?.ville || '',
+      ville: mariage.mairie?.ville || 'N\'Djamena',
       
-      // Informations du conjoint 1
-      conjoint1: mariage.conjoint1 || 'Non renseigné',
+      // Informations du conjoint 1 (Époux)
+      conjoint1Nom: mariage.conjoint1 || 'Non renseigné',
       conjoint1Prenom: mariage.conjoint1Prenom || 'Non renseigné',
-      dateNaissanceConjoint1: formatDate(mariage.dateNaissanceConjoint1),
+      dateNaissanceConjoint1: mariage.dateNaissanceConjoint1,
       lieuNaissanceConjoint1: mariage.lieuNaissanceConjoint1 || 'Non renseigné',
       professionConjoint1: mariage.professionConjoint1 || 'Non renseignée',
       adresseConjoint1: mariage.adresseConjoint1 || 'Non renseignée',
       nationaliteConjoint1: mariage.nationaliteConjoint1 || 'Non renseignée',
-      typePieceConjoint1: mariage.typePieceConjoint1 || 'Non spécifié',
-      numeroPieceConjoint1: mariage.numeroPieceConjoint1 || 'Non renseigné',
-      pereConjoint1: mariage.pereConjoint1 || 'Non renseigné',
-      mereConjoint1: mariage.mereConjoint1 || 'Non renseignée',
       
-      // Informations du conjoint 2
+      // Informations du conjoint 2 (Épouse)
       conjoint2Nom: mariage.conjoint2Nom || 'Non renseigné',
       conjoint2Prenom: mariage.conjoint2Prenom || 'Non renseigné',
-      dateNaissanceConjointe2: formatDate(mariage.dateNaissanceConjointe2),
-      lieuNaissanceConjointe2: mariage.lieuNaissanceConjointe2 || 'Non renseigné',
-      professionConjointe2: mariage.professionConjointe2 || 'Non renseignée',
-      adresseConjointe2: mariage.adresseConjointe2 || 'Non renseignée',
-      nationaliteConjointe2: mariage.nationaliteConjointe2 || 'Non renseignée',
-      typePieceConjointe2: mariage.typePieceConjointe2 || 'Non spécifié',
-      numeroPieceConjointe2: mariage.numeroPieceConjointe2 || 'Non renseigné',
-      pereConjointe2: mariage.pereConjointe2 || 'Non renseigné',
-      mereConjointe2: mariage.mereConjointe2 || 'Non renseignée',
+      dateNaissanceConjoint2: mariage.dateNaissanceConjointe2,
+      lieuNaissanceConjoint2: mariage.lieuNaissanceConjointe2 || 'Non renseigné',
+      professionConjoint2: mariage.professionConjointe2 || 'Non renseignée',
+      adresseConjoint2: mariage.adresseConjointe2 || 'Non renseignée',
+      nationaliteConjoint2: mariage.nationaliteConjointe2 || 'Non renseignée',
       
       // Détails du mariage
-      dateMariage: formatDate(mariage.dateMariage) || 'Non spécifiée',
+      dateMariage: mariage.dateMariage,
       lieuMariage: mariage.lieuMariage || 'Non spécifié',
       regimeMatrimonial: mariage.regimeMatrimonial || 'Non spécifié',
-      contratMariage: mariage.contratMariage ? 'Oui' : 'Non',
+      contratMariage: mariage.contratMariage || false,
       
       // Témoins (limités à 4 témoins)
       temoins: temoins.slice(0, 4).map(temoin => ({
         nom: temoin.nom || 'Non renseigné',
         prenom: temoin.prenom || '',
         profession: temoin.profession || 'Non renseignée',
-        adresse: temoin.adresse || 'Non renseignée',
-        residence: temoin.residence || 'Non renseignée'
+        adresse: temoin.adresse || 'Non renseignée'
       })),
       
       // Informations complémentaires

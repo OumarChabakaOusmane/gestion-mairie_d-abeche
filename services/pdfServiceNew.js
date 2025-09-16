@@ -26,10 +26,10 @@ const CONFIG = {
     BOTTOM: 40
   },
   FLAG: {
-    WIDTH: 90,
-    HEIGHT: 60,
+    WIDTH: 80,  // Légèrement réduit pour gagner de l'espace
+    HEIGHT: 48, // Légèrement réduit pour gagner de l'espace
     X: 50,
-    Y: 50
+    Y: 40      // Position Y plus haute pour l'en-tête
   }
 };
 
@@ -136,7 +136,7 @@ const generateHeader = (doc) => {
       .fillColor('black')
       .font(CONFIG.FONTS.BOLD)
       .fontSize(16)
-      .text('RÉPUBLIQUE DU TCHAD', 200, 60, { align: 'center' })
+      .text('RÉPUBLIQUE DU TCHAD', 180, 50, { align: 'center', width: 300 })
       .fontSize(12)
       .text('Unité - Travail - Progrès', 200, 80, { align: 'center' })
       .moveDown(2);
@@ -505,16 +505,7 @@ const generateNaissancePdf = async (data) => {
         // 1) En-tête (drapeau + titres République)
         generateHeader(doc);
         
-        // Filigrane diagonal « RÉPUBLIQUE DU TCHAD »
-        doc.save();
-        doc.rotate(-45, { origin: [150, 400] });
-        doc
-          .font(CONFIG.FONTS.BOLD)
-          .fontSize(78)
-          .fillColor(CONFIG.COLORS.PRIMARY)
-          .fillOpacity(0.10)
-          .text('RÉPUBLIQUE DU TCHAD', 0, 350, { align: 'left' });
-        doc.fillOpacity(1).restore();
+        // Filigrane supprimé définitivement
 
         // Numéro de document (haut-gauche)
         doc
@@ -527,14 +518,20 @@ const generateNaissancePdf = async (data) => {
 
         // 2) Titre principal et sous-titre
         doc
-          .moveDown(2)
+          .moveDown(3)
           .fontSize(22)
           .font(CONFIG.FONTS.BOLD)
           .fillColor('#0e5b23')
-          .text('ACTE DE NAISSANCE', { align: 'center' })
+          .text('ACTE DE NAISSANCE', { 
+            align: 'center',
+            y: 120  // Position Y ajustée pour éviter le chevauchement
+          })
           .fontSize(12)
           .fillColor('#212529')
-          .text("Extrait des registres de l'état civil", { align: 'center' })
+          .text("Extrait des registres de l'état civil", { 
+            align: 'center',
+            y: 150  // Position Y ajustée pour le sous-titre
+          })
           .moveDown(0.8);
         
         // 3) Informations sur l'enfant
@@ -665,7 +662,7 @@ const generateNaissancePdf = async (data) => {
       error: error.message,
       stack: error.stack,
       code: error.code,
-      details: error.details
+      details: error.details || {}
     });
     
     if (error instanceof PdfGenerationError) {
@@ -680,6 +677,72 @@ const generateNaissancePdf = async (data) => {
   }
 };
 
+/**
+ * Génère l'en-tête standard d'un acte avec le drapeau et le titre
+ * @param {PDFDocument} doc - L'instance PDFKit
+ * @param {string} title - Le titre de l'acte (ex: "ACTE DE NAISSANCE")
+ * @param {Object} data - Les données de l'acte
+ * @returns {number} La position Y après l'en-tête
+ */
+const generateActeHeader = (doc, title, data) => {
+  // 1) En-tête (drapeau + titres République)
+  generateHeader(doc);
+  
+  // Filigrane supprimé définitivement
+
+  // Numéro de document (haut-gauche)
+  doc
+    .font(CONFIG.FONTS.NORMAL)
+    .fontSize(10)
+    .fillColor('#6c757d')
+    .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20);
+
+  // 2) Titre principal et sous-titre
+  doc
+    .moveDown(3)
+    .fontSize(22)
+    .font(CONFIG.FONTS.BOLD)
+    .fillColor('#0e5b23')
+    .text(title, { 
+      align: 'center',
+      y: 120
+    })
+    .fontSize(12)
+    .fillColor('#212529')
+    .text("Extrait des registres de l'état civil", { 
+      align: 'center',
+      y: 150
+    })
+    .moveDown(0.8);
+    
+  return 180; // Retourne la position Y après l'en-tête
+};
+
+/**
+ * Génère une section d'information avec titre et contenu
+ * @param {PDFDocument} doc - L'instance PDFKit
+ * @param {string} title - Titre de la section
+ * @param {Object} content - Contenu de la section
+ * @param {Object} options - Options de mise en forme
+ * @returns {number} La position Y après la section
+ */
+const generateSection = (doc, title, content, options = {}) => {
+  const { y = doc.y, color = '#0e5b23' } = options;
+  
+  // Titre de la section
+  doc
+    .font(CONFIG.FONTS.BOLD)
+    .fontSize(13)
+    .fillColor(color)
+    .text(title, { y: y + 10 });
+    
+  // Contenu de la section
+  const startY = y + 30;
+  
+  // Retourne la position Y après la section
+  return startY + (content.lines || 1) * 20;
+};
+
 // Exporter les fonctions du module
 module.exports = {
   generateNaissancePdf,
@@ -691,5 +754,7 @@ module.exports = {
   generateDeclarantSection,
   generateObservationsSection,
   generateFooter,
+  generateActeHeader,
+  generateSection,
   PdfGenerationError
 };

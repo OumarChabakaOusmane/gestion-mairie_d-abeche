@@ -141,22 +141,36 @@ try {
   process.exit(1);
 }
 
-// Chargement des routes de test
+// Chargement des routes de test (optionnel, non bloquant)
 const testRoutes = express.Router();
+try {
+  const simpleTestRoutes = require('./routes/simple-test');
+  testRoutes.use('/simple', simpleTestRoutes);
+} catch (e) {
+  console.warn('Route de test simple introuvable, ignorée');
+}
 
-// Simple test route
-const simpleTestRoutes = require('./routes/simple-test');
-const pdfTestRoutes = require('./routes/pdf-test');
-const testPdfRoute = require('./routes/test-pdf-route');
+try {
+  const pdfTestRoutes = require('./routes/pdf-test');
+  testRoutes.use('/pdf', pdfTestRoutes);
+} catch (e) {
+  console.warn('Route de test pdf introuvable, ignorée');
+}
 
-testRoutes.use('/simple', simpleTestRoutes);
-testRoutes.use('/pdf', pdfTestRoutes);
-testRoutes.use('/test-pdf', testPdfRoute);
+try {
+  const testPdfRoute = require('./routes/test-pdf-route');
+  testRoutes.use('/test-pdf', testPdfRoute);
+} catch (e) {
+  console.warn('Route test-pdf-route introuvable, ignorée');
+}
 
-// Mount all test routes under /api/test
-app.use('/api/test', testRoutes);
-
-console.log('10. Routes de test chargées avec succès!');
+// Monter seulement si au moins une sous-route a été ajoutée
+if (testRoutes.stack && testRoutes.stack.length > 0) {
+  app.use('/api/test', testRoutes);
+  console.log('10. Routes de test chargées avec succès!');
+} else {
+  console.log('10. Aucune route de test chargée (ignorées).');
+}
 
 console.log('=== FIN DU CHARGEMENT DES ROUTES ===\n');
 

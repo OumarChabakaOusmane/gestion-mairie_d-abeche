@@ -8,3 +8,29 @@ body {
 .card:hover {
   transform: scale(1.03);
 }
+
+/* Filigrane supprimé définitivement */
+
+/* Espacements harmonisés pour les formulaires */
+.form-section-title {
+  color: #0e5b23;
+  font-weight: 700;
+  margin-top: 2rem;   /* espace avant le titre de section */
+  margin-bottom: 0.75rem; /* espace après le titre de section */
+}
+
+.form-section {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.25rem; /* espace interne des cartes/sections */
+  margin-bottom: 1.25rem; /* espace entre les blocs d'informations */
+}
+
+.form-group + .form-group {
+  margin-top: 0.75rem; /* espace entre deux champs voisins */
+}
+
+.section-spacer {
+  height: 1rem; /* séparateur visuel simple */
+}
