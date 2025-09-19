@@ -248,9 +248,10 @@ const contentGenerators = {
 const generateEngagementConcubinagePdf = async (data) => {
   // Vérifier les champs obligatoires
   const requiredFields = [
-    'numeroActe', 'dateDebut', 'mairie', 'ville',
-    'concubin1.nom', 'concubin1.prenom', 'concubin2.nom', 'concubin2.prenom',
-    'lieuDebut'
+    'numeroActe', 'dateDebutConcubinage', 'lieuEtablissement', 'officierEtatCivil',
+    'concubin1.nom', 'concubin1.prenoms', 'concubin1.dateNaissance', 'concubin1.lieuNaissance',
+    'concubin2.nom', 'concubin2.prenoms', 'concubin2.dateNaissance', 'concubin2.lieuNaissance',
+    'adresseCommune', 'regimeBiens'
   ];
   
   const missingFields = requiredFields.filter(field => {
@@ -284,94 +285,244 @@ const generateEngagementConcubinagePdf = async (data) => {
     // Générer l'en-tête de l'acte
     let y = contentGenerators.generateActeHeader(doc, "ACTE D'ENGAGEMENT DE CONCUBINAGE", data);
     
+    // Section d'introduction
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(11)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text(
+        `L'an deux mille vingt-cinq, le ${utils.formatDate(data.dateEtablissement || new Date())}, ` +
+        `à ${data.lieuEtablissement}, s'est présenté(e) devant l'officier de l'état civil :`,
+        CONFIG.MARGINS.LEFT,
+        y + 15,
+        { align: 'justify', width: 500 }
+      );
+    
+    y += 50;
+    
     // Section des concubins
     y = contentGenerators.generateSection(doc, 'INFORMATIONS SUR LES CONCUBINS', {}, { y });
     
     // Fonction utilitaire pour formater les informations personnelles
-    const formatPersonne = (personne) => ({
-      nomComplet: `${personne.prenom || ''} ${personne.nom || ''}`.trim(),
-      dateNaissance: utils.formatDate(personne.dateNaissance),
-      lieuNaissance: personne.lieuNaissance || 'Non spécifié',
-      profession: personne.profession || 'Non spécifiée',
-      adresse: personne.adresse || 'Non spécifiée',
-      nationalite: personne.nationalite || 'Tchadienne'
-    });
+    const formatPersonne = (personne, index) => {
+      const type = index === 1 ? 'Premier(e)' : 'Deuxième';
+      const situationMatrimoniale = personne.situationMatrimoniale || 'Non spécifiée';
+      const typePiece = personne.typePieceIdentite || 'Non spécifié';
+      const numPiece = personne.numeroPieceIdentite || 'Non spécifié';
+      const nationalite = personne.nationalite || 'Tchadienne';
+      
+      return {
+        titre: `${type} concubin(e)`,
+        nomComplet: `${personne.nom || ''} ${personne.prenoms || ''}`.trim(),
+        dateNaissance: utils.formatDate(personne.dateNaissance),
+        lieuNaissance: personne.lieuNaissance || 'Non spécifié',
+        profession: personne.profession || 'Sans profession',
+        adresse: personne.adresse || 'Non spécifiée',
+        nationalite,
+        situationMatrimoniale,
+        pieceIdentite: `${typePiece} n° ${numPiece}`,
+        parents: {
+          pere: personne.nomPere ? `${personne.prenomPere || ''} ${personne.nomPere || ''}`.trim() : 'Non spécifié',
+          mere: personne.nomMere ? `${personne.prenomMere || ''} ${personne.nomMere || ''}`.trim() : 'Non spécifié',
+          domicileParents: personne.domicileParents || 'Non spécifié'
+        }
+      };
+    };
     
-    const concubin1 = formatPersonne(data.concubin1);
-    const concubin2 = formatPersonne(data.concubin2);
+    const concubin1 = formatPersonne(data.concubin1, 1);
+    const concubin2 = formatPersonne(data.concubin2, 2);
     
-    // Afficher les informations du premier concubin dans un cadre
-    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 100);
-    y = contentGenerators.generateInfoLine(doc, 'Premier(e) concubin(e)', '', 80, y);
-    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', concubin1.nomComplet, 80, y + 10);
-    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', concubin1.dateNaissance, 80, y + 5);
-    y = contentGenerators.generateInfoLine(doc, 'À', concubin1.lieuNaissance, 80, y + 5);
-    y = contentGenerators.generateInfoLine(doc, 'Profession', concubin1.profession, 80, y + 5);
+    // Fonction pour ajouter une section de concubin
+    const addConcubinSection = (concubin, yPos) => {
+      let currentY = yPos;
+      
+      // Titre de la section
+      doc
+        .font(CONFIG.FONTS.BOLD)
+        .fontSize(11)
+        .fillColor(CONFIG.COLORS.PRIMARY)
+        .text(concubin.titre, CONFIG.MARGINS.LEFT, currentY);
+      
+      currentY += 15;
+      
+      // Cadre pour les informations
+      currentY = contentGenerators.generateSectionBox(doc, CONFIG.MARGINS.LEFT, currentY, 500, 180);
+      
+      // Informations personnelles
+      currentY = contentGenerators.generateInfoLine(doc, 'Nom et prénoms', concubin.nomComplet, CONFIG.MARGINS.LEFT + 20, currentY + 15);
+      currentY = contentGenerators.generateInfoLine(doc, 'Né(e) le', concubin.dateNaissance, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'À', concubin.lieuNaissance, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Profession', concubin.profession, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Domicile', concubin.adresse, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Nationalité', concubin.nationalite, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Situation matrimoniale', concubin.situationMatrimoniale, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Pièce d\'identité', concubin.pieceIdentite, CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      
+      // Section parents
+      currentY += 10;
+      doc
+        .font(CONFIG.FONTS.BOLD)
+        .fontSize(10)
+        .fillColor(CONFIG.COLORS.PRIMARY)
+        .text('Parents :', CONFIG.MARGINS.LEFT + 20, currentY + 10);
+      
+      currentY = contentGenerators.generateInfoLine(doc, 'Père', concubin.parents.pere, CONFIG.MARGINS.LEFT + 40, currentY + 20);
+      currentY = contentGenerators.generateInfoLine(doc, 'Mère', concubin.parents.mere, CONFIG.MARGINS.LEFT + 40, currentY + 10);
+      currentY = contentGenerators.generateInfoLine(doc, 'Domicile des parents', concubin.parents.domicileParents, CONFIG.MARGINS.LEFT + 40, currentY + 10);
+      
+      return currentY + 20; // Retourne la position Y après la section
+    };
     
-    // Espacement avant le deuxième concubin
-    y += 20;
-    
-    // Afficher les informations du deuxième concubin dans un cadre
-    y = contentGenerators.generateSectionBox(doc, 60, y, 480, 100);
-    y = contentGenerators.generateInfoLine(doc, 'Deuxième concubin(e)', '', 80, y);
-    y = contentGenerators.generateInfoLine(doc, 'Nom et prénom', concubin2.nomComplet, 80, y + 10);
-    y = contentGenerators.generateInfoLine(doc, 'Né(e) le', concubin2.dateNaissance, 80, y + 5);
-    y = contentGenerators.generateInfoLine(doc, 'À', concubin2.lieuNaissance, 80, y + 5);
-    y = contentGenerators.generateInfoLine(doc, 'Profession', concubin2.profession, 80, y + 5);
+    // Ajouter les sections pour les deux concubins
+    y = addConcubinSection(concubin1, y + 10);
+    y = addConcubinSection(concubin2, y);
     
     // Section des détails de l'engagement
-    y += 30;
     y = contentGenerators.generateSection(doc, "DÉTAILS DE L'ENGAGEMENT", {}, { y, color: CONFIG.COLORS.ACCENT });
     
     // Afficher les détails dans un cadre
-    y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 120);
-    y = contentGenerators.generateInfoLine(doc, 'Date de l\'engagement', utils.formatDate(data.dateDebut), 80, y + 15);
-    y = contentGenerators.generateInfoLine(doc, 'Lieu de l\'engagement', data.lieuDebut, 80, y + 10);
-    y = contentGenerators.generateInfoLine(doc, 'Mairie', data.mairie, 80, y + 10);
-    y = contentGenerators.generateInfoLine(doc, 'Ville', data.ville, 80, y + 10);
+    y = contentGenerators.generateSectionBox(doc, CONFIG.MARGINS.LEFT, y + 10, 500, 150);
     
-    // Ajouter une section pour les témoins si disponibles
+    const regimeBiensLibelle = {
+      'séparation de biens': 'Séparation de biens',
+      'indivision': 'Indivision',
+      'autre': data.detailsRegimeBiens || 'Autre (à préciser)'
+    }[data.regimeBiens] || 'Non spécifié';
+    
+    y = contentGenerators.generateInfoLine(doc, 'Date de début du concubinage', utils.formatDate(data.dateDebutConcubinage), CONFIG.MARGINS.LEFT + 20, y + 15);
+    y = contentGenerators.generateInfoLine(doc, 'Adresse commune', data.adresseCommune, CONFIG.MARGINS.LEFT + 20, y + 10);
+    y = contentGenerators.generateInfoLine(doc, 'Régime des biens', regimeBiensLibelle, CONFIG.MARGINS.LEFT + 20, y + 10);
+    
+    if (data.observations) {
+      y += 10;
+      doc
+        .font(CONFIG.FONTS.BOLD)
+        .fontSize(10)
+        .fillColor(CONFIG.COLORS.PRIMARY)
+        .text('Observations :', CONFIG.MARGINS.LEFT + 20, y + 10);
+      
+      doc
+        .font(CONFIG.FONTS.NORMAL)
+        .fontSize(10)
+        .fillColor(CONFIG.COLORS.TEXT)
+        .text(data.observations, CONFIG.MARGINS.LEFT + 40, y + 25, {
+          width: 440,
+          align: 'justify',
+          lineGap: 4
+        });
+      
+      y += 40; // Ajuster selon la longueur du texte
+    }
+    
+    // Section des témoins si disponibles
     if (data.temoins && data.temoins.length > 0) {
-      y += 20;
+      y += 10;
       y = contentGenerators.generateSection(doc, 'TÉMOINS', {}, { y, color: CONFIG.COLORS.SECONDARY });
       
       // Afficher les témoins dans un cadre
-      y = contentGenerators.generateSectionBox(doc, 60, y + 10, 480, 40 + (data.temoins.length * 30));
+      const temoinsHeight = 40 + (data.temoins.length * 80);
+      y = contentGenerators.generateSectionBox(doc, CONFIG.MARGINS.LEFT, y + 10, 500, temoinsHeight);
       
-      data.temoins.forEach((temoins, index) => {
-        y = contentGenerators.generateInfoLine(
-          doc, 
-          `Témoin ${index + 1}`, 
-          `${temoins.prenom || ''} ${temoins.nom || ''}`.trim(), 
-          80, 
-          index === 0 ? y + 15 : y + 10
-        );
+      data.temoins.forEach((temoin, index) => {
+        const temoinY = index === 0 ? y + 15 : y + 10;
+        
+        doc
+          .font(CONFIG.FONTS.BOLD)
+          .fontSize(10)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text(`Témoin ${index + 1}`, CONFIG.MARGINS.LEFT + 20, temoinY);
+        
+        y = contentGenerators.generateInfoLine(doc, 'Nom et prénoms', `${temoin.prenoms || ''} ${temoin.nom || ''}`.trim(), CONFIG.MARGINS.LEFT + 40, temoinY + 15);
+        y = contentGenerators.generateInfoLine(doc, 'Né(e) le', utils.formatDate(temoin.dateNaissance), CONFIG.MARGINS.LEFT + 40, y + 10);
+        y = contentGenerators.generateInfoLine(doc, 'Profession', temoin.profession || 'Non spécifiée', CONFIG.MARGINS.LEFT + 40, y + 10);
+        y = contentGenerators.generateInfoLine(doc, 'Adresse', temoin.adresse || 'Non spécifiée', CONFIG.MARGINS.LEFT + 40, y + 10);
+        y = contentGenerators.generateInfoLine(doc, 'Pièce d\'identité', `${temoin.typePieceIdentite || 'CNI'} n° ${temoin.numeroPieceIdentite || 'Non spécifié'}`, CONFIG.MARGINS.LEFT + 40, y + 10);
+        
+        y += 10; // Espacement entre les témoins
       });
     }
     
+    // Section des mentions marginales si disponibles
+    if (data.mentionsMarginales && data.mentionsMarginales.length > 0) {
+      y += 10;
+      y = contentGenerators.generateSection(doc, 'MENTIONS MARGINALES', {}, { y, color: CONFIG.COLORS.ACCENT });
+      
+      // Afficher les mentions dans un cadre
+      const mentionsHeight = 20 + (data.mentionsMarginales.length * 25);
+      y = contentGenerators.generateSectionBox(doc, CONFIG.MARGINS.LEFT, y + 10, 500, mentionsHeight);
+      
+      data.mentionsMarginales.forEach((mention, index) => {
+        const mentionY = index === 0 ? y + 15 : y + 10;
+        
+        doc
+          .font(CONFIG.FONTS.NORMAL)
+          .fontSize(10)
+          .fillColor(CONFIG.COLORS.TEXT)
+          .text(`• ${mention.date ? utils.formatDate(mention.date) + ' - ' : ''}${mention.texte}`, CONFIG.MARGINS.LEFT + 20, mentionY, {
+            width: 460,
+            align: 'justify'
+          });
+        
+        y = mentionY + 15;
+      });
+    }
+    
+    // Texte de conclusion
+    y += 20;
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(11)
+      .fillColor(CONFIG.COLORS.TEXT)
+      .text(
+        `Les parties déclarent s'engager dans une vie commune en concubinage à compter du ${utils.formatDate(data.dateDebutConcubinage)} ` +
+        `et avoir pris connaissance des dispositions légales applicables à leur situation.`,
+        CONFIG.MARGINS.LEFT,
+        y,
+        { align: 'justify', width: 500 }
+      );
+    
     // Pied de page avec la signature
-    y += 30;
+    y += 40;
     doc
       .moveTo(100, y)
       .lineTo(500, y)
       .stroke(CONFIG.COLORS.BORDER);
-      
+    
+    // Date et lieu
     doc
       .font(CONFIG.FONTS.ITALIC)
       .fontSize(10)
       .fillColor('#6c757d')
       .text(
-        `Fait à ${data.ville || 'N\'Djamena'}, le ${utils.formatDate(data.dateDebut)}`, 
-        350, 
+        `Fait à ${data.lieuEtablissement}, le ${utils.formatDate(data.dateEtablissement || new Date())}`,
+        350,
         y + 10
       );
-      
-    // Espace pour la signature
+    
+    // Signature de l'officier d'état civil
     doc
       .font(CONFIG.FONTS.NORMAL)
       .fontSize(10)
       .fillColor(CONFIG.COLORS.TEXT)
-      .text('Signature et cachet de l\'officier d\'état civil', 350, y + 40);
+      .text('L\'officier d\'état civil,', 350, y + 40);
+    
+    doc
+      .font(CONFIG.FONTS.BOLD)
+      .fontSize(11)
+      .fillColor(CONFIG.COLORS.PRIMARY)
+      .text(data.officierEtatCivil || 'Nom de l\'officier', 350, y + 70);
+    
+    // Numéro de page
+    doc
+      .font(CONFIG.FONTS.NORMAL)
+      .fontSize(8)
+      .fillColor('#6c757d')
+      .text(
+        `Page 1/1 - ${data.numeroActe || ''}`,
+        CONFIG.MARGINS.LEFT,
+        800,
+        { width: 500, align: 'right' }
+      );
     
     // Finaliser le document
     doc.end();
@@ -385,10 +536,16 @@ const generateEngagementConcubinagePdf = async (data) => {
       doc.end();
     }
     
+    logger.error('Erreur lors de la génération du PDF d\'engagement de concubinage', {
+      error: error.message,
+      stack: error.stack,
+      data: JSON.stringify(data, null, 2).substring(0, 1000) + '...'
+    });
+    
     throw error instanceof PdfGenerationError 
       ? error 
       : new PdfGenerationError(
-          'Erreur lors de la génération du PDF',
+          'Erreur lors de la génération du PDF d\'engagement de concubinage',
           'PDF_GENERATION_ERROR',
           { originalError: error.message, stack: error.stack }
         );

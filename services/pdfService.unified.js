@@ -414,86 +414,199 @@ const generateMariagePdf = async (data) => {
     // Ajouter une page
     doc.addPage();
     
-    // Générer l'en-tête
+    // Générer l'en-tête avec le numéro d'acte
     let y = generateActeHeader(doc, 'ACTE DE MARIAGE', data);
     
+    // Numéro d'acte et date d'enregistrement
+    doc.font(CONFIG.FONTS.NORMAL)
+       .fontSize(10)
+       .fillColor(CONFIG.COLORS.TEXT)
+       .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20)
+       .text(`Enregistré le: ${formatDate(data.dateEnregistrement || new Date())}`, CONFIG.MARGINS.LEFT, 35);
+    
     // Section informations des époux
-    y = generateSection(doc, 'INFORMATIONS SUR LES ÉPOUX', {}, { y, titleBgColor: CONFIG.COLORS.SECONDARY });
+    y = generateSection(doc, 'I. INFORMATIONS SUR LES ÉPOUX', {}, { 
+      y: y + 20, 
+      titleBgColor: CONFIG.COLORS.SECONDARY 
+    });
     
     // Section époux 1
-    y = generateSection(doc, 'ÉPOUX', {}, { y: y + 10, titleBgColor: CONFIG.COLORS.PRIMARY });
+    y = generateSection(doc, '1. ÉPOUX', {}, { 
+      y: y + 10, 
+      titleBgColor: CONFIG.COLORS.PRIMARY 
+    });
     
     // Ajouter les informations de l'époux 1
-    y = generateInfoLine(doc, 'Nom', data.conjoint1Nom, CONFIG.MARGINS.LEFT + 10, y + 15);
-    y = generateInfoLine(doc, 'Prénom(s)', data.conjoint1Prenom, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Date de naissance', formatDate(data.dateNaissanceConjoint1), CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Lieu de naissance', data.lieuNaissanceConjoint1, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Profession', data.professionConjoint1, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Adresse', data.adresseConjoint1, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Nationalité', data.nationaliteConjoint1, CONFIG.MARGINS.LEFT + 10, y + 5);
+    y = generateInfoLine(doc, '• Nom', data.conjoint1Nom, CONFIG.MARGINS.LEFT + 20, y + 15);
+    y = generateInfoLine(doc, '• Prénom(s)', data.conjoint1Prenom, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Date de naissance', formatDate(data.dateNaissanceConjoint1), CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Lieu de naissance', data.lieuNaissanceConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Profession', data.professionConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Adresse', data.adresseConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Nationalité', data.nationaliteConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Type de pièce', data.typePieceConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• N° de pièce', data.numeroPieceConjoint1, CONFIG.MARGINS.LEFT + 20, y + 5);
+    
+    // Parents de l'époux
+    if (data.parentsConjoint1) {
+      y = generateInfoLine(doc, '• Père', 
+        `${data.parentsConjoint1.pere.nom || ''} ${data.parentsConjoint1.pere.prenom || ''}`.trim() || 'Non spécifié', 
+        CONFIG.MARGINS.LEFT + 20, y + 5
+      );
+      y = generateInfoLine(doc, '• Mère', 
+        `${data.parentsConjoint1.mere.nom || ''} ${data.parentsConjoint1.mere.prenom || ''}`.trim() || 'Non spécifié', 
+        CONFIG.MARGINS.LEFT + 20, y + 5
+      );
+    }
     
     // Section épouse
-    y = generateSection(doc, 'ÉPOUSE', {}, { y: y + 10, titleBgColor: CONFIG.COLORS.ACCENT });
+    y = generateSection(doc, '2. ÉPOUSE', {}, { 
+      y: y + 15, 
+      titleBgColor: CONFIG.COLORS.ACCENT 
+    });
     
     // Ajouter les informations de l'épouse
-    y = generateInfoLine(doc, 'Nom', data.conjoint2Nom, CONFIG.MARGINS.LEFT + 10, y + 15);
-    y = generateInfoLine(doc, 'Prénom(s)', data.conjoint2Prenom, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Date de naissance', formatDate(data.dateNaissanceConjoint2), CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Lieu de naissance', data.lieuNaissanceConjoint2, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Profession', data.professionConjoint2, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Adresse', data.adresseConjoint2, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Nationalité', data.nationaliteConjoint2, CONFIG.MARGINS.LEFT + 10, y + 5);
+    y = generateInfoLine(doc, '• Nom', data.conjoint2Nom, CONFIG.MARGINS.LEFT + 20, y + 15);
+    y = generateInfoLine(doc, '• Prénom(s)', data.conjoint2Prenom, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Nom de jeune fille', data.nomJeuneFilleConjoint2 || 'Non spécifié', CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Date de naissance', formatDate(data.dateNaissanceConjoint2), CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Lieu de naissance', data.lieuNaissanceConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Profession', data.professionConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Adresse', data.adresseConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Nationalité', data.nationaliteConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Type de pièce', data.typePieceConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• N° de pièce', data.numeroPieceConjoint2, CONFIG.MARGINS.LEFT + 20, y + 5);
+    
+    // Parents de l'épouse
+    if (data.parentsConjoint2) {
+      y = generateInfoLine(doc, '• Père', 
+        `${data.parentsConjoint2.pere.nom || ''} ${data.parentsConjoint2.pere.prenom || ''}`.trim() || 'Non spécifié', 
+        CONFIG.MARGINS.LEFT + 20, y + 5
+      );
+      y = generateInfoLine(doc, '• Mère', 
+        `${data.parentsConjoint2.mere.nom || ''} ${data.parentsConjoint2.mere.prenom || ''}`.trim() || 'Non spécifié', 
+        CONFIG.MARGINS.LEFT + 20, y + 5
+      );
+    }
     
     // Section détails du mariage
-    y = generateSection(doc, 'DÉTAILS DU MARIAGE', {}, { y: y + 20, titleBgColor: CONFIG.COLORS.SECONDARY });
+    y = generateSection(doc, 'II. DÉTAILS DU MARIAGE', {}, { 
+      y: y + 20, 
+      titleBgColor: CONFIG.COLORS.SECONDARY 
+    });
     
     // Ajouter les détails du mariage
-    y = generateInfoLine(doc, 'Date du mariage', formatDate(data.dateMariage), CONFIG.MARGINS.LEFT + 10, y + 15);
-    y = generateInfoLine(doc, 'Lieu du mariage', data.lieuMariage, CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Régime matrimonial', data.regimeMatrimonial || 'Non spécifié', CONFIG.MARGINS.LEFT + 10, y + 5);
-    y = generateInfoLine(doc, 'Contrat de mariage', data.contratMariage ? 'Oui' : 'Non', CONFIG.MARGINS.LEFT + 10, y + 5);
+    y = generateInfoLine(doc, '• Date du mariage', formatDate(data.dateMariage), CONFIG.MARGINS.LEFT + 20, y + 15);
+    y = generateInfoLine(doc, '• Heure du mariage', data.heureMariage || 'Non spécifiée', CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Lieu du mariage', data.lieuMariage, CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Régime matrimonial', data.regimeMatrimonial || 'Communauté réduite aux acquêts', CONFIG.MARGINS.LEFT + 20, y + 5);
+    y = generateInfoLine(doc, '• Contrat de mariage', data.contratMariage ? 'Oui' : 'Non', CONFIG.MARGINS.LEFT + 20, y + 5);
+    
+    if (data.contratMariage && data.notaire) {
+      y = generateInfoLine(doc, '• Notaire', data.notaire, CONFIG.MARGINS.LEFT + 20, y + 5);
+    }
     
     // Section témoins
     if (data.temoins && data.temoins.length > 0) {
-      y = generateSection(doc, 'TÉMOINS', {}, { y: y + 20, titleBgColor: CONFIG.COLORS.PRIMARY });
+      y = generateSection(doc, 'III. TÉMOINS', {}, { 
+        y: y + 20, 
+        titleBgColor: CONFIG.COLORS.PRIMARY 
+      });
       
       // Ajouter les témoins
       data.temoins.forEach((temoin, index) => {
-        y = generateSection(doc, `TÉMOIN ${index + 1}`, {}, { 
+        y = generateSection(doc, `Témoin ${index + 1}`, {}, { 
           y: y + 10, 
           titleBgColor: index % 2 === 0 ? CONFIG.COLORS.SECONDARY : CONFIG.COLORS.ACCENT 
         });
         
-        y = generateInfoLine(doc, 'Nom', temoin.nom, CONFIG.MARGINS.LEFT + 10, y + 15);
-        y = generateInfoLine(doc, 'Prénom(s)', temoin.prenom, CONFIG.MARGINS.LEFT + 10, y + 5);
-        y = generateInfoLine(doc, 'Profession', temoin.profession, CONFIG.MARGINS.LEFT + 10, y + 5);
-        y = generateInfoLine(doc, 'Adresse', temoin.adresse, CONFIG.MARGINS.LEFT + 10, y + 5);
+        y = generateInfoLine(doc, '• Nom', temoin.nom, CONFIG.MARGINS.LEFT + 20, y + 15);
+        y = generateInfoLine(doc, '• Prénom(s)', temoin.prenom, CONFIG.MARGINS.LEFT + 20, y + 5);
+        y = generateInfoLine(doc, '• Date de naissance', formatDate(temoin.dateNaissance), CONFIG.MARGINS.LEFT + 20, y + 5);
+        y = generateInfoLine(doc, '• Profession', temoin.profession, CONFIG.MARGINS.LEFT + 20, y + 5);
+        y = generateInfoLine(doc, '• Adresse', temoin.adresse, CONFIG.MARGINS.LEFT + 20, y + 5);
+        y = generateInfoLine(doc, '• Lien avec les époux', temoin.lien || 'Non spécifié', CONFIG.MARGINS.LEFT + 20, y + 5);
       });
+    }
+    
+    // Section mentions marginales
+    if (data.mentionsMarginales && data.mentionsMarginales.length > 0) {
+      y = generateSection(doc, 'IV. MENTIONS MARGINALES', {}, { 
+        y: y + 20, 
+        titleBgColor: CONFIG.COLORS.SECONDARY 
+      });
+      
+      data.mentionsMarginales.forEach((mention, index) => {
+        y = generateInfoLine(doc, `• Mention ${index + 1}`, mention, CONFIG.MARGINS.LEFT + 20, y + (index === 0 ? 15 : 5));
+      });
+      
+      y += 10;
+    }
+    
+    // Section observations
+    if (data.observations) {
+      y = generateSection(doc, 'V. OBSERVATIONS', {}, { 
+        y: y + 10, 
+        titleBgColor: CONFIG.COLORS.PRIMARY 
+      });
+      
+      // Gérer le texte d'observation sur plusieurs lignes si nécessaire
+      const observations = doc
+        .font(CONFIG.FONTS.NORMAL)
+        .fontSize(10)
+        .fillColor(CONFIG.COLORS.TEXT)
+        .text(data.observations, CONFIG.MARGINS.LEFT + 20, y + 15, {
+          width: doc.page.width - CONFIG.MARGINS.LEFT - CONFIG.MARGINS.RIGHT - 40,
+          align: 'left',
+          lineGap: 5
+        });
+      
+      y = observations.y + 10;
     }
     
     // Pied de page avec signature
     const footerY = doc.page.height - CONFIG.MARGINS.BOTTOM - 50;
+    
+    // Ligne de séparation
     doc.moveTo(CONFIG.MARGINS.LEFT, footerY)
        .lineTo(doc.page.width - CONFIG.MARGINS.RIGHT, footerY)
        .stroke(CONFIG.COLORS.BORDER);
     
+    // Date et lieu
     doc.font(CONFIG.FONTS.ITALIC)
        .fontSize(9)
        .fillColor(CONFIG.COLORS.TEXT)
-       .text('Fait à ' + (data.ville || 'N\'Djamena') + ', le ' + formatDate(new Date()),
+       .text(`Fait à ${data.mairie || 'N\'Djamena'}, le ${formatDate(data.dateEtablissement || new Date())}`,
              CONFIG.MARGINS.LEFT, footerY + 10);
     
     // Zone de signature
+    const signatureX = doc.page.width - CONFIG.MARGINS.RIGHT - 200;
+    
+    // Ligne de signature
+    doc.moveTo(signatureX, footerY + 40)
+       .lineTo(doc.page.width - CONFIG.MARGINS.RIGHT, footerY + 40)
+       .stroke(CONFIG.COLORS.BLACK);
+    
+    // Texte de la signature
     doc.font(CONFIG.FONTS.BOLD)
        .fontSize(10)
        .fillColor(CONFIG.COLORS.TEXT)
        .text('L\'officier d\'état civil,', 
-             doc.page.width - CONFIG.MARGINS.RIGHT - 150, 
-             footerY + 10, { width: 150, align: 'center' });
+             signatureX, 
+             footerY + 10, 
+             { width: 200, align: 'center' });
     
-    doc.moveTo(doc.page.width - CONFIG.MARGINS.RIGHT - 150, footerY + 50)
-       .lineTo(doc.page.width - CONFIG.MARGINS.RIGHT, footerY + 50)
-       .stroke(CONFIG.COLORS.BLACK);
+    // Numéro de page
+    const pageNumber = doc.bufferedPageRange().count;
+    doc.font(CONFIG.FONTS.NORMAL)
+       .fontSize(8)
+       .fillColor(CONFIG.COLORS.TEXT)
+       .text(
+         `Page ${pageNumber}`, 
+         doc.page.width / 2 - 20, 
+         doc.page.height - 30,
+         { align: 'center' }
+       );
     
     // Finaliser le document
     doc.end();

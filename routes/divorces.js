@@ -47,6 +47,15 @@ const divorceValidation = validate([
 ]);
 
 // Routes pour les actes de divorce
+
+// Afficher le formulaire de création d'un acte de divorce
+router.get('/nouveau', 
+  authenticate, 
+  authorize(['admin', 'officier_etat_civil']), 
+  divorceController.showCreateForm
+);
+
+// Créer un nouvel acte de divorce
 router.post('/', 
   authenticate, 
   authorize(['admin', 'officier_etat_civil']), 

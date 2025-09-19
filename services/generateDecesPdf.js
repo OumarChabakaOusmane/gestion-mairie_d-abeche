@@ -39,63 +39,108 @@ const generateDecesPdf = (data) => {
         reject(err);
       });
 
-      // Ajouter le contenu du PDF
+      // En-tête du document
       doc
+        .image(path.join(__dirname, '../public/images/flag-tchad.svg'), 50, 50, { width: 60 })
         .fontSize(16)
+        .font('Helvetica-Bold')
+        .text('RÉPUBLIQUE DU TCHAD', { align: 'center' })
+        .font('Helvetica')
+        .fontSize(12)
+        .text('Unité - Travail - Progrès', { align: 'center' })
+        .moveDown(1);
+
+      // Titre du document
+      doc
+        .fontSize(18)
+        .font('Helvetica-Bold')
         .text('ACTE DE DÉCÈS', { align: 'center' })
         .moveDown(0.5);
 
-      // Informations du défunt
+      // Numéro d'acte et date d'enregistrement
+      doc
+        .fontSize(10)
+        .text(`N°: ${data.numeroActe || 'Non spécifié'}`, { align: 'right' })
+        .text(`Enregistré le: ${data.dateEnregistrement || new Date().toLocaleDateString('fr-FR')}`, { align: 'right' })
+        .moveDown(1);
+
+      // Section Informations du défunt
       doc
         .fontSize(12)
-        .text('INFORMATIONS DU DÉFUNT', { underline: true })
+        .font('Helvetica-Bold')
+        .text('I. INFORMATIONS DU DÉFUNT', { underline: true })
+        .moveDown(0.5)
+        .font('Helvetica')
+        .fontSize(10);
+
+      // Informations personnelles du défunt
+      doc
+        .text(`• Nom: ${data.nomDefunt || 'Non spécifié'}`)
+        .text(`• Prénom(s): ${data.prenomsDefunt || 'Non spécifié'}`)
+        .text(`• Date de naissance: ${data.dateNaissanceDefunt || 'Non spécifiée'}`)
+        .text(`• Lieu de naissance: ${data.lieuNaissanceDefunt || 'Non spécifié'}`)
+        .text(`• Profession: ${data.professionDefunt || 'Non spécifiée'}`)
+        .text(`• Dernier domicile: ${data.domicileDefunt || 'Non spécifié'}`)
+        .text(`• Date du décès: ${data.dateDeces || 'Non spécifiée'}`)
+        .text(`• Heure du décès: ${data.heureDeces || 'Non spécifiée'}`)
+        .text(`• Lieu du décès: ${data.lieuDeces || 'Non spécifié'}`)
+        .text(`• Cause du décès: ${data.causeDeces || 'Non spécifiée'}`)
+        .moveDown(1);
+
+      // Section Informations des parents
+      doc
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text('II. INFORMATIONS DES PARENTS', { underline: true })
+        .moveDown(0.5)
+        .font('Helvetica')
+        .fontSize(10);
+
+      // Informations du père
+      doc
+        .text('Père:')
+        .text(`   • Nom: ${data.nomPere || 'Non spécifié'}`)
+        .text(`   • Prénom(s): ${data.prenomsPere || 'Non spécifié'}`)
+        .text(`   • Profession: ${data.professionPere || 'Non spécifiée'}`)
+        .text(`   • Domicile: ${data.domicilePere || 'Non spécifié'}`)
         .moveDown(0.5);
 
-      if (data.defunt) {
-        doc
-          .fontSize(10)
-          .text(`Nom: ${data.defunt.nom || 'Non spécifié'}`)
-          .text(`Prénom(s): ${data.defunt.prenom || 'Non spécifié'}`)
-          .text(`Date de naissance: ${data.defunt.dateNaissance || 'Non spécifiée'}`)
-          .text(`Lieu de naissance: ${data.defunt.lieuNaissance || 'Non spécifié'}`)
-          .text(`Date du décès: ${data.dateDeces || 'Non spécifiée'}`)
-          .text(`Lieu du décès: ${data.lieuDeces || 'Non spécifié'}`)
-          .text(`Profession: ${data.defunt.profession || 'Non spécifiée'}`)
-          .text(`Domicile: ${data.defunt.adresse || 'Non spécifié'}`)
-          .moveDown();
-      }
+      // Informations de la mère
+      doc
+        .text('Mère:')
+        .text(`   • Nom: ${data.nomMere || 'Non spécifiée'}`)
+        .text(`   • Prénom(s): ${data.prenomsMere || 'Non spécifiée'}`)
+        .text(`   • Profession: ${data.professionMere || 'Non spécifiée'}`)
+        .text(`   • Domicile: ${data.domicileMere || 'Non spécifié'}`)
+        .moveDown(1);
 
-      // Informations des parents
-      if (data.parents) {
-        doc
-          .fontSize(12)
-          .text('INFORMATIONS DES PARENTS', { underline: true })
-          .moveDown(0.5)
-          .fontSize(10);
+      // Section Informations du déclarant
+      doc
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text('III. INFORMATIONS DU DÉCLARANT', { underline: true })
+        .moveDown(0.5)
+        .font('Helvetica')
+        .fontSize(10);
 
-        if (data.parents.pere) {
-          doc
-            .text(`Père: ${data.parents.pere.nom || 'Non spécifié'} ${data.parents.pere.prenom || ''}`);
-        }
+      doc
+        .text(`• Nom: ${data.nomDeclarant || 'Non spécifié'}`)
+        .text(`• Prénom(s): ${data.prenomsDeclarant || 'Non spécifié'}`)
+        .text(`• Date de naissance: ${data.dateNaissanceDeclarant || 'Non spécifiée'}`)
+        .text(`• Lieu de naissance: ${data.lieuNaissanceDeclarant || 'Non spécifié'}`)
+        .text(`• Profession: ${data.professionDeclarant || 'Non spécifiée'}`)
+        .text(`• Domicile: ${data.domicileDeclarant || 'Non spécifié'}`)
+        .text(`• Lien avec le défunt: ${data.lienDeclarant || 'Non spécifié'}`)
+        .moveDown(1);
 
-        if (data.parents.mere) {
-          doc
-            .text(`Mère: ${data.parents.mere.nom || 'Non spécifiée'} ${data.parents.mere.prenom || ''}`);
-        }
-
-        doc.moveDown();
-      }
-
-      // Informations complémentaires
-      if (data.observations) {
-        doc
-          .fontSize(12)
-          .text('OBSERVATIONS', { underline: true })
-          .moveDown(0.5)
-          .fontSize(10)
-          .text(data.observations)
-          .moveDown();
-      }
+      // Section Mentions légales
+      doc
+        .fontSize(10)
+        .font('Helvetica-Bold')
+        .text('MENTIONS LÉGALES', { align: 'center' })
+        .font('Helvetica')
+        .text('Document officiel de la République du Tchad - Toute falsification est passible de poursuites judiciaires.', { align: 'center' })
+        .moveDown(0.5);
 
       // Pied de page
       const footerY = 750;
@@ -104,7 +149,7 @@ const generateDecesPdf = (data) => {
         .lineTo(550, footerY)
         .stroke()
         .fontSize(8)
-        .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 50, footerY + 10);
+        .text(`Document généré par ${data.mairie || 'la Mairie'} - ${data.ville || ''} le ${new Date().toLocaleDateString('fr-FR')}`, 50, footerY + 10);
 
       // Finaliser le document
       doc.end();

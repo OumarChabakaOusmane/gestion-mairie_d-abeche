@@ -502,119 +502,155 @@ const generateNaissancePdf = async (data) => {
       
       // Générer le contenu du PDF
       try {
-        // 1) En-tête (drapeau + titres République)
-        generateHeader(doc);
+        // 1) En-tête avec le drapeau et le titre
+        generateActeHeader(doc, 'ACTE DE NAISSANCE', data);
         
-        // Filigrane supprimé définitivement
-
-        // Numéro de document (haut-gauche)
+        // 2) Numéro d'acte et date d'enregistrement
         doc
           .font(CONFIG.FONTS.NORMAL)
           .fontSize(10)
           .fillColor('#6c757d')
-          .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20);
+          .text(`N°: ${data.numeroActe || 'N/A'}`, CONFIG.MARGINS.LEFT, 20)
+          .text(`Enregistré le: ${data.dateEtablissement ? new Date(data.dateEtablissement).toLocaleDateString('fr-FR') : 'Non spécifié'}`, 
+                CONFIG.MARGINS.LEFT, 35);
 
-        // Timbre officiel supprimé selon la demande
-
-        // 2) Titre principal et sous-titre
-        doc
-          .moveDown(3)
-          .fontSize(22)
-          .font(CONFIG.FONTS.BOLD)
-          .fillColor('#0e5b23')
-          .text('ACTE DE NAISSANCE', { 
-            align: 'center',
-            y: 120  // Position Y ajustée pour éviter le chevauchement
-          })
-          .fontSize(12)
-          .fillColor('#212529')
-          .text("Extrait des registres de l'état civil", { 
-            align: 'center',
-            y: 150  // Position Y ajustée pour le sous-titre
-          })
-          .moveDown(0.8);
-        
         // 3) Informations sur l'enfant
         doc
-          .moveDown(1)
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(13)
-          .fillColor('#0e5b23')
-          .text("INFORMATIONS SUR L'ENFANT");
-        doc.moveDown(0.5);
+          .fontSize(14)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text('I. INFORMATIONS SUR L\'ENFANT', CONFIG.MARGINS.LEFT, 120)
+          .moveDown(0.5);
 
-        const colLeftX = 60;
-        const colRightX = 300;
-        const lineH = 18;
-        let y = doc.y;
-        const info = (label, value, x, yPos) => {
+        const col1 = CONFIG.MARGINS.LEFT;
+        const col2 = 300;
+        const lineH = 20;
+        let y = 160;
+        
+        // Fonction utilitaire pour ajouter une ligne d'information
+        const addLine = (label, value, yPos, isBold = false) => {
           doc
-            .font(CONFIG.FONTS.BOLD)
-            .fillColor('#0e5b23')
+            .font(isBold ? CONFIG.FONTS.BOLD : CONFIG.FONTS.NORMAL)
             .fontSize(10)
-            .text(`${label} `, x, yPos, { continued: true })
-            .font(CONFIG.FONTS.NORMAL)
-            .fillColor('#212529')
-            .text(value || 'Non spécifié');
+            .fillColor(CONFIG.COLORS.TEXT)
+            .text(`${label}: `, col1, yPos, { continued: true, width: 150, align: 'left' })
+            .text(value || 'Non spécifié', { width: 400 });
+          return yPos + lineH;
         };
-        const sexe = data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'Non spécifié';
-        info('Nom de famille :', data.nomEnfant, colLeftX, y); info('Prénom(s) :', data.prenomsEnfant, colRightX, y); y += lineH;
-        info('Sexe :', sexe, colLeftX, y); info('Date de naissance :', data.dateNaissance ? new Date(data.dateNaissance).toLocaleDateString('fr-FR') : 'Non spécifiée', colRightX, y); y += lineH;
-        info('Heure de naissance :', data.heureNaissance || 'Non spécifiée', colLeftX, y); info('Lieu de naissance :', data.lieuNaissance || 'Non spécifié', colRightX, y); y += lineH + 6;
-        doc.y = y;
+        
+        // Informations de base de l'enfant
+        y = addLine('Nom', data.nomEnfant, y);
+        y = addLine('Prénoms', data.prenomsEnfant, y);
+        y = addLine('Sexe', data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'Non spécifié', y);
+        y = addLine('Date de naissance', data.dateNaissance ? new Date(data.dateNaissance).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        y = addLine('Heure de naissance', data.heureNaissance || 'Non spécifiée', y);
+        y = addLine('Lieu de naissance', data.lieuNaissance || 'Non spécifié', y);
+        
+        // Ajouter un espace avant la section suivante
+        y += 10;
 
         // 4) Informations sur les parents
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(13)
-          .fillColor('#0e5b23')
-          .text('INFORMATIONS SUR LES PARENTS');
-        doc.moveDown(0.5);
-        y = doc.y;
-        // Père
+          .fontSize(14)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text('II. INFORMATIONS SUR LES PARENTS', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.5);
+        
+        y += 30;
+        
+        // Section Père
         doc
-          .font(CONFIG.FONTS.NORMAL)
-          .fillColor('#212529')
-          .text('Père : ', colLeftX, y, { continued: true })
           .font(CONFIG.FONTS.BOLD)
-          .text(`${data.nomPere || ''} ${data.prenomsPere || ''}`.trim());
-        y += lineH;
-        info('Date de naissance :', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
-        info('Lieu de naissance :', data.lieuNaissancePere || 'Non spécifié', colRightX, y); y += lineH;
-        // Mère
+          .fontSize(12)
+          .text('Père:', col1, y);
+        y += 20;
+        
+        y = addLine('   • Nom', data.nomPere, y);
+        y = addLine('   • Prénoms', data.prenomsPere, y);
+        y = addLine('   • Date de naissance', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        y = addLine('   • Lieu de naissance', data.lieuNaissancePere, y);
+        y = addLine('   • Profession', data.professionPere, y);
+        y = addLine('   • Domicile', data.domicilePere, y);
+        
+        // Section Mère
         doc
-          .font(CONFIG.FONTS.NORMAL)
-          .fillColor('#212529')
-          .text('Mère : ', colLeftX, y, { continued: true })
           .font(CONFIG.FONTS.BOLD)
-          .text(`${data.nomMere || ''} ${data.prenomsMere || ''}`.trim());
-        y += lineH;
-        info('Date de naissance :', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
-        info('Lieu de naissance :', data.lieuNaissanceMere || 'Non spécifié', colRightX, y); y += lineH + 6;
-        doc.y = y;
+          .fontSize(12)
+          .text('Mère:', col1, y);
+        y += 20;
+        
+        y = addLine('   • Nom', data.nomMere, y);
+        y = addLine('   • Nom de jeune fille', data.nomJeuneFilleMere, y);
+        y = addLine('   • Prénoms', data.prenomsMere, y);
+        y = addLine('   • Date de naissance', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        y = addLine('   • Lieu de naissance', data.lieuNaissanceMere, y);
+        y = addLine('   • Profession', data.professionMere, y);
+        y = addLine('   • Domicile', data.domicileMere, y);
+        
+        // Ajouter un espace avant la section suivante
+        y += 10;
 
-        // 5) Déclaration de naissance
+        // 5) Informations sur le déclarant
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(13)
-          .fillColor('#0e5b23')
-          .text('DÉCLARATION DE NAISSANCE');
-        doc.moveDown(0.5);
-        y = doc.y;
-        info('Déclarée le :', data.dateEtablissement ? new Date(data.dateEtablissement).toLocaleDateString('fr-FR') : 'Non spécifiée', colLeftX, y);
-        info('Heure :', data.heureDeclaration || 'Non spécifiée', colRightX, y); y += lineH;
-        const declarantTxt = data.declarant ? `${data.declarant.nom || ''} ${data.declarant.prenoms || ''}${data.declarant.qualite ? ` (${data.declarant.qualite})` : ''}`.trim() : 'Non spécifié';
-        info('Déclarant :', declarantTxt, colLeftX, y); y += lineH;
-        info('Lieu de déclaration :', data.mairie || 'Non spécifié', colLeftX, y); y += lineH;
-        info("Officier de l'état civil :", data.officierEtatCivil || 'Non spécifié', colLeftX, y); y += lineH + 6;
-        doc.y = y;
+          .fontSize(14)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text('III. INFORMATIONS DU DÉCLARANT', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.5);
+        
+        y += 30;
+        
+        if (data.declarant) {
+          y = addLine('• Nom', data.declarant.nom, y);
+          y = addLine('• Prénoms', data.declarant.prenoms, y);
+          y = addLine('• Qualité', data.declarant.qualite, y);
+          y = addLine('• Domicile', data.declarant.domicile, y);
+        } else {
+          y = addLine('Déclarant', 'Non spécifié', y);
+        }
+        
+        // Ajouter un espace avant la section suivante
+        y += 10;
 
-        // 6) Mentions marginales (infos admin)
+        // 6) Informations administratives
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(13)
-          .fillColor('#0e5b23')
-          .text('MENTIONS MARGINALES');
+          .fontSize(14)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text('IV. INFORMATIONS ADMINISTRATIVES', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.5);
+        
+        y += 30;
+        
+        y = addLine('• Mairie', data.mairie, y);
+        y = addLine('• Officier d\'état civil', data.officierEtatCivil, y);
+        y = addLine('• Date d\'établissement', data.dateEtablissement ? new Date(data.dateEtablissement).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        
+        // Mentions marginales
+        if (data.mentionsMarginales && data.mentionsMarginales.length > 0) {
+          y += 10;
+          doc
+            .font(CONFIG.FONTS.BOLD)
+            .fontSize(12)
+            .text('Mentions marginales:', col1, y);
+          y += 20;
+          
+          data.mentionsMarginales.forEach((mention, index) => {
+            y = addLine(`   ${index + 1}.`, mention, y);
+          });
+        }
+        
+        // 7) Pied de page avec signature
+        const footerY = 750;
+        doc
+          .moveTo(CONFIG.MARGINS.LEFT, footerY)
+          .lineTo(doc.page.width - CONFIG.MARGINS.RIGHT, footerY)
+          .stroke(CONFIG.COLORS.BORDER)
+          .fontSize(8)
+          .fillColor(CONFIG.COLORS.TEXT)
+          .text(`Document généré par ${data.mairie || 'la Mairie'} le ${new Date().toLocaleDateString('fr-FR')}`, 
+                CONFIG.MARGINS.LEFT, footerY + 10);
         doc.moveDown(0.5);
         y = doc.y;
         info("Numéro d'acte :", data.numeroActe || 'N/A', colLeftX, y); info('Volume :', data.volume || 'N/A', colRightX, y); y += lineH;

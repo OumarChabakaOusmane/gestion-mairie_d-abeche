@@ -67,8 +67,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression HTTP pour réduire la taille des réponses
 app.use(compression());
 
+// Configuration du moteur de vue EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Middleware pour les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware pour ajouter le token CSRF aux réponses
+app.use((req, res, next) => {
+  // Générer un token CSRF s'il n'existe pas
+  if (!req.cookies._csrf) {
+    const csrfToken = crypto.randomBytes(16).toString('hex');
+    res.cookie('_csrf', csrfToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    res.locals.csrfToken = csrfToken;
+  } else {
+    res.locals.csrfToken = req.cookies._csrf;
+  }
+  next();
+});
 
 // Middleware de sécurité et de journalisation
 app.use(securityHeaders);

@@ -146,49 +146,54 @@ naissanceController.generateNaissancePdf = async (req, res) => {
       });
     }
 
+    // Vérifier si on a un objet details (structure plate) ou des références
+    const hasDetails = naissance.details && typeof naissance.details === 'object';
+    
     // Préparer les données pour le PDF dans le format attendu
     const pdfData = {
       // Informations administratives
       numeroActe: naissance.numeroActe || 'En attente',
-      dateEtablissement: formatDate(naissance.dateEtablissement) || 'Non spécifiée',
-      mairie: naissance.mairie?.nom || 'Mairie non spécifiée',
-      ville: naissance.mairie?.ville || '',
+      dateEtablissement: formatDate(naissance.dateEtablissement || naissance.dateEnregistrement) || 'Non spécifiée',
+      mairie: naissance.mairie || 'Mairie non spécifiée',
+      ville: naissance.mairie || '',
       
       // Données de l'enfant
-      nomEnfant: naissance.enfant.nom || 'Non renseigné',
-      prenomsEnfant: naissance.enfant.prenom || 'Non renseigné',
-      dateNaissance: formatDate(naissance.enfant.dateNaissance),
-      heureNaissance: naissance.enfant.heureNaissance || 'Non spécifiée',
-      lieuNaissance: naissance.enfant.lieuNaissance || 'Non renseigné',
-      sexe: naissance.enfant.sexe || 'Non spécifié',
+      nomEnfant: hasDetails ? naissance.details.nom : (naissance.enfant?.nom || 'Non renseigné'),
+      prenomsEnfant: hasDetails ? naissance.details.prenom : (naissance.enfant?.prenom || 'Non renseigné'),
+      dateNaissance: formatDate(hasDetails ? naissance.details.dateNaissance : (naissance.enfant?.dateNaissance)),
+      heureNaissance: hasDetails ? naissance.details.heureNaissance : (naissance.enfant?.heureNaissance || 'Non spécifiée'),
+      lieuNaissance: hasDetails ? naissance.details.lieuNaissance : (naissance.enfant?.lieuNaissance || 'Non renseigné'),
+      sexe: hasDetails ? naissance.details.sexe : (naissance.enfant?.sexe || 'Non spécifié'),
       
       // Données du père
-      nomPere: naissance.pere.nom || 'Non renseigné',
-      prenomsPere: naissance.pere.prenom || 'Non renseigné',
-      dateNaissancePere: formatDate(naissance.pere.dateNaissance),
-      lieuNaissancePere: naissance.pere.lieuNaissance || 'Non renseigné',
-      professionPere: naissance.pere.profession || 'Non renseignée',
+      nomPere: hasDetails ? naissance.details.pere : (naissance.pere?.nom || 'Non renseigné'),
+      prenomsPere: hasDetails ? naissance.details.prenomPere : (naissance.pere?.prenom || 'Non renseigné'),
+      dateNaissancePere: formatDate(hasDetails ? naissance.details.dateNaissancePere : naissance.pere?.dateNaissance),
+      lieuNaissancePere: hasDetails ? naissance.details.lieuNaissancePere : (naissance.pere?.lieuNaissance || 'Non renseigné'),
+      professionPere: hasDetails ? naissance.details.professionPere : (naissance.pere?.profession || 'Non renseignée'),
       
       // Données de la mère
-      nomMere: naissance.mere.nom || 'Non renseigné',
-      prenomsMere: naissance.mere.prenom || 'Non renseigné',
-      dateNaissanceMere: formatDate(naissance.mere.dateNaissance),
-      lieuNaissanceMere: naissance.mere.lieuNaissance || 'Non renseigné',
-      professionMere: naissance.mere.profession || 'Non renseignée',
+      nomMere: hasDetails ? naissance.details.mere : (naissance.mere?.nom || 'Non renseigné'),
+      prenomsMere: hasDetails ? naissance.details.prenomMere : (naissance.mere?.prenom || 'Non renseigné'),
+      dateNaissanceMere: formatDate(hasDetails ? naissance.details.dateNaissanceMere : naissance.mere?.dateNaissance),
+      lieuNaissanceMere: hasDetails ? naissance.details.lieuNaissanceMere : (naissance.mere?.lieuNaissance || 'Non renseigné'),
+      professionMere: hasDetails ? naissance.details.professionMere : (naissance.mere?.profession || 'Non renseignée'),
       
       // Informations du déclarant
-      nomDeclarant: naissance.declarant.nom || 'Non renseigné',
-      prenomsDeclarant: naissance.declarant.prenom || 'Non renseigné',
-      lienDeclarant: naissance.lienDeclarant || 'Non spécifié',
-      adresseDeclarant: naissance.adresseDeclarant || 'Non renseignée',
+      nomDeclarant: hasDetails ? naissance.details.nomDeclarant : (naissance.declarant?.nom || 'Non renseigné'),
+      prenomsDeclarant: hasDetails ? naissance.details.prenomsDeclarant : (naissance.declarant?.prenom || 'Non renseigné'),
+      lienDeclarant: hasDetails ? naissance.details.lienDeclarant : (naissance.lienDeclarant || 'Non spécifié'),
+      adresseDeclarant: hasDetails ? naissance.details.adresse : (naissance.adresseDeclarant || 'Non renseignée'),
       
       // Observations
       observations: naissance.observations || 'Aucune observation',
       
       // Métadonnées
-      createdAt: formatDate(naissance.createdAt),
+      createdAt: formatDate(naissance.createdAt || naissance.dateEnregistrement),
       createdBy: naissance.createdBy ? 
-        `${naissance.createdBy.prenom} ${naissance.createdBy.nom}` : 
+        (typeof naissance.createdBy === 'object' ? 
+          `${naissance.createdBy.prenom || ''} ${naissance.createdBy.nom || ''}`.trim() : 
+          String(naissance.createdBy)) : 
         'Utilisateur inconnu'
     };
 
