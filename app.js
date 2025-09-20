@@ -16,6 +16,9 @@ const logger = require('./config/logger');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const crypto = require('crypto');
+const csrf = require('csurf');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 // Valider les variables d'environnement au démarrage
 validateEnv();
@@ -24,10 +27,40 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    methods: ['GET', 'POST']
+    origin: function(origin, callback) {
+      // Autoriser les requêtes sans origine (comme les applications mobiles ou Postman)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+      if (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+    exposedHeaders: ['X-Request-Id'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   }
 });
+
+// Configuration CSRF
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 3600 // 1 heure
+  }
+});
+
+// Middleware pour ajouter le token CSRF aux réponses
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken ? req.csrfToken() : '';
+  next();
+});
+
 const PORT = process.env.PORT || 3000;
 const APP_VERSION = process.env.APP_VERSION || '1.0.0';
 
@@ -286,10 +319,45 @@ app.get('/', (req, res) => {
 
 // Routes pour les pages HTML
 const htmlPages = [
-  'dashboard', 'naissance', 'mariage', 'deces', 'divorce', 'divorces', 'engagement', 'engagements',
+  'dashboard', 'naissance', 'mariage', 'deces', 'divorces', 'engagement', 'engagements',
   'calendrier', 'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
   'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];
+
+// Route pour le formulaire de divorce avec authentification et CSRF
+app.get('/divorce', csrfProtection, (req, res) => {
+  // Vérifier si l'utilisateur est authentifié
+  const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+  
+  if (!token) {
+    return res.redirect('/login?redirect=/divorce');
+  }
+  
+  // Vérifier la validité du token
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      // Si le token est invalide, rediriger vers la page de connexion
+      return res.redirect('/login?redirect=/divorce');
+    }
+    
+    try {
+      // Vérifier si l'utilisateur existe
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.redirect('/login?redirect=/divorce');
+      }
+      
+      // Rendre la page avec le token CSRF
+      res.render('divorce', { 
+        title: 'Nouvel acte de divorce',
+        csrfToken: req.csrfToken()
+      });
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'utilisateur:', error);
+      res.status(500).send('Erreur interne du serveur');
+    }
+  });
+});
 
 htmlPages.forEach(page => {
   app.get(`/${page}`, (req, res) => {

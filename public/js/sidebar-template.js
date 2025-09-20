@@ -1,5 +1,5 @@
 // Template de sidebar réutilisable pour toutes les pages
-function createSidebar(activePage = '') {
+window.createSidebar = function(activePage = '') {
   return `
     <div class="sidebar">
       <div class="text-center mb-4">
@@ -81,7 +81,7 @@ function createSidebar(activePage = '') {
 }
 
 // CSS commun pour toutes les pages
-const commonCSS = `
+window.commonCSS = `
   :root {
     --primary-color: #2c3e50;
     --secondary-color: #3498db;
@@ -125,12 +125,27 @@ const commonCSS = `
 
 // Fonction d'authentification commune
 function checkAuth() {
-  const token = localStorage.getItem('token');
+  // Vérifier d'abord dans le localStorage
+  let token = localStorage.getItem('token');
+  
+  // Si pas de token dans le localStorage, vérifier les cookies
   if (!token) {
-    window.location.href = '/login';
-    return null;
+    const cookies = document.cookie.split(';').reduce((cookies, cookie) => {
+      const [name, value] = cookie.split('=').map(c => c.trim());
+      cookies[name] = value;
+      return cookies;
+    }, {});
+    
+    if (cookies.token) {
+      // Stocker le token dans le localStorage pour les prochaines requêtes
+      localStorage.setItem('token', cookies.token);
+      token = cookies.token;
+    }
   }
-  return token;
+  
+  // Si toujours pas de token, on ne redirige pas immédiatement pour éviter les boucles
+  // La redirection sera gérée par la page qui appelle cette fonction
+  return token || null;
 }
 
 // Fonction pour faire des requêtes API authentifiées

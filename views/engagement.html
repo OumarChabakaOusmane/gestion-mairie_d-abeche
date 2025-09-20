@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engagement de cial - État Civil Tchad</title>
+    <title>Engagement de cial - Mairie d'Abéché</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style id="common-styles"></style>
     <style>
         /* Styles de base */
         body { background-color: #f5f7fa; }
@@ -39,25 +40,55 @@
         }
         
         /* Styles des boutons */
-        .btn-save { 
-            background-color: #9b59b6; 
-            border: none; 
-            padding: 8px 20px;
+        /* Styles des boutons */
+        .btn {
+            padding: 8px 16px;
             font-weight: 500;
+            border-radius: 6px;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-save:hover { 
+        .btn i {
+            margin-right: 6px;
+        }
+        .btn-primary {
+            background-color: #9b59b6;
+            border-color: #9b59b6;
+        }
+        .btn-primary:hover {
             background-color: #8e44ad;
+            border-color: #8e44ad;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .btn-outline-secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        .btn-outline-primary {
             border-color: #9b59b6;
             color: #9b59b6;
         }
-        .btn-outline-secondary:hover {
+        .btn-outline-primary:hover {
             background-color: #9b59b6;
             border-color: #9b59b6;
+            color: white;
+        }
+        .btn-outline-success {
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+        .btn-outline-success:hover {
+            background-color: #2ecc71;
+            border-color: #2ecc71;
+            color: white;
         }
         
         /* Styles des champs de formulaire */
@@ -93,16 +124,20 @@
             margin-top: 0.25rem;
         }
         
-        /* Cartes pour les sections */
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
+        /* Sections du formulaire */
+        .form-section-inner {
+            background: #fff;
+            border-radius: 8px;
             transition: all 0.3s ease;
         }
-        .card:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .form-section-inner:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .form-section-inner h5 {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
         }
         .card-header {
             background-color: #f8f9fa;
@@ -183,121 +218,252 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Suppression des onglets pour une interface plus simple -->
-
-                <form id="engagementForm" class="needs-validation" novalidate>
-                    <div class="form-section">
-                        <h3 class="section-title">Engagement de cial</h3>
-                        
-                        <!-- Informations de base -->
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-3">
-                                <label for="numeroActe" class="form-label required-field">Numéro d'acte</label>
-                                <input type="text" class="form-control" id="numeroActe" name="numeroActe" readonly>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="dateEtablissement" class="form-label required-field">Date d'établissement</label>
-                                <input type="date" class="form-control" id="dateEtablissement" name="dateEtablissement" required>
-                                <div class="invalid-feedback">Ce champ est requis</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="lieuEtablissement" class="form-label required-field">Lieu d'établissement</label>
-                                <input type="text" class="form-control" id="lieuEtablissement" name="lieuEtablissement" required>
-                            </div>
                         </div>
+                    </div>
 
-                        <!-- Premier partenaire -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">Premier partenaire</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="concubin1_nom" class="form-label required-field">Nom complet</label>
-                                        <input type="text" class="form-control" id="concubin1_nom" name="concubin1.nom" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="concubin1_dateNaissance" class="form-label required-field">Date de naissance</label>
-                                        <input type="date" class="form-control" id="concubin1_dateNaissance" name="concubin1.dateNaissance" required>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="mb-3">
-                                        <label for="concubin1_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
-                                        <input type="text" class="form-control" id="concubin1_lieuNaissance" name="concubin1.lieuNaissance" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="concubin1_domicile" class="form-label required-field">Domicile</label>
-                                        <input type="text" class="form-control" id="concubin1_domicile" name="concubin1.domicile" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Suppression des onglets pour une interface plus simple -->
 
-                        <!-- Deuxième partenaire -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">Deuxième partenaire</h5>
-                            </div>
-                            <div class="card-body">
+                    <form id="engagementForm" class="needs-validation" novalidate>
+                        <div class="form-section">
+                            <h3 class="section-title mb-4">Engagement de cial</h3>
+                            
+                            <!-- Informations de base -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <h5 class="mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Informations de base</h5>
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="concubin2_nom" class="form-label required-field">Nom complet</label>
-                                        <input type="text" class="form-control" id="concubin2_nom" name="concubin2.nom" required>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="dateEngagement" class="form-label required-field">Date de l'engagement</label>
+                                        <input type="date" class="form-control" id="dateEngagement" name="dateEngagement" required>
+                                        <div class="invalid-feedback">Veuillez saisir la date de l'engagement.</div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="concubin2_dateNaissance" class="form-label required-field">Date de naissance</label>
-                                        <input type="date" class="form-control" id="concubin2_dateNaissance" name="concubin2.dateNaissance" required>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="numeroActe" class="form-label required-field">Numéro d'acte</label>
+                                        <input type="text" class="form-control" id="numeroActe" name="numeroActe" required>
+                                        <div class="invalid-feedback">Veuillez saisir le numéro d'acte.</div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="mb-3">
-                                        <label for="concubin2_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
-                                        <input type="text" class="form-control" id="concubin2_lieuNaissance" name="concubin2.lieuNaissance" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="concubin2_domicile" class="form-label required-field">Domicile</label>
-                                        <input type="text" class="form-control" id="concubin2_domicile" name="concubin2.domicile" required>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="lieuEtablissement" class="form-label required-field">Lieu d'établissement</label>
+                                        <input type="text" class="form-control" id="lieuEtablissement" name="lieuEtablissement" required>
+                                        <div class="invalid-feedback">Veuillez saisir le lieu d'établissement.</div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Détails de l'engagement -->
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">Détails de l'engagement</h5>
+                            <!-- Premier partenaire -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <h5 class="mb-3 text-primary"><i class="fas fa-user me-2"></i>Premier partenaire</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_nom" class="form-label required-field">Nom</label>
+                                        <input type="text" class="form-control" id="partenaire1_nom" name="partenaire1.nom" required>
+                                        <div class="invalid-feedback">Veuillez saisir le nom.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_prenom" class="form-label required-field">Prénom(s)</label>
+                                        <input type="text" class="form-control" id="partenaire1_prenom" name="partenaire1.prenom" required>
+                                        <div class="invalid-feedback">Veuillez saisir le(s) prénom(s).</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_dateNaissance" class="form-label required-field">Date de naissance</label>
+                                        <input type="date" class="form-control" id="partenaire1_dateNaissance" name="partenaire1.dateNaissance" required>
+                                        <div class="invalid-feedback">Veuillez saisir la date de naissance.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
+                                        <input type="text" class="form-control" id="partenaire1_lieuNaissance" name="partenaire1.lieuNaissance" required>
+                                        <div class="invalid-feedback">Veuillez saisir le lieu de naissance.</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_profession" class="form-label required-field">Profession</label>
+                                        <input type="text" class="form-control" id="partenaire1_profession" name="partenaire1.profession" required>
+                                        <div class="invalid-feedback">Veuillez saisir la profession.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire1_adresse" class="form-label required-field">Adresse</label>
+                                        <input type="text" class="form-control" id="partenaire1_adresse" name="partenaire1.adresse" required>
+                                        <div class="invalid-feedback">Veuillez saisir l'adresse.</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
+
+                            <!-- Deuxième partenaire -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <h5 class="mb-3 text-primary"><i class="fas fa-user me-2"></i>Deuxième partenaire</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_nom" class="form-label required-field">Nom</label>
+                                        <input type="text" class="form-control" id="partenaire2_nom" name="partenaire2.nom" required>
+                                        <div class="invalid-feedback">Veuillez saisir le nom.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_prenom" class="form-label required-field">Prénom(s)</label>
+                                        <input type="text" class="form-control" id="partenaire2_prenom" name="partenaire2.prenom" required>
+                                        <div class="invalid-feedback">Veuillez saisir le(s) prénom(s).</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_dateNaissance" class="form-label required-field">Date de naissance</label>
+                                        <input type="date" class="form-control" id="partenaire2_dateNaissance" name="partenaire2.dateNaissance" required>
+                                        <div class="invalid-feedback">Veuillez saisir la date de naissance.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_lieuNaissance" class="form-label required-field">Lieu de naissance</label>
+                                        <input type="text" class="form-control" id="partenaire2_lieuNaissance" name="partenaire2.lieuNaissance" required>
+                                        <div class="invalid-feedback">Veuillez saisir le lieu de naissance.</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_profession" class="form-label required-field">Profession</label>
+                                        <input type="text" class="form-control" id="partenaire2_profession" name="partenaire2.profession" required>
+                                        <div class="invalid-feedback">Veuillez saisir la profession.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="partenaire2_adresse" class="form-label required-field">Adresse</label>
+                                        <input type="text" class="form-control" id="partenaire2_adresse" name="partenaire2.adresse" required>
+                                        <div class="invalid-feedback">Veuillez saisir l'adresse.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Détails de l'engagement -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <h5 class="mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Détails de l'engagement</h5>
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="dateDebutConcubinage" class="form-label required-field">Date de début du concubinage</label>
                                         <input type="date" class="form-control" id="dateDebutConcubinage" name="dateDebutConcubinage" required>
+                                        <div class="invalid-feedback">Veuillez saisir la date de début du concubinage.</div>
                                     </div>
                                     <div class="col-md-8 mb-3">
                                         <label for="adresseCommune" class="form-label required-field">Adresse commune</label>
                                         <input type="text" class="form-control" id="adresseCommune" name="adresseCommune" required>
+                                        <div class="invalid-feedback">Veuillez saisir l'adresse commune.</div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="observations" class="form-label required-field">Observations</label>
+                                    <label for="observations" class="form-label">Observations</label>
                                     <textarea class="form-control" id="observations" name="observations" rows="3"></textarea>
                                 </div>
                             </div>
+
+                            <!-- Témoins -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 text-primary"><i class="fas fa-users me-2"></i>Témoins</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="ajouterTemoin">
+                                        <i class="fas fa-plus me-1"></i> Ajouter un témoin
+                                    </button>
+                                </div>
+                                <div id="listeTemoins" class="mt-3">
+                                    <!-- Les témoins seront ajoutés ici dynamiquement -->
+                                </div>
+                            </div>
+
+                            <!-- Informations complémentaires -->
+                            <div class="form-section-inner mb-4 p-4 border rounded">
+                                <h5 class="mb-3 text-primary"><i class="fas fa-file-alt me-2"></i>Informations complémentaires</h5>
+                                <div class="mb-3">
+                                    <label for="commentaires" class="form-label">Commentaires</label>
+                                    <textarea class="form-control" id="commentaires" name="commentaires" rows="3"></textarea>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="documentsFournis" name="documentsFournis" required>
+                                    <label class="form-check-label" for="documentsFournis">
+                                        Je certifie que tous les documents nécessaires ont été fournis
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        Vous devez confirmer que tous les documents ont été fournis.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Boutons d'action -->
+                            <div class="d-flex justify-content-between mt-4 mb-4">
+                                <div>
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="btnAnnuler">
+                                        <i class="fas fa-times me-1"></i> Annuler
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary me-2" id="btnBrouillon">
+                                        <i class="fas fa-save me-1"></i> Enregistrer comme brouillon
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-outline-success me-2" id="btnApercu">
+                                        <i class="fas fa-eye me-1"></i> Aperçu
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="btnEnregistrer">
+                                        <i class="fas fa-check-circle me-1"></i> Enregistrer l'engagement
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </form>
-                    </div>
+                    </form>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 
     <!-- Template pour un témoin -->
     <template id="temoinTemplate">
         <div class="card mb-3 temoin-item">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Témoin #<span class="temoin-numero"></span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger supprimer-temoin">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Nom</label>
+                        <input type="text" class="form-control temoin-nom" name="temoins[].nom" required>
+                        <div class="invalid-feedback">Veuillez saisir le nom du témoin.</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Prénom(s)</label>
+                        <input type="text" class="form-control temoin-prenom" name="temoins[].prenom" required>
+                        <div class="invalid-feedback">Veuillez saisir le(s) prénom(s) du témoin.</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-field">Profession</label>
+                        <input type="text" class="form-control temoin-profession" name="temoins[].profession" required>
+                        <div class="invalid-feedback">Veuillez saisir la profession du témoin.</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-field">Adresse</label>
+                        <input type="text" class="form-control temoin-adresse" name="temoins[].adresse" required>
+                        <div class="invalid-feedback">Veuillez saisir l'adresse du témoin.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-field">Pièce d'identité</label>
+                        <select class="form-select temoin-piece" name="temoins[].pieceIdentite" required>
+                            <option value="">Sélectionner un type</option>
+                            <option value="cni">Carte Nationale d'Identité</option>
+                            <option value="passeport">Passeport</option>
+                            <option value="carte_sejour">Carte de séjour</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner le type de pièce d'identité.</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">Numéro de pièce</label>
+                        <input type="text" class="form-control temoin-numero-piece" name="temoins[].numeroPiece" required>
+                        <div class="invalid-feedback">Veuillez saisir le numéro de la pièce d'identité.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
@@ -323,7 +489,110 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/pdfUtils.js"></script>
-    <script src="/js/engagement.js"></script>
+    <script src="/js/sidebar-template.js"></script>
+    <script>
+        // Gestion des témoins et des boutons
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialiser la barre latérale
+            const token = checkAuth();
+            if (!token) return;
+            
+            document.getElementById('common-styles').textContent = commonCSS;
+            document.getElementById('sidebar-container').innerHTML = createSidebar('engagement');
+            
+            const btnAjouterTemoin = document.getElementById('ajouterTemoin');
+            const listeTemoins = document.getElementById('listeTemoins');
+            
+            // Gestion des boutons d'action
+            const btnAnnuler = document.getElementById('btnAnnuler');
+            const btnBrouillon = document.getElementById('btnBrouillon');
+            const btnApercu = document.getElementById('btnApercu');
+            const btnEnregistrer = document.getElementById('btnEnregistrer');
+            
+            // Événements des boutons
+            if (btnAnnuler) {
+                btnAnnuler.addEventListener('click', function() {
+                    if (confirm('Voulez-vous vraiment annuler la saisie ? Toutes les modifications seront perdues.')) {
+                        window.location.href = '/dashboard';
+                    }
+                });
+            }
+            
+            if (btnBrouillon) {
+                btnBrouillon.addEventListener('click', function() {
+                    // Logique pour enregistrer en tant que brouillon
+                    alert('Fonctionnalité d\'enregistrement en brouillon à implémenter');
+                });
+            }
+            
+            if (btnApercu) {
+                btnApercu.addEventListener('click', function() {
+                    // Logique pour l'aperçu
+                    alert('Fonctionnalité d\'aperçu à implémenter');
+                });
+            }
+            const temoinTemplate = document.getElementById('temoinTemplate');
+            let temoinCount = 0;
+
+            // Ajouter un témoin
+            function ajouterTemoin() {
+                temoinCount++;
+                const clone = document.importNode(temoinTemplate.content, true);
+                const temoinItem = clone.querySelector('.temoin-item');
+                
+                // Mettre à jour les noms des champs avec l'index
+                const inputs = temoinItem.querySelectorAll('[name^="temoins[]"]');
+                inputs.forEach(input => {
+                    const name = input.getAttribute('name').replace('[]', `[${temoinCount-1}]`);
+                    input.setAttribute('name', name);
+                });
+
+                // Mettre à jour le numéro du témoin
+                temoinItem.querySelector('.temoin-numero').textContent = temoinCount;
+
+                // Gérer la suppression d'un témoin
+                temoinItem.querySelector('.supprimer-temoin').addEventListener('click', function() {
+                    temoinItem.remove();
+                    // Renuméroter les témoins restants
+                    const temoins = listeTemoins.querySelectorAll('.temoin-item');
+                    temoins.forEach((temoin, index) => {
+                        temoin.querySelector('.temoin-numero').textContent = index + 1;
+                    });
+                    temoinCount = temoins.length;
+                });
+
+                listeTemoins.appendChild(temoinItem);
+            }
+
+            // Événement pour ajouter un témoin
+            if (btnAjouterTemoin) {
+                btnAjouterTemoin.addEventListener('click', ajouterTemoin);
+            }
+
+            // Validation du formulaire
+            (function() {
+                'use strict';
+                const forms = document.querySelectorAll('.needs-validation');
+                
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+
+            // Initialisation de la date du jour par défaut
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('dateEngagement');
+            if (dateInput) {
+                dateInput.value = today;
+            }
+        });
+    </script>
 </body>
 </html>

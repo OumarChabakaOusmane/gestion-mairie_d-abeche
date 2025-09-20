@@ -132,9 +132,15 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    // Stocker le token et les informations utilisateur
-                    localStorage.setItem('token', result.token);
+                    // Stocker le token dans le localStorage et les cookies
+                    const token = result.token;
+                    localStorage.setItem('token', token);
                     localStorage.setItem('user', JSON.stringify(result.data.user));
+                    
+                    // Stocker également dans les cookies pour une meilleure persistance
+                    const expires = new Date();
+                    expires.setDate(expires.getDate() + 7); // 7 jours d'expiration
+                    document.cookie = `token=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
                     
                     resultDiv.innerHTML = `
                         <div class="alert alert-success">
@@ -143,9 +149,13 @@
                         </div>
                     `;
                     
-                    // Rediriger vers le tableau de bord
+                    // Vérifier s'il y a une URL de redirection
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectTo = urlParams.get('redirect') || '/dashboard';
+                    
+                    // Rediriger vers la page demandée ou le tableau de bord
                     setTimeout(() => {
-                        window.location.href = '/dashboard';
+                        window.location.href = redirectTo;
                     }, 1000);
                 } else {
                     // Afficher l'erreur

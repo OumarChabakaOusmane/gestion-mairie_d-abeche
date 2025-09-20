@@ -1,47 +1,75 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - Mairie d'Abéché</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .form-section {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .required:after {
-            content: " *";
-            color: red;
-        }
-        .form-title {
-            color: #0d6efd;
-            border-bottom: 2px solid #0d6efd;
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acte de Divorce - Mairie d'Abéché</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style id="common-styles"></style>
+  <style>
+    .form-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .form-header {
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .form-icon {
+      font-size: 2rem;
+      color: #3498db;
+      margin-right: 1rem;
+    }
+    
+    .btn-submit {
+      border-radius: 50px;
+      padding: 10px 30px;
+      font-weight: 500;
+    }
+    
+    .form-section {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .required:after {
+      content: " *";
+      color: red;
+    }
+    
+    .form-title {
+      color: #0d6efd;
+      border-bottom: 2px solid #0d6efd;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
-<body class="bg-light">
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <a href="/divorces" class="btn btn-sm btn-outline-light me-2">
-                                <i class="fas fa-arrow-left me-1"></i> Retour
-                            </a>
-                            <span class="h4 mb-0">Formulaire d'Acte de Divorce</span>
-                        </div>
-                    </div>
+<body>
+  <div id="sidebar-container"></div>
+  
+  <div class="main-content">
+    <div class="container" style="max-width: 1200px;">
+      <div class="row justify-content-center">
+        <div class="col-lg-12">
+          <div class="form-container">
+            <div class="form-header d-flex align-items-center">
+              <i class="fas fa-rings-wedding form-icon"></i>
+              <h2>Formulaire d'Acte de Divorce</h2>
+            </div>
                     <div class="card-body">
                         <form id="divorceForm" class="needs-validation" novalidate>
                             <!-- Token CSRF -->
-                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" id="csrfToken">
                             
                             <!-- Informations sur le divorce -->
                             <div class="form-section mb-4">
@@ -250,7 +278,89 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/sidebar-template.js"></script>
     <script>
+        // Fonction pour vérifier l'authentification
+        async function checkAuth() {
+            // Vérifier d'abord dans le localStorage
+            let token = localStorage.getItem('token');
+            
+            // Si pas de token, vérifier les cookies
+            if (!token) {
+                const cookies = document.cookie.split(';').reduce((cookies, cookie) => {
+                    const [name, value] = cookie.split('=').map(c => c.trim());
+                    cookies[name] = decodeURIComponent(value);
+                    return cookies;
+                }, {});
+                
+                if (cookies.token) {
+                    localStorage.setItem('token', cookies.token);
+                    token = cookies.token;
+                }
+            }
+            
+            // Si toujours pas de token, vérifier l'URL pour un token
+            if (!token) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('token');
+                if (urlToken) {
+                    localStorage.setItem('token', urlToken);
+                    token = urlToken;
+                    // Nettoyer l'URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+            
+            return token || null;
+        }
+
+        // Initialisation de la barre latérale
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Vérifier l'authentification
+                const token = await checkAuth();
+                
+                // Si pas de token, rediriger vers la page de connexion
+                if (!token) {
+                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+                
+                // Vérifier si le token est valide
+                try {
+                    const response = await fetch('/api/auth/current', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Token invalide');
+                    }
+                    
+                    // Injecter les styles communs
+                    document.getElementById('common-styles').textContent = window.commonCSS || '';
+                    
+                    // Créer et afficher la barre latérale
+                    const sidebarContainer = document.getElementById('sidebar-container');
+                    if (sidebarContainer) {
+                        sidebarContainer.innerHTML = window.createSidebar('divorce');
+                    }
+                } catch (error) {
+                    console.error('Erreur de vérification du token:', error);
+                    // Supprimer le token invalide
+                    localStorage.removeItem('token');
+                    document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation:', error);
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+            }
+        });
+
         $(document).ready(function() {
             // Générer un numéro d'acte automatique
             function genererNumeroActe() {
@@ -327,7 +437,7 @@
 
             // Récupérer le token CSRF
             function getCSRFToken() {
-                return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                return document.getElementById('csrfToken')?.value || '';
             }
 
             // Récupérer le token d'authentification
@@ -410,12 +520,20 @@
                         const formData = prepareFormData();
                         console.log('Données du formulaire:', formData);
 
+                        const csrfToken = document.getElementById('csrfToken').value;
+                        const authToken = getAuthToken();
+                        
+                        if (!authToken) {
+                            window.location.href = '/login';
+                            return;
+                        }
+
                         const response = await fetch('/api/divorces', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${getAuthToken()}`,
-                                'X-CSRF-TOKEN': getCSRFToken()
+                                'Authorization': `Bearer ${authToken}`,
+                                'X-CSRF-Token': csrfToken
                             },
                             body: JSON.stringify(formData)
                         });
