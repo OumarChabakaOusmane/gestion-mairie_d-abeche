@@ -1,4 +1,34 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Pré-chargement: récupérer l'utilisateur courant pour officierEtatCivil et vérifier le rôle
+    let currentUser = null;
+    (async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const resp = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    currentUser = data?.data || null;
+                    const role = currentUser?.role;
+                    const allowed = role === 'admin' || role === 'officier_etat_civil';
+                    if (!allowed) {
+                        // Désactiver le bouton enregistrer et afficher un avertissement
+                        const saveBtn = document.getElementById('saveBtn');
+                        if (saveBtn) saveBtn.disabled = true;
+                        const container = document.querySelector('.container');
+                        if (container) {
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-warning';
+                            alertDiv.innerHTML = `<strong>Permissions insuffisantes:</strong> votre rôle est <b>${role || 'inconnu'}</b>. Seuls <b>admin</b> ou <b>officier_etat_civil</b> peuvent enregistrer cet acte.`;
+                            container.prepend(alertDiv);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Impossible de récupérer /api/users/me:', e);
+        }
+    })();
     // Initialisation de la validation Bootstrap avec des messages personnalisés
     var forms = document.querySelectorAll('.needs-validation');
     
@@ -141,35 +171,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Préparer les données du formulaire
         const formData = new FormData(this);
+        // Valeurs par défaut requises par le validateur backend
+        const defaults = {
+            regimeBiens: 'séparation de biens',
+            concubinDefaults: {
+                nationalite: 'Tchadienne',
+                typePieceIdentite: 'CNI',
+                numeroPieceIdentite: 'N/A',
+                situationMatrimoniale: 'célibataire',
+                adresse: ''
+            }
+        };
+
         const engagementData = {
             numeroActe: formData.get('numeroActe'),
-            dateEtablissement: formData.get('dateEtablissement'),
+            // Le back-end calcule/stocke dateEtablissement lui-même; nous utilisons la date de l'engagement en front pour validations
+            dateEngagement: formData.get('dateEngagement'),
             lieuEtablissement: formData.get('lieuEtablissement'),
             dateDebutConcubinage: formData.get('dateDebutConcubinage'),
             adresseCommune: formData.get('adresseCommune'),
             observations: formData.get('observations'),
+            // Champs exigés par le validateur
+            dateEtablissement: new Date().toISOString(),
+            officierEtatCivil: currentUser?.name || 'Officier d\'état civil',
+            regimeBiens: defaults.regimeBiens,
+            // Mapper les champs du formulaire (partenaire1/2) vers la structure attendue par l'API (concubin1/2)
             concubin1: {
-                nom: formData.get('concubin1.nom'),
-                dateNaissance: formData.get('concubin1.dateNaissance'),
-                lieuNaissance: formData.get('concubin1.lieuNaissance'),
-                domicile: formData.get('concubin1.domicile')
+                nom: formData.get('partenaire1.nom'),
+                prenoms: formData.get('partenaire1.prenom'),
+                dateNaissance: formData.get('partenaire1.dateNaissance'),
+                lieuNaissance: formData.get('partenaire1.lieuNaissance'),
+                profession: formData.get('partenaire1.profession'),
+                adresse: formData.get('partenaire1.adresse') || defaults.concubinDefaults.adresse,
+                nationalite: formData.get('partenaire1.nationalite') || defaults.concubinDefaults.nationalite,
+                typePieceIdentite: formData.get('partenaire1.typePieceIdentite') || defaults.concubinDefaults.typePieceIdentite,
+                numeroPieceIdentite: formData.get('partenaire1.numeroPieceIdentite') || defaults.concubinDefaults.numeroPieceIdentite,
+                situationMatrimoniale: formData.get('partenaire1.situationMatrimoniale') || defaults.concubinDefaults.situationMatrimoniale
             },
             concubin2: {
-                nom: formData.get('concubin2.nom'),
-                dateNaissance: formData.get('concubin2.dateNaissance'),
-                lieuNaissance: formData.get('concubin2.lieuNaissance'),
-                domicile: formData.get('concubin2.domicile')
+                nom: formData.get('partenaire2.nom'),
+                prenoms: formData.get('partenaire2.prenom'),
+                dateNaissance: formData.get('partenaire2.dateNaissance'),
+                lieuNaissance: formData.get('partenaire2.lieuNaissance'),
+                profession: formData.get('partenaire2.profession'),
+                adresse: formData.get('partenaire2.adresse') || defaults.concubinDefaults.adresse,
+                nationalite: formData.get('partenaire2.nationalite') || defaults.concubinDefaults.nationalite,
+                typePieceIdentite: formData.get('partenaire2.typePieceIdentite') || defaults.concubinDefaults.typePieceIdentite,
+                numeroPieceIdentite: formData.get('partenaire2.numeroPieceIdentite') || defaults.concubinDefaults.numeroPieceIdentite,
+                situationMatrimoniale: formData.get('partenaire2.situationMatrimoniale') || defaults.concubinDefaults.situationMatrimoniale
             }
         };
 
         // Vérifier que les dates sont valides
         const today = new Date();
-        const dateEtablissement = new Date(engagementData.dateEtablissement);
+        const dateEtablissement = new Date(engagementData.dateEngagement);
         const dateDebutConcubinage = new Date(engagementData.dateDebutConcubinage);
         
         if (dateEtablissement > today) {
             showAlert('warning', 'Attention', 'La date d\'établissement ne peut pas être dans le futur.');
-            $('#dateEtablissement').focus();
+            $('#dateEngagement').focus();
             return;
         }
         

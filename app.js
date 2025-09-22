@@ -210,6 +210,8 @@ try {
 try {
   const testPdfRoute = require('./routes/test-pdf-route');
   testRoutes.use('/test-pdf', testPdfRoute);
+
+// Les routes d'authentification sont déjà importées plus haut
 } catch (e) {
   console.warn('Route test-pdf-route introuvable, ignorée');
 }
@@ -270,7 +272,10 @@ app.use('/api', apiLimiter);
 
 // Configuration des routes API
 console.log('=== CONFIGURATION DES ROUTES API ===');
-// Limitation plus stricte pour les routes d'authentification
+
+// Les routes sont déjà importées plus haut dans le fichier
+
+// Monter les routes avec leurs préfixes
 app.use('/api/auth', authLimiter, authRoutes);
 console.log('Route /api/auth configurée');
 
@@ -287,9 +292,13 @@ app.use('/api/divorces', divorceRoutes);
 console.log('Route /api/divorces configurée');
 
 app.use('/api/engagements', engagementRoutes);
-app.use('/api/mariages', mariageRoutes);
-app.use('/api/dashboard', dashboardRoutes);
 console.log('Route /api/engagements configurée');
+
+app.use('/api/mariages', mariageRoutes);
+console.log('Route /api/mariages configurée');
+
+app.use('/api/dashboard', dashboardRoutes);
+console.log('Route /api/dashboard configurée');
 
 // Route des naissances gérée plus haut dans le fichier
 

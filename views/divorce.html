@@ -224,6 +224,30 @@
             document.getElementById('common-styles').textContent = commonCSS;
             document.getElementById('sidebar-container').innerHTML = createSidebar('divorce');
             
+            // Vérifier le rôle utilisateur et prévenir si insuffisant
+            try {
+                const meResp = await fetch('/api/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (meResp.ok) {
+                    const meData = await meResp.json();
+                    const role = meData?.data?.role;
+                    const allowed = role === 'admin' || role === 'officier_etat_civil';
+                    if (!allowed) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-warning';
+                        alertDiv.innerHTML = `<strong>Permissions insuffisantes:</strong> votre rôle actuel est <b>${role || 'inconnu'}</b>. Seuls les rôles <b>admin</b> ou <b>officier_etat_civil</b> peuvent enregistrer un acte de divorce.`;
+                        const container = document.querySelector('.container');
+                        if (container) container.prepend(alertDiv);
+                        // Désactiver le bouton de validation
+                        const validerBtn = document.getElementById('validerBtn');
+                        if (validerBtn) validerBtn.disabled = true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Impossible de vérifier le rôle utilisateur:', e);
+            }
+            
             // Générer un numéro d'acte automatique
             function genererNumeroActe() {
                 const date = new Date();
@@ -309,11 +333,23 @@
 
             // Préparer les données du formulaire
             function prepareFormData() {
+                // Mapper les valeurs du motif (radios) vers les valeurs attendues par l'API
+                const motifRadio = $('input[name="motifDivorce"]:checked').val();
+                let typeDivorce = motifRadio;
+                if (motifRadio === 'consentement mutuel') {
+                    typeDivorce = 'par consentement mutuel';
+                } else if (motifRadio === 'faute') {
+                    typeDivorce = 'pour faute';
+                } else if (motifRadio === 'altération définitive du lien conjugal') {
+                    typeDivorce = 'pour altération définitive du lien conjugal';
+                }
+
                 const formData = {
                     numeroActe: $('#numeroActe').val(),
                     dateDivorce: $('#dateDivorce').val(),
-                    typeDivorce: $('input[name="motifDivorce"]:checked').val(),
-                    motifs: $('#motifs').val(),
+                    typeDivorce,
+                    // Le champ de texte présent dans le DOM est #detailsMotif
+                    motifs: $('#detailsMotif').val(),
                     epoux: {
                         nom: $('#epoux_nom').val(),
                         prenoms: $('#epoux_prenom').val(),
@@ -399,7 +435,11 @@
                             window.location.href = '/divorces';
                         } else {
                             console.error('Erreur lors de l\'enregistrement:', data);
-                            alert(`Erreur: ${data.message || 'Une erreur est survenue lors de l\'enregistrement'}`);
+                            if (response.status === 403) {
+                                alert('Accès refusé: votre compte ne possède pas les droits requis (admin ou officier d\'état civil).');
+                            } else {
+                                alert(`Erreur: ${data.message || 'Une erreur est survenue lors de l\'enregistrement'}`);
+                            }
                         }
                     } catch (error) {
                         console.error('Erreur:', error);

@@ -749,7 +749,7 @@
         spinner.style.display = 'inline-block';
         button.disabled = true;
 
-        const response = await apiRequest('/api/users/me/password', 'PUT', {
+        const response = await apiRequest('/api/auth/change-password', 'POST', {
           currentPassword: passwords.currentPassword,
           newPassword: passwords.newPassword
         });

@@ -447,10 +447,17 @@
 
             // Préparer les données du formulaire
             function prepareFormData() {
+                // Mapper la valeur du radio vers celle attendue par l'API
+                const motifRadio = $('input[name="motifDivorce"]:checked').val();
+                let typeDivorce = motifRadio;
+                if (motifRadio === 'consentement mutuel') {
+                    typeDivorce = 'par consentement mutuel';
+                }
+
                 const formData = {
                     numeroActe: $('#numeroActe').val(),
                     dateDivorce: $('#dateDivorce').val(),
-                    typeDivorce: $('input[name="motifDivorce"]:checked').val(),
+                    typeDivorce,
                     motifs: $('#motifs').val(),
                     epoux: {
                         nom: $('#epoux_nom').val(),
@@ -545,7 +552,11 @@
                             window.location.href = '/divorces';
                         } else {
                             console.error('Erreur lors de l\'enregistrement:', data);
-                            alert(`Erreur: ${data.message || 'Une erreur est survenue lors de l\'enregistrement'}`);
+                            if (response.status === 403) {
+                                alert('Accès refusé: votre compte ne possède pas les droits requis (admin ou officier d\'état civil).');
+                            } else {
+                                alert(`Erreur: ${data.message || 'Une erreur est survenue lors de l\'enregistrement'}`);
+                            }
                         }
                     } catch (error) {
                         console.error('Erreur:', error);
