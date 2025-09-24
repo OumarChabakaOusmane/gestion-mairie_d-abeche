@@ -452,7 +452,8 @@ const generateNaissancePdf = async (data) => {
     // Créer le document PDF
     log('Création du document PDF...');
     const doc = new PDFDocument({ 
-      margin: 50,
+      // Marges réduites pour tenir sur une seule page
+      margin: 35,
       bufferPages: true,
       size: 'A4'
     });
@@ -503,7 +504,7 @@ const generateNaissancePdf = async (data) => {
       // Générer le contenu du PDF
       try {
         // 1) En-tête avec le drapeau et le titre
-        generateActeHeader(doc, 'ACTE DE NAISSANCE', data);
+        const headerY = generateActeHeader(doc, 'ACTE DE NAISSANCE', data);
         
         // 2) Numéro d'acte et date d'enregistrement
         doc
@@ -517,24 +518,26 @@ const generateNaissancePdf = async (data) => {
         // 3) Informations sur l'enfant
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(14)
+          .fontSize(11) // taille réduite
           .fillColor(CONFIG.COLORS.PRIMARY)
-          .text('I. INFORMATIONS SUR L\'ENFANT', CONFIG.MARGINS.LEFT, 120)
-          .moveDown(0.5);
+          .text('I. INFORMATIONS SUR L\'ENFANT', CONFIG.MARGINS.LEFT, headerY - 10)
+          .moveDown(0.1);
 
         const col1 = CONFIG.MARGINS.LEFT;
         const col2 = 300;
-        const lineH = 20;
-        let y = 160;
+        const lineH = 12; // interligne encore réduit
+        let y = headerY + 10;
         
         // Fonction utilitaire pour ajouter une ligne d'information
         const addLine = (label, value, yPos, isBold = false) => {
+          const val = (value || '').toString().trim();
+          if (!val) return yPos; // sauter les lignes vides pour économiser l'espace
           doc
             .font(isBold ? CONFIG.FONTS.BOLD : CONFIG.FONTS.NORMAL)
-            .fontSize(10)
+            .fontSize(9)
             .fillColor(CONFIG.COLORS.TEXT)
             .text(`${label}: `, col1, yPos, { continued: true, width: 150, align: 'left' })
-            .text(value || 'Non spécifié', { width: 400 });
+            .text(val, { width: 400 });
           return yPos + lineH;
         };
         
@@ -549,57 +552,54 @@ const generateNaissancePdf = async (data) => {
         // Ajouter un espace avant la section suivante
         y += 10;
 
-        // 4) Informations sur les parents
+        // 4) Informations du Père (section distincte)
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(14)
+          .fontSize(11)
           .fillColor(CONFIG.COLORS.PRIMARY)
-          .text('II. INFORMATIONS SUR LES PARENTS', CONFIG.MARGINS.LEFT, y)
-          .moveDown(0.5);
-        
-        y += 30;
-        
-        // Section Père
+          .text('II. INFORMATIONS DU PÈRE', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.2);
+        y += 16;
+
+        y = addLine('• Nom', data.nomPere || data.pere, y);
+        y = addLine('• Prénoms', data.prenomsPere || data.prenomPere, y);
+        y = addLine('• Date de naissance', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        y = addLine('• Lieu de naissance', data.lieuNaissancePere, y);
+        y = addLine('• Profession', data.professionPere, y);
+        y = addLine('• Domicile', data.domicilePere, y);
+
+        // Ajouter un espace entre sections
+        y += 8;
+
+        // 5) Informations de la Mère (section distincte)
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(12)
-          .text('Père:', col1, y);
-        y += 20;
-        
-        y = addLine('   • Nom', data.nomPere, y);
-        y = addLine('   • Prénoms', data.prenomsPere, y);
-        y = addLine('   • Date de naissance', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
-        y = addLine('   • Lieu de naissance', data.lieuNaissancePere, y);
-        y = addLine('   • Profession', data.professionPere, y);
-        y = addLine('   • Domicile', data.domicilePere, y);
-        
-        // Section Mère
-        doc
-          .font(CONFIG.FONTS.BOLD)
-          .fontSize(12)
-          .text('Mère:', col1, y);
-        y += 20;
-        
-        y = addLine('   • Nom', data.nomMere, y);
-        y = addLine('   • Nom de jeune fille', data.nomJeuneFilleMere, y);
-        y = addLine('   • Prénoms', data.prenomsMere, y);
-        y = addLine('   • Date de naissance', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
-        y = addLine('   • Lieu de naissance', data.lieuNaissanceMere, y);
-        y = addLine('   • Profession', data.professionMere, y);
-        y = addLine('   • Domicile', data.domicileMere, y);
-        
+          .fontSize(11)
+          .fillColor(CONFIG.COLORS.PRIMARY)
+          .text('III. INFORMATIONS DE LA MÈRE', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.2);
+        y += 16;
+
+        y = addLine('• Nom', data.nomMere || data.mere, y);
+        y = addLine('• Nom de jeune fille', data.nomJeuneFilleMere, y);
+        y = addLine('• Prénoms', data.prenomsMere || data.prenomMere, y);
+        y = addLine('• Date de naissance', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
+        y = addLine('• Lieu de naissance', data.lieuNaissanceMere, y);
+        y = addLine('• Profession', data.professionMere, y);
+        y = addLine('• Domicile', data.domicileMere, y);
+
         // Ajouter un espace avant la section suivante
         y += 10;
 
-        // 5) Informations sur le déclarant
+        // 6) Informations sur le déclarant
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(14)
+          .fontSize(11)
           .fillColor(CONFIG.COLORS.PRIMARY)
-          .text('III. INFORMATIONS DU DÉCLARANT', CONFIG.MARGINS.LEFT, y)
-          .moveDown(0.5);
+          .text('IV. INFORMATIONS DU DÉCLARANT', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.2);
         
-        y += 30;
+        y += 20;
         
         if (data.declarant) {
           y = addLine('• Nom', data.declarant.nom, y);
@@ -613,15 +613,15 @@ const generateNaissancePdf = async (data) => {
         // Ajouter un espace avant la section suivante
         y += 10;
 
-        // 6) Informations administratives
+        // 7) Informations administratives
         doc
           .font(CONFIG.FONTS.BOLD)
-          .fontSize(14)
+          .fontSize(11)
           .fillColor(CONFIG.COLORS.PRIMARY)
-          .text('IV. INFORMATIONS ADMINISTRATIVES', CONFIG.MARGINS.LEFT, y)
-          .moveDown(0.5);
+          .text('V. INFORMATIONS ADMINISTRATIVES', CONFIG.MARGINS.LEFT, y)
+          .moveDown(0.2);
         
-        y += 30;
+        y += 20;
         
         y = addLine('• Mairie', data.mairie, y);
         y = addLine('• Officier d\'état civil', data.officierEtatCivil, y);
@@ -641,25 +641,22 @@ const generateNaissancePdf = async (data) => {
           });
         }
         
-        // 7) Pied de page avec signature
-        const footerY = 750;
+        // 7) Pied de page compact avec signature
+        const footerY = Math.min(730, y + 24);
         doc
           .moveTo(CONFIG.MARGINS.LEFT, footerY)
           .lineTo(doc.page.width - CONFIG.MARGINS.RIGHT, footerY)
           .stroke(CONFIG.COLORS.BORDER)
-          .fontSize(8)
+          .fontSize(7)
           .fillColor(CONFIG.COLORS.TEXT)
-          .text(`Document généré par ${data.mairie || 'la Mairie'} le ${new Date().toLocaleDateString('fr-FR')}`, 
-                CONFIG.MARGINS.LEFT, footerY + 10);
-        doc.moveDown(0.5);
-        y = doc.y;
-        info("Numéro d'acte :", data.numeroActe || 'N/A', colLeftX, y); info('Volume :', data.volume || 'N/A', colRightX, y); y += lineH;
-        info("Date d'édition :", new Date().toLocaleDateString('fr-FR'), colLeftX, y); info('Registre :', 'Naissances 2023', colRightX, y); y += lineH + 12;
-        doc.y = y;
+          .text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 
+                CONFIG.MARGINS.LEFT, footerY + 8);
+        doc.y = footerY + 16;
 
         // 7) Signature
         doc
           .font(CONFIG.FONTS.NORMAL)
+          .fontSize(9)
           .fillColor('#212529')
           .text(`Le Maire de ${data.mairie || ''},`, { align: 'right' })
           .text((data.maire || '').toString(), { align: 'right' });
@@ -668,13 +665,12 @@ const generateNaissancePdf = async (data) => {
         doc.moveTo(sigX, sigY).lineTo(sigX + 250, sigY).stroke('#000');
         doc.fontSize(10).fillColor('#6c757d').text('Signature et cachet', sigX, sigY + 5, { width: 250, align: 'center' });
 
-        // 8) Pied de page
+        // 8) Pied de page (texte réduit pour économiser de l'espace)
         doc
-          .moveDown(2)
-          .fontSize(9)
+          .moveDown(0.2)
+          .fontSize(7)
           .fillColor('#6c757d')
-          .text("Document officiel délivré par la Mairie centrale", { align: 'center' })
-          .text("Ce document est un modèle et n'a aucune valeur légale", { align: 'center' });
+          .text("Document officiel délivré par la Mairie", { align: 'center' });
         
         // Finaliser le document
         log('Finalisation du document PDF...');

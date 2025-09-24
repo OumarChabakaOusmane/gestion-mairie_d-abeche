@@ -22,26 +22,26 @@ const COLORS = {
 };
 
 const FONTS = {
-  title: { size: 22, weight: 'bold' },
-  subtitle: { size: 13, weight: 'bold' },
-  label: { size: 11, weight: 'normal' },
-  text: { size: 11, weight: 'normal' },
-  small: { size: 9, weight: 'normal' }
+  title: { size: 19, weight: 'bold' },
+  subtitle: { size: 11, weight: 'bold' },
+  label: { size: 9, weight: 'normal' },
+  text: { size: 9, weight: 'normal' },
+  small: { size: 7, weight: 'normal' }
 };
 
 /**
  * Génère l'en-tête standard avec le drapeau du Tchad
  */
 function generateHeader(doc, acteData) {
-  const marginTop = 40;
+  const marginTop = 36;
   const marginLeft = 35;
   const marginRight = 35;
   
   // Drapeau du Tchad (plus petit et mieux positionné)
   const flagX = marginLeft;
   const flagY = marginTop;
-  const flagWidth = 60;
-  const flagHeight = 40;
+  const flagWidth = 54;
+  const flagHeight = 36;
   
   // Fond blanc du drapeau
   doc.rect(flagX, flagY, flagWidth, flagHeight)
@@ -71,14 +71,14 @@ function generateHeader(doc, acteData) {
   // Texte officiel
   const textX = flagX + flagWidth + 15;
   doc.fillColor(COLORS.secondary);
-  doc.fontSize(16).font('Helvetica-Bold')
+  doc.fontSize(15).font('Helvetica-Bold')
      .text('RÉPUBLIQUE DU TCHAD', textX, flagY + 5);
-  doc.fontSize(11).font('Helvetica-Oblique')
+  doc.fontSize(10).font('Helvetica-Oblique')
      .text('Unité - Travail - Progrès', textX, flagY + 25);
   
   // Numéro d'acte en haut à droite
   const acteNumber = acteData.numeroActe || 'En cours de génération';
-  doc.fontSize(11).font('Helvetica-Bold')
+  doc.fontSize(10).font('Helvetica-Bold')
      .fillColor(COLORS.primary)
      .text(`N° ${acteNumber}`, doc.page.width - marginRight - 100, flagY + 5, { width: 100, align: 'right' });
   
@@ -129,14 +129,14 @@ function generateSection(doc, title, content, startY) {
   const marginRight = 35;
   const sectionWidth = doc.page.width - marginLeft - marginRight;
   
-  let y = startY + 20;
+  let y = startY + 16;
   
   // Titre de section
   doc.fillColor(COLORS.primary);
   doc.fontSize(FONTS.subtitle.size).font('Helvetica-Bold')
      .text(title, marginLeft, y);
   
-  y += 25;
+  y += 16;
   
   // Ligne de séparation
   doc.moveTo(marginLeft, y)
@@ -145,7 +145,8 @@ function generateSection(doc, title, content, startY) {
      .lineWidth(1)
      .stroke();
   
-  y += 15;
+  // Espace entre le titre et le contenu (réduit pour compacter)
+  y += 10;
   
   // Contenu de la section
   if (typeof content === 'string') {
@@ -155,31 +156,53 @@ function generateSection(doc, title, content, startY) {
          width: sectionWidth,
          lineGap: 3 
        });
-    y += 20;
+    // Calcul dynamique de la hauteur du bloc de texte
+    const blockH = doc.heightOfString(content, { width: sectionWidth, lineGap: 2 });
+    y += blockH + 4;
   } else if (Array.isArray(content)) {
+    const labelColWidth = 105;
+    const valueColWidth = sectionWidth - labelColWidth - 10;
     content.forEach(item => {
       if (typeof item === 'string') {
         doc.fillColor(COLORS.secondary);
-        doc.fontSize(FONTS.text.size).font('Helvetica')
-           .text(item, marginLeft, y, { 
-             width: sectionWidth,
-             lineGap: 3 
-           });
-        y += 20;
-      } else if (item.label && item.value) {
-        // Format label: valeur
-        doc.fillColor(COLORS.gray);
-        doc.fontSize(FONTS.label.size).font('Helvetica')
-           .text(`${item.label} :`, marginLeft, y);
-        doc.fillColor(COLORS.secondary);
-        doc.fontSize(FONTS.text.size).font('Helvetica-Bold')
-           .text(item.value, marginLeft + 120, y);
-        y += 18;
+        doc.fontSize(FONTS.text.size).font('Helvetica');
+        const blockH = doc.heightOfString(item, { width: sectionWidth, lineGap: 2 });
+        doc.text(item, marginLeft, y, { width: sectionWidth, lineGap: 2 });
+        y += blockH + 4;
+      } else if (item && (item.label || item.value)) {
+        const labelText = item.label ? `${item.label} :` : '';
+        const valueText = item.value ? String(item.value) : '';
+
+        // Mesurer les hauteurs selon les polices utilisées
+        doc.font('Helvetica').fontSize(FONTS.label.size);
+        const labelH = labelText 
+          ? doc.heightOfString(labelText, { width: labelColWidth }) 
+          : 0;
+
+        doc.font('Helvetica').fontSize(FONTS.text.size);
+        const valueH = valueText 
+          ? doc.heightOfString(valueText, { width: valueColWidth }) 
+          : 0;
+
+        const rowH = Math.max(labelH, valueH) || FONTS.text.size + 4;
+
+        // Dessiner label et valeur
+        if (labelText) {
+          doc.fillColor(COLORS.gray).font('Helvetica').fontSize(FONTS.label.size)
+             .text(labelText, marginLeft, y, { width: labelColWidth });
+        }
+        if (valueText) {
+          doc.fillColor(COLORS.secondary).font('Helvetica').fontSize(FONTS.text.size)
+             .text(valueText, marginLeft + labelColWidth + 10, y, { width: valueColWidth });
+        }
+
+        y += rowH + 3; // petit espace entre lignes
       }
     });
   }
   
-  return y + 10;
+  // Espace après la section (réduit)
+  return y + 8;
 }
 
 /**
@@ -189,7 +212,7 @@ function generateSignatureArea(doc, mairie, dateEnregistrement, startY) {
   const marginLeft = 35;
   const marginRight = 35;
   
-  let y = startY + 30;
+  let y = startY + 20;
   
   // Ligne de signature
   doc.moveTo(marginLeft + 200, y)
@@ -208,7 +231,7 @@ function generateSignatureArea(doc, mairie, dateEnregistrement, startY) {
        align: 'right' 
      });
   
-  y += 40;
+  y += 30;
   
   // Signature de l'officier
   doc.fillColor(COLORS.secondary);
@@ -218,7 +241,7 @@ function generateSignatureArea(doc, mairie, dateEnregistrement, startY) {
        align: 'right' 
      });
   
-  y += 30;
+  y += 20;
   
   // Ligne pour la signature
   doc.moveTo(marginLeft + 200, y)
@@ -279,7 +302,11 @@ async function generateNaissancePdf(acteData) {
       // Section informations sur les parents
       const parentsInfo = [
         { label: 'Père', value: `${details.nomPere || details.pere || ''} ${details.prenomPere || ''}`.trim() },
+        { label: 'Date de naissance du père', value: details.dateNaissancePere ? new Date(details.dateNaissancePere).toLocaleDateString('fr-FR') : '' },
+        { label: 'Lieu de naissance du père', value: details.lieuNaissancePere || '' },
         { label: 'Mère', value: `${details.nomMere || details.mere || ''} ${details.prenomMere || ''}`.trim() },
+        { label: 'Date de naissance de la mère', value: details.dateNaissanceMere ? new Date(details.dateNaissanceMere).toLocaleDateString('fr-FR') : '' },
+        { label: 'Lieu de naissance de la mère', value: details.lieuNaissanceMere || '' },
         { label: 'Profession du père', value: details.professionPere || '' },
         { label: 'Profession de la mère', value: details.professionMere || '' },
         { label: 'Domicile des parents', value: details.adresse || '' }

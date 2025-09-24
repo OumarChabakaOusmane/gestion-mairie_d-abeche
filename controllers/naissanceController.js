@@ -171,6 +171,8 @@ naissanceController.generateNaissancePdf = async (req, res) => {
       dateNaissancePere: formatDate(hasDetails ? naissance.details.dateNaissancePere : naissance.pere?.dateNaissance),
       lieuNaissancePere: hasDetails ? naissance.details.lieuNaissancePere : (naissance.pere?.lieuNaissance || 'Non renseigné'),
       professionPere: hasDetails ? naissance.details.professionPere : (naissance.pere?.profession || 'Non renseignée'),
+      nationalitePere: hasDetails ? naissance.details.nationalitePere : (naissance.pere?.nationalite || naissance.nationalitePere || ''),
+      domicilePere: hasDetails ? naissance.details.domicilePere : (naissance.pere?.domicile || naissance.domicilePere || ''),
       
       // Données de la mère
       nomMere: hasDetails ? naissance.details.mere : (naissance.mere?.nom || 'Non renseigné'),
@@ -178,12 +180,23 @@ naissanceController.generateNaissancePdf = async (req, res) => {
       dateNaissanceMere: formatDate(hasDetails ? naissance.details.dateNaissanceMere : naissance.mere?.dateNaissance),
       lieuNaissanceMere: hasDetails ? naissance.details.lieuNaissanceMere : (naissance.mere?.lieuNaissance || 'Non renseigné'),
       professionMere: hasDetails ? naissance.details.professionMere : (naissance.mere?.profession || 'Non renseignée'),
+      nationaliteMere: hasDetails ? naissance.details.nationaliteMere : (naissance.mere?.nationalite || naissance.nationaliteMere || ''),
+      nomJeuneFilleMere: hasDetails ? naissance.details.nomJeuneFilleMere : (naissance.mere?.nomJeuneFille || naissance.nomJeuneFilleMere || ''),
+      domicileMere: hasDetails ? naissance.details.domicileMere : (naissance.mere?.domicile || naissance.domicileMere || ''),
       
-      // Informations du déclarant
-      nomDeclarant: hasDetails ? naissance.details.nomDeclarant : (naissance.declarant?.nom || 'Non renseigné'),
-      prenomsDeclarant: hasDetails ? naissance.details.prenomsDeclarant : (naissance.declarant?.prenom || 'Non renseigné'),
-      lienDeclarant: hasDetails ? naissance.details.lienDeclarant : (naissance.lienDeclarant || 'Non spécifié'),
-      adresseDeclarant: hasDetails ? naissance.details.adresse : (naissance.adresseDeclarant || 'Non renseignée'),
+      // Informations du déclarant (structure imbriquée attendue par le service PDF)
+      declarant: (function() {
+        const d = {};
+        const nom = hasDetails ? naissance.details.nomDeclarant : (naissance.declarant?.nom || naissance.nomDeclarant);
+        const prenoms = hasDetails ? naissance.details.prenomsDeclarant : (naissance.declarant?.prenom || naissance.prenomsDeclarant);
+        const qualite = hasDetails ? naissance.details.lienDeclarant : (naissance.lienDeclarant || naissance.declarant?.qualite);
+        const domicile = hasDetails ? (naissance.details.adresseDeclarant || naissance.details.adresse) : (naissance.adresseDeclarant || naissance.declarant?.domicile);
+        if (nom) d.nom = nom;
+        if (prenoms) d.prenoms = prenoms;
+        if (qualite) d.qualite = qualite;
+        if (domicile) d.domicile = domicile;
+        return Object.keys(d).length ? d : undefined;
+      })(),
       
       // Observations
       observations: naissance.observations || 'Aucune observation',
