@@ -40148,3 +40148,153 @@
   "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
 }
 2025-09-24 22:34:33 [info]: 5c1cfd43-d063-4cae-a50d-18342904b93e ::1 - - [24/Sep/2025:21:34:33 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2846 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:01 [info]: MongoDB Connected: localhost 
+2025-09-25 11:06:15 [info]: d7228202-677a-4c18-9878-869bc6245c9e ::1 - - [25/Sep/2025:10:06:15 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:15 [info]: d8d73eb6-2e3a-4ec9-94c0-2411d8369f06 ::1 - - [25/Sep/2025:10:06:15 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:19 [info]: 95c10585-730f-44a7-8e60-1aad82b54f33 ::1 - - [25/Sep/2025:10:06:19 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:20 [info]: 6653e9b1-2f5b-431a-871c-ffa4449a8d0b ::1 - - [25/Sep/2025:10:06:20 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:20 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:06:20 [info]: 19ade076-b239-4c6f-b766-1f2f5efdba0d ::1 - - [25/Sep/2025:10:06:20 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:20 [info]: d4c3f892-4734-4952-a31a-24fb98d479a4 ::1 - - [25/Sep/2025:10:06:20 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:23 [info]: 0e61c2a0-a726-44f4-830e-f59c000e7108 ::1 - - [25/Sep/2025:10:06:23 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:06:25 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:06:25 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 11:06:25 [info]: f90adc42-c465-4eef-b14f-7fa1d6544c50 ::1 - - [25/Sep/2025:10:06:25 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2846 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:41:20 [info]: 0b3f142e-df95-4cbb-adfb-5bfab5f8d7cd ::1 - - [25/Sep/2025:10:41:20 +0000] "GET /naissance HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:44:34 [info]: MongoDB Connected: localhost 
+2025-09-25 11:45:02 [info]: 6514d7e8-4535-4440-a1a0-a15746536389 ::1 - - [25/Sep/2025:10:45:02 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:02 [info]: 5e743d57-16d6-47d5-bd53-a1785db37f5e ::1 - - [25/Sep/2025:10:45:02 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:05 [info]: 9cd90d56-87fe-40be-941b-5c78fa9e03d0 ::1 - - [25/Sep/2025:10:45:05 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:06 [info]: e47c05a4-dbe3-46c8-af75-c732500c4eb7 ::1 - - [25/Sep/2025:10:45:06 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:06 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:45:06 [info]: fec790fe-e512-42f1-a302-57af8166427a ::1 - - [25/Sep/2025:10:45:06 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:07 [info]: be3c95fd-f4a1-4e6b-8a54-e8552b185a99 ::1 - - [25/Sep/2025:10:45:07 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:09 [info]: 398a3395-52cf-451c-bbf5-b29ed81f0e99 ::1 - - [25/Sep/2025:10:45:09 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:09 [info]: 7dab7d98-f398-4976-88b2-f5274cf3bbbd ::1 - - [25/Sep/2025:10:45:09 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 33ce7ac6-d290-4bf0-b893-e33e1d4d61f5 ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 73f4b714-ea55-45c5-927c-d2623e13749c ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: d577cd58-441b-4ca0-b5be-587baabdd21b ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 870146e5-f5b2-418d-84ae-87f28202c63a ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 434bbcdc-92cb-4c18-b1ce-666d9bafb269 ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 3fef00ca-8fa2-41df-8961-576bdcd96953 ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: dde99459-8338-4b64-b61b-b5d54e7da9b5 ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:11 [info]: 6ed781b9-7ad6-45d0-a952-32b69946a62c ::1 - - [25/Sep/2025:10:45:11 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: b7fecaa2-d555-4f48-abb5-6031e455503a ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: b43a155f-5141-4bc2-b499-e982bf4bd57a ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: d9fe6968-d3dd-44b4-91d0-f611c09d934a ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: ba69c27f-93d6-4266-accd-6fb1d820d788 ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: d8c3a15c-23f0-4956-85a9-0a6cb02b0c04 ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:12 [info]: a6f5129f-e63c-4753-a03b-d161f3a73b76 ::1 - - [25/Sep/2025:10:45:12 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:17 [info]: 461d4018-8cdd-4b89-aa25-dd8790e20cea ::1 - - [25/Sep/2025:10:45:17 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:19 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:45:19 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 11:45:19 [info]: 88998f59-561a-4159-ac3e-c18b8f75570e ::1 - - [25/Sep/2025:10:45:19 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2632 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:49 [info]: 1be3a5e2-3a72-4c11-b445-c9b49aa58b94 ::1 - - [25/Sep/2025:10:45:49 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:49 [info]: d6b9f9e6-106b-4afe-bad6-13cacfa18c62 ::1 - - [25/Sep/2025:10:45:49 +0000] "GET /naissance?edit=68d45bd8e619a9b802dd1af4 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:45:49 [info]: 856f43f3-0306-4f88-a107-2893ced1d8f1 ::1 - - [25/Sep/2025:10:45:49 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:15 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:46:15 [info]: 80a3f3f1-e5f1-46e2-b6ff-430f05bc4a1a ::1 - - [25/Sep/2025:10:46:15 +0000] "PUT /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 200 686 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:19 [info]: 65531628-ed23-41f4-b343-aa1e0718ea44 ::1 - - [25/Sep/2025:10:46:19 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:19 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:46:19 [info]: 4e6efaef-0561-4d38-98bb-b396cb579ceb ::1 - - [25/Sep/2025:10:46:19 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:19 [info]: 07f70520-e8ea-4486-b851-1431f4818454 ::1 - - [25/Sep/2025:10:46:19 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:22 [info]: 0b525b31-43d9-4aff-88b8-9406f72e892b ::1 - - [25/Sep/2025:10:46:22 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 200 657 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:46:23 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:46:23 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 11:46:23 [info]: 23de8861-99c4-4cfb-a981-6cd57ec67cdb ::1 - - [25/Sep/2025:10:46:23 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2646 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:18 [info]: MongoDB Connected: localhost 
+2025-09-25 11:51:28 [info]: 0a030d6c-6029-4468-bd3b-5bff79053a70 ::1 - - [25/Sep/2025:10:51:28 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:28 [info]: 9c2bd064-8cfc-4442-84c1-b03f33b1c6c1 ::1 - - [25/Sep/2025:10:51:28 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:31 [info]: de9c6367-da36-498e-9aad-bbd8b2a22b30 ::1 - - [25/Sep/2025:10:51:31 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:32 [info]: e01b0a51-0c32-46ab-bc82-af6972c9c226 ::1 - - [25/Sep/2025:10:51:32 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:33 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:51:33 [info]: 2fa38281-d7cf-41f5-b3a2-2c908f006580 ::1 - - [25/Sep/2025:10:51:33 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:33 [info]: bb6a4dd2-5b08-411f-8f25-f9c8aaa71074 ::1 - - [25/Sep/2025:10:51:33 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:34 [info]: 83897fb5-331d-4e6b-b62e-efd0fc03327f ::1 - - [25/Sep/2025:10:51:34 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:34 [info]: abc1c8f8-c10c-411a-acd7-be6841b00af4 ::1 - - [25/Sep/2025:10:51:34 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:35 [info]: d96bc8dc-56d8-4cc8-bfc1-218bd75ed7b9 ::1 - - [25/Sep/2025:10:51:35 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:35 [info]: d87d45a1-1053-40da-99f9-9c418c8d9124 ::1 - - [25/Sep/2025:10:51:35 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:36 [info]: 778c7d49-71e4-4bd8-9a9e-87e96185fb30 ::1 - - [25/Sep/2025:10:51:36 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:36 [info]: 3b6428a6-7eb0-48ed-833c-e82b023fe631 ::1 - - [25/Sep/2025:10:51:36 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:38 [info]: 877a168e-b98e-49e6-b23c-3e18ac46860a ::1 - - [25/Sep/2025:10:51:38 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:51:40 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:51:40 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 11:51:40 [info]: 1fffa9d7-c9c5-48e4-9aa8-887c6e5f0a3a ::1 - - [25/Sep/2025:10:51:40 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2646 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:47 [info]: 761afee9-407a-4a17-8e0e-da8c8e04a3db ::1 - - [25/Sep/2025:10:58:47 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:47 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:58:47 [info]: d0edb6d8-c787-40fa-8fb5-978dab5ff963 ::1 - - [25/Sep/2025:10:58:47 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:47 [info]: 84c9de7a-6fcd-4356-a027-b89e55fbfe1f ::1 - - [25/Sep/2025:10:58:47 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:47 [info]: 77277070-8547-4579-ab69-2799ee1e2422 ::1 - - [25/Sep/2025:10:58:47 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:47 [info]: 14ab0077-92ec-49a3-b79d-2ab3aec38a9c ::1 - - [25/Sep/2025:10:58:47 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:48 [info]: 43692367-eab0-4748-ab15-b6524b0baac6 ::1 - - [25/Sep/2025:10:58:48 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:48 [info]: 2abf059f-b5f4-4554-b41e-6738944ab882 ::1 - - [25/Sep/2025:10:58:48 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:48 [info]: 29590394-47b1-4abf-986c-2cd2a6b3abaf ::1 - - [25/Sep/2025:10:58:48 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:48 [info]: 564679f2-4c9a-492d-981b-dffe914139d4 ::1 - - [25/Sep/2025:10:58:48 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:52 [info]: 8debc86a-ac29-4e21-82bd-692b8c7e6097 ::1 - - [25/Sep/2025:10:58:52 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:52 [info]: 12294308-6b3a-4cb2-80af-4093f69e85ff ::1 - - [25/Sep/2025:10:58:52 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:55 [info]: 79091dd3-f3ba-44fe-97b9-3c6c6ebd9947 ::1 - - [25/Sep/2025:10:58:55 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 11:58:56 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 11:58:56 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 11:58:56 [info]: 811a9ccd-eb30-438a-9ac6-734d5bfbd9c1 ::1 - - [25/Sep/2025:10:58:56 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 2646 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:02:51 [info]: MongoDB Connected: localhost 
+2025-09-25 12:03:18 [info]: 0ccf4288-11d5-47d5-bee8-1e0ed0a1a0fe ::1 - - [25/Sep/2025:11:03:18 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:18 [info]: 98cb9d12-d169-48c4-b761-3da6b16b825c ::1 - - [25/Sep/2025:11:03:18 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:22 [info]: 8a9d3b1b-cd9c-448b-a07d-e9c6354bdb45 ::1 - - [25/Sep/2025:11:03:22 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:23 [info]: a09973d8-f998-4ea9-9230-337723eeb213 ::1 - - [25/Sep/2025:11:03:23 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:23 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 12:03:23 [info]: c047ef28-e37e-48ec-a0fe-be87e03efc9f ::1 - - [25/Sep/2025:11:03:23 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:23 [info]: 18afd1dd-b1e4-475e-8a44-c24bf1c79a5e ::1 - - [25/Sep/2025:11:03:23 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:25 [info]: cb66a4d1-54d6-4916-9421-fa6e91bdfa22 ::1 - - [25/Sep/2025:11:03:25 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:25 [info]: b77b4a96-d000-452d-87a2-a5940909eea1 ::1 - - [25/Sep/2025:11:03:25 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:26 [info]: d8403330-2509-4240-a099-b60aa816e2a0 ::1 - - [25/Sep/2025:11:03:26 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:26 [info]: d302c5c0-0d67-442d-9e2b-70fa8c837bfe ::1 - - [25/Sep/2025:11:03:26 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:29 [info]: 412db6c7-0e72-4178-9d4e-a420d10f4216 ::1 - - [25/Sep/2025:11:03:29 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:03:30 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 12:03:30 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 12:03:31 [info]: 92493838-fc75-4374-a979-15298da225d2 ::1 - - [25/Sep/2025:11:03:31 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 1042937 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:43 [info]: MongoDB Connected: localhost 
+2025-09-25 12:54:53 [info]: bf22e939-4a48-42f2-bd62-61e1fa378924 ::1 - - [25/Sep/2025:11:54:53 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:53 [info]: abf5565c-fdcb-493c-869d-6b6f35375d6d ::1 - - [25/Sep/2025:11:54:53 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:57 [info]: ff004220-591a-4e17-9ac3-2d652d1ddb7e ::1 - - [25/Sep/2025:11:54:57 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:58 [info]: 073e303b-01b5-4083-bc6c-6d3cc091bb87 ::1 - - [25/Sep/2025:11:54:58 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:58 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 12:54:59 [info]: e2a6ee80-f1cc-49bd-98d0-d542546b4192 ::1 - - [25/Sep/2025:11:54:59 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:54:59 [info]: eea9c226-f805-4354-9cc4-31989a095732 ::1 - - [25/Sep/2025:11:54:59 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:55:00 [info]: 1ed711b5-e422-4e01-b04c-50e312d6fa06 ::1 - - [25/Sep/2025:11:55:00 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:55:00 [info]: 3574c93b-8a0c-421a-bfd6-b2e4f825549c ::1 - - [25/Sep/2025:11:55:00 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:55:03 [info]: 842d5df1-c753-480b-b090-414b4841ca6b ::1 - - [25/Sep/2025:11:55:03 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 12:55:05 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 12:55:05 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 12:55:06 [info]: d046800a-bb21-47f2-be1b-0d430dc5ab0f ::1 - - [25/Sep/2025:11:55:06 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 1042861 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:24 [info]: MongoDB Connected: localhost 
+2025-09-25 13:11:33 [info]: 503235bb-93d6-4279-b164-654bc691da1a ::1 - - [25/Sep/2025:12:11:33 +0000] "GET / HTTP/1.1" 302 35 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:33 [info]: 42d8b016-cb31-4ec7-8fef-6b954bbc7b1f ::1 - - [25/Sep/2025:12:11:33 +0000] "GET /login HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:37 [info]: 69ce1b7c-72bb-4ff4-abfc-5c68fe1a8333 ::1 - - [25/Sep/2025:12:11:37 +0000] "POST /api/auth/login HTTP/1.1" 200 484 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:38 [info]: 152883d4-18dc-40d1-99a2-809f013bec8b ::1 - - [25/Sep/2025:12:11:38 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:39 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 13:11:39 [info]: dce20a44-d8ba-499d-b0ed-742079470aa7 ::1 - - [25/Sep/2025:12:11:39 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 145 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:39 [info]: 20dcd739-9a81-4333-8674-a08b5d69388f ::1 - - [25/Sep/2025:12:11:39 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:41 [info]: 333e72ef-3524-4883-9468-c9b486cd273a ::1 - - [25/Sep/2025:12:11:41 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:41 [info]: dc9b5a17-add4-4f6b-bc97-d6b2e7d88596 ::1 - - [25/Sep/2025:12:11:41 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:42 [info]: fce3ef2a-a36c-48fb-86c7-4434b6e61215 ::1 - - [25/Sep/2025:12:11:42 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:42 [info]: bb42cbad-3bfb-4a5e-b4eb-17418766366e ::1 - - [25/Sep/2025:12:11:42 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:44 [info]: a07fb810-8f73-4853-bd74-4177bcbf1669 ::1 - - [25/Sep/2025:12:11:44 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4 HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 
+2025-09-25 13:11:46 [info]: Accès autorisé - ID: 68baba1f6ea5c31c1c1eef94, Email: oumarmahamatousmane541@gmail.com 
+2025-09-25 13:11:46 [info]: PDF route hit in routes/actes.js {
+  "path": "/api/actes/68d45bd8e619a9b802dd1af4/pdf"
+}
+2025-09-25 13:11:47 [info]: 7f47b0c3-83aa-4f1d-aeb8-3234e02fe865 ::1 - - [25/Sep/2025:12:11:47 +0000] "GET /api/actes/68d45bd8e619a9b802dd1af4/pdf HTTP/1.1" 200 1042861 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" 

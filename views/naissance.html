@@ -115,6 +115,11 @@
                 <label class="form-label">Profession du père</label>
                 <input type="text" name="professionPere" class="form-control" required>
               </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Nationalité du père</label>
+                <input type="text" name="nationalitePere" class="form-control" placeholder="Ex: Tchadienne">
+              </div>
               
               <h5 class="mt-4 mb-3">Informations sur la mère</h5>
               
@@ -141,6 +146,11 @@
               <div class="col-md-4">
                 <label class="form-label">Profession de la mère</label>
                 <input type="text" name="professionMere" class="form-control" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Nationalité de la mère</label>
+                <input type="text" name="nationaliteMere" class="form-control" placeholder="Ex: Tchadienne">
               </div>
               
               <div class="col-12">
@@ -238,6 +248,7 @@
       if (details.dateNaissancePere) document.querySelector('input[name="dateNaissancePere"]').value = details.dateNaissancePere.split('T')[0];
       if (details.lieuNaissancePere) document.querySelector('input[name="lieuNaissancePere"]').value = details.lieuNaissancePere;
       if (details.professionPere) document.querySelector('input[name="professionPere"]').value = details.professionPere;
+      if (details.nationalitePere) document.querySelector('input[name="nationalitePere"]').value = details.nationalitePere;
       
       // Informations de la mère
       if (details.mere) document.querySelector('input[name="mere"]').value = details.mere;
@@ -245,6 +256,7 @@
       if (details.dateNaissanceMere) document.querySelector('input[name="dateNaissanceMere"]').value = details.dateNaissanceMere.split('T')[0];
       if (details.lieuNaissanceMere) document.querySelector('input[name="lieuNaissanceMere"]').value = details.lieuNaissanceMere;
       if (details.professionMere) document.querySelector('input[name="professionMere"]').value = details.professionMere;
+      if (details.nationaliteMere) document.querySelector('input[name="nationaliteMere"]').value = details.nationaliteMere;
       
       // Mairie
       if (acte.mairie) document.querySelector('input[name="mairie"]').value = acte.mairie;
@@ -304,6 +316,7 @@
             dateNaissancePere: acteData.dateNaissancePere,
             lieuNaissancePere: acteData.lieuNaissancePere,
             professionPere: acteData.professionPere,
+            nationalitePere: acteData.nationalitePere || '',
             
             // Informations de la mère - utiliser les noms de champs attendus par le serveur
             mere: acteData.mere,
@@ -311,6 +324,7 @@
             dateNaissanceMere: acteData.dateNaissanceMere,
             lieuNaissanceMere: acteData.lieuNaissanceMere,
             professionMere: acteData.professionMere,
+            nationaliteMere: acteData.nationaliteMere || '',
             
             // Autres champs
             adresse: acteData.adresse || ''

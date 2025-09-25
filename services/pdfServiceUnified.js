@@ -1,5 +1,7 @@
 const PDFDocument = require('pdfkit');
 const { logger } = require('../config/logger');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Service PDF unifié pour tous les types d'actes
@@ -8,15 +10,15 @@ const { logger } = require('../config/logger');
 
 // Couleurs et styles cohérents
 const COLORS = {
-  primary: '#0e5b23',      // Vert foncé pour les titres
-  secondary: '#212529',     // Noir pour le texte principal
-  gray: '#6c757d',         // Gris pour les labels
+  primary: '#000000',      // Noir pour les titres
+  secondary: '#000000',    // Noir pour le texte principal
+  gray: '#000000',         // Noir pour les labels
   lightGray: '#dee2e6',    // Gris clair pour les séparateurs
   background: '#f8f9fa',   // Fond gris très clair
   white: '#ffffff',        // Blanc
   flag: {
     blue: '#002689',
-    yellow: '#FFD100', 
+    yellow: '#FFD100',
     red: '#CE1126'
   }
 };
@@ -73,20 +75,63 @@ function generateHeader(doc, acteData) {
   doc.fillColor(COLORS.secondary);
   doc.fontSize(15).font('Helvetica-Bold')
      .text('RÉPUBLIQUE DU TCHAD', textX, flagY + 5);
-  doc.fontSize(10).font('Helvetica-Oblique')
+  doc.fontSize(10).font('Helvetica-Bold')
      .text('Unité - Travail - Progrès', textX, flagY + 25);
-  
-  // Numéro d'acte en haut à droite
+  // Logo en haut à droite (optionnel)
+  let logoDrawn = false;
+  let logoBottomY = flagY; // pour positionner le numéro en-dessous si nécessaire
+  try {
+    const defaultFromServices = path.join(__dirname, '../public/images/logotchad.png');
+    const defaultFromCwd = path.resolve(process.cwd(), 'public/images/logotchad.png');
+    const provided = acteData.logoPath;
+    const candidates = [provided, defaultFromServices, defaultFromCwd].filter(Boolean);
+    let chosenPath = null;
+    for (const p of candidates) {
+      try {
+        if (fs.existsSync(p)) { chosenPath = p; break; }
+      } catch {}
+    }
+    if (!chosenPath && logger && logger.warn) {
+      logger.warn('Aucun logo trouvé parmi les chemins candidats', { candidates });
+    }
+    if (chosenPath) {
+      const ext = path.extname(chosenPath).toLowerCase();
+      if (ext === '.svg') {
+        if (logger && logger.warn) {
+          logger.warn('Logo au format SVG non supporté par PDFKit, utilisez PNG/JPG', { chosenPath });
+        }
+      } else {
+        const logoWidth = 60; // compact
+        const logoX = doc.page.width - marginRight - logoWidth;
+        const logoY = flagY; // aligné à la hauteur du drapeau
+        doc.image(chosenPath, logoX, logoY, { width: logoWidth });
+        logoDrawn = true;
+        logoBottomY = logoY + 60; // réserver une hauteur équivalente
+        if (logger && logger.info) {
+          logger.info('Logo injecté dans le PDF', { chosenPath, logoX, logoY, logoWidth });
+        }
+      }
+    }
+  } catch (e) {
+    // Ne pas bloquer la génération si le logo n'est pas disponible
+    if (logger && logger.warn) {
+      logger.warn('Logo non chargé, poursuite sans logo', { error: e.message });
+    }
+  }
+
+  // Numéro d'acte en haut à droite (placer sous le logo si présent)
   const acteNumber = acteData.numeroActe || 'En cours de génération';
+  const numberY = logoDrawn ? logoBottomY + 2 : flagY + 5;
   doc.fontSize(10).font('Helvetica-Bold')
      .fillColor(COLORS.primary)
-     .text(`N° ${acteNumber}`, doc.page.width - marginRight - 100, flagY + 5, { width: 100, align: 'right' });
-  
+     .text(`N° ${acteNumber}`, doc.page.width - marginRight - 100, numberY, { width: 100, align: 'right' });
+
   return flagY + flagHeight + 20; // Retourne la position Y pour la suite
 }
 
 /**
  * Génère le filigrane (SUPPRIMÉ)
+{{ ... }}
  */
 function generateWatermark(doc) {
   // Filigrane supprimé définitivement
@@ -174,12 +219,12 @@ function generateSection(doc, title, content, startY) {
         const valueText = item.value ? String(item.value) : '';
 
         // Mesurer les hauteurs selon les polices utilisées
-        doc.font('Helvetica').fontSize(FONTS.label.size);
+        doc.font('Helvetica-Bold').fontSize(FONTS.label.size);
         const labelH = labelText 
           ? doc.heightOfString(labelText, { width: labelColWidth }) 
           : 0;
 
-        doc.font('Helvetica').fontSize(FONTS.text.size);
+        doc.font('Helvetica-Bold').fontSize(FONTS.text.size);
         const valueH = valueText 
           ? doc.heightOfString(valueText, { width: valueColWidth }) 
           : 0;
@@ -188,11 +233,11 @@ function generateSection(doc, title, content, startY) {
 
         // Dessiner label et valeur
         if (labelText) {
-          doc.fillColor(COLORS.gray).font('Helvetica').fontSize(FONTS.label.size)
+          doc.fillColor(COLORS.gray).font('Helvetica-Bold').fontSize(FONTS.label.size)
              .text(labelText, marginLeft, y, { width: labelColWidth });
         }
         if (valueText) {
-          doc.fillColor(COLORS.secondary).font('Helvetica').fontSize(FONTS.text.size)
+          doc.fillColor(COLORS.secondary).font('Helvetica-Bold').fontSize(FONTS.text.size)
              .text(valueText, marginLeft + labelColWidth + 10, y, { width: valueColWidth });
         }
 
@@ -304,9 +349,11 @@ async function generateNaissancePdf(acteData) {
         { label: 'Père', value: `${details.nomPere || details.pere || ''} ${details.prenomPere || ''}`.trim() },
         { label: 'Date de naissance du père', value: details.dateNaissancePere ? new Date(details.dateNaissancePere).toLocaleDateString('fr-FR') : '' },
         { label: 'Lieu de naissance du père', value: details.lieuNaissancePere || '' },
+        { label: 'Nationalité du père', value: details.nationalitePere || '' },
         { label: 'Mère', value: `${details.nomMere || details.mere || ''} ${details.prenomMere || ''}`.trim() },
         { label: 'Date de naissance de la mère', value: details.dateNaissanceMere ? new Date(details.dateNaissanceMere).toLocaleDateString('fr-FR') : '' },
         { label: 'Lieu de naissance de la mère', value: details.lieuNaissanceMere || '' },
+        { label: 'Nationalité de la mère', value: details.nationaliteMere || '' },
         { label: 'Profession du père', value: details.professionPere || '' },
         { label: 'Profession de la mère', value: details.professionMere || '' },
         { label: 'Domicile des parents', value: details.adresse || '' }
@@ -319,9 +366,7 @@ async function generateNaissancePdf(acteData) {
       
       y = generateSection(doc, 'DÉCLARATION DE NAISSANCE', declarationText, y);
       
-      // Section mentions marginales
-      const mentionsText = 'Aucune mention marginale à ce jour.';
-      y = generateSection(doc, 'MENTIONS MARGINALES', mentionsText, y);
+      // Section "MENTIONS MARGINALES" supprimée sur demande: ne pas l'afficher
       
       // Zone de signature
       generateSignatureArea(doc, acteData.mairie, acteData.dateEnregistrement, y);
@@ -389,9 +434,7 @@ async function generateMariagePdf(acteData) {
       
       y = generateSection(doc, 'DÉCLARATION DE MARIAGE', declarationText, y);
       
-      // Section mentions marginales
-      const mentionsText = 'Aucune mention marginale à ce jour.';
-      y = generateSection(doc, 'MENTIONS MARGINALES', mentionsText, y);
+      // Section "MENTIONS MARGINALES" supprimée: ne pas l'afficher
       
       // Zone de signature
       generateSignatureArea(doc, acteData.mairie, acteData.dateEnregistrement, y);
@@ -466,9 +509,7 @@ async function generateDecesPdf(acteData) {
       
       y = generateSection(doc, 'DÉCLARATION DE DÉCÈS', declarationText, y);
       
-      // Section mentions marginales
-      const mentionsText = 'Aucune mention marginale à ce jour.';
-      y = generateSection(doc, 'MENTIONS MARGINALES', mentionsText, y);
+      // Section "MENTIONS MARGINALES" supprimée: ne pas l'afficher
       
       // Zone de signature
       generateSignatureArea(doc, acteData.mairie, acteData.dateEnregistrement, y);
@@ -536,9 +577,7 @@ async function generateEngagementPdf(acteData) {
       
       y = generateSection(doc, 'DÉCLARATION D\'ENGAGEMENT', declarationText, y);
       
-      // Section mentions marginales
-      const mentionsText = 'Aucune mention marginale à ce jour.';
-      y = generateSection(doc, 'MENTIONS MARGINALES', mentionsText, y);
+      // Section "MENTIONS MARGINALES" supprimée: ne pas l'afficher
       
       // Zone de signature
       generateSignatureArea(doc, acteData.mairie, acteData.dateEnregistrement, y);
@@ -607,9 +646,7 @@ async function generateDivorcePdf(acteData) {
       
       y = generateSection(doc, 'DÉCLARATION DE DIVORCE', declarationText, y);
       
-      // Section mentions marginales
-      const mentionsText = 'Aucune mention marginale à ce jour.';
-      y = generateSection(doc, 'MENTIONS MARGINALES', mentionsText, y);
+      // Section "MENTIONS MARGINALES" supprimée: ne pas l'afficher
       
       // Zone de signature
       generateSignatureArea(doc, acteData.mairie, acteData.dateEnregistrement, y);
