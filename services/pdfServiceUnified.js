@@ -153,6 +153,42 @@ function generateMainTitle(doc, title, subtitle = '') {
        align: 'center' 
      });
   
+  // Ajout titre arabe à droite si une police arabe est disponible
+  try {
+    const arabicFontCandidates = [
+      // Fichiers directs
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf'),
+      path.join(__dirname, '../public/fonts/NotoNaskhArabic-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/NotoNaskhArabic-Regular.ttf'),
+      // Cas d'extraction dans un dossier Amiri-Regular.ttf/
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf')
+    ];
+    const arabicFontPath = arabicFontCandidates.find(p => { 
+      try { 
+        return fs.existsSync(p) && fs.statSync(p).isFile(); 
+      } catch { return false; } 
+    });
+    if (!arabicFontPath && logger && logger.warn) {
+      logger.warn('Police arabe non trouvée (titre). Placez Amiri-Regular.ttf ou NotoNaskhArabic-Regular.ttf dans public/fonts', { arabicFontCandidates });
+    } else if (arabicFontPath && logger && logger.info) {
+      logger.info('Police arabe détectée (titre)', { arabicFontPath });
+    }
+    if (arabicFontPath && title.toUpperCase().includes('NAISSANCE')) {
+      // Remarque: PDFKit ne fait pas la mise en forme RTL/shaping complète,
+      // mais avec une police arabe le rendu reste acceptable pour des titres courts.
+      doc.fillColor(COLORS.primary);
+      doc.fontSize(FONTS.title.size).font(arabicFontPath)
+         .text('شهادة ميلاد', marginLeft, 120, {
+           width: doc.page.width - marginLeft - marginRight,
+           align: 'right'
+         });
+    }
+  } catch (e) {
+    if (logger && logger.warn) logger.warn('Police arabe non chargée (titre).', { error: e.message });
+  }
+  
   // Sous-titre si fourni
   if (subtitle) {
     doc.fillColor(COLORS.gray);
@@ -181,6 +217,52 @@ function generateSection(doc, title, content, startY) {
   doc.fontSize(FONTS.subtitle.size).font('Helvetica-Bold')
      .text(title, marginLeft, y);
   
+  // Afficher le titre arabe à droite si mappé et si police arabe dispo
+  try {
+    const arabicFontCandidates = [
+      // Fichiers directs
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf'),
+      path.join(__dirname, '../public/fonts/NotoNaskhArabic-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/NotoNaskhArabic-Regular.ttf'),
+      // Cas d'extraction dans un dossier Amiri-Regular.ttf/
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf')
+    ];
+    const arabicFontPath = arabicFontCandidates.find(p => { try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } });
+    if (!arabicFontPath && logger && logger.warn) {
+      logger.warn('Police arabe non trouvée (section). Placez Amiri-Regular.ttf ou NotoNaskhArabic-Regular.ttf dans public/fonts', { arabicFontCandidates });
+    } else if (arabicFontPath && logger && logger.info) {
+      logger.info('Police arabe détectée (section)', { arabicFontPath, title });
+    }
+    const sectionMap = {
+      "INFORMATIONS SUR L'ENFANT": 'الطفل',
+      'INFORMATIONS SUR LES PARENTS': 'الوالدان',
+      'DÉCLARATION DE NAISSANCE': 'التصريح بالولادة',
+      'INFORMATIONS SUR LES ÉPOUX': 'الزوجان',
+      'INFORMATIONS SUR LES TÉMOINS': 'الشهود',
+      'DÉCLARATION DE MARIAGE': 'التصريح بالزواج',
+      'INFORMATIONS SUR LE DÉFUNT': 'المتوفى',
+      'INFORMATIONS SUR LE DÉCLARANT': 'المصرّح',
+      'DÉCLARATION DE DÉCÈS': 'التصريح بالوفاة',
+      "INFORMATIONS SUR LES CONCUBINS": 'الخليلان',
+      "DÉCLARATION D'ENGAGEMENT": 'التصريح بالارتباط',
+      'INFORMATIONS SUR LES ENFANTS': 'الأطفال',
+      'DÉCLARATION DE DIVORCE': 'التصريح بالطلاق'
+    };
+    const ar = sectionMap[title];
+    if (arabicFontPath && ar) {
+      doc.fillColor(COLORS.primary);
+      doc.fontSize(FONTS.subtitle.size).font(arabicFontPath)
+         .text(ar, marginLeft, y, {
+           width: sectionWidth,
+           align: 'right'
+         });
+    }
+  } catch (e) {
+    if (logger && logger.warn) logger.warn('Police arabe non chargée (section).', { error: e.message });
+  }
+  
   y += 16;
   
   // Ligne de séparation
@@ -205,40 +287,137 @@ function generateSection(doc, title, content, startY) {
     const blockH = doc.heightOfString(content, { width: sectionWidth, lineGap: 2 });
     y += blockH + 4;
   } else if (Array.isArray(content)) {
-    const labelColWidth = 105;
-    const valueColWidth = sectionWidth - labelColWidth - 10;
+    // Détection de la police arabe et préparation du mode deux colonnes
+    let arabicFontPath = null;
+    let arabicBoldFontPath = null;
+    try {
+      const arabicFontCandidates = [
+        // Fichiers directs
+        path.join(__dirname, '../public/fonts/Amiri-Regular.ttf'),
+        path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf'),
+        path.join(__dirname, '../public/fonts/NotoNaskhArabic-Regular.ttf'),
+        path.resolve(process.cwd(), 'public/fonts/NotoNaskhArabic-Regular.ttf'),
+        // Cas d'extraction dans un dossier Amiri-Regular.ttf/
+        path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf'),
+        path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf')
+      ];
+      arabicFontPath = arabicFontCandidates.find(p => { 
+        try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } 
+      }) || null;
+
+      const arabicBoldCandidates = [
+        // Amiri Bold direct
+        path.join(__dirname, '../public/fonts/Amiri-Bold.ttf'),
+        path.resolve(process.cwd(), 'public/fonts/Amiri-Bold.ttf'),
+        // Amiri Bold dans le dossier imbriqué
+        path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Bold.ttf'),
+        path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Bold.ttf')
+      ];
+      arabicBoldFontPath = arabicBoldCandidates.find(p => { 
+        try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } 
+      }) || null;
+    } catch {}
+
+    const twoColArabic = !!arabicFontPath;
+    const halfWidth = twoColArabic ? Math.floor(sectionWidth / 2) - 6 : sectionWidth;
+    const labelColWidth = Math.min(105, Math.floor(halfWidth * 0.4));
+    const valueColWidth = halfWidth - labelColWidth - 8;
+    const leftX = marginLeft;
+    const rightX = marginLeft + (twoColArabic ? halfWidth + 12 : 0);
+
+    // Mapping des libellés FR -> AR
+    const arabicLabelMap = {
+      "Nom de famille": 'اللقب',
+      "Prénom(s)": 'الاسم',
+      "Sexe": 'الجنس',
+      "Date de naissance": 'تاريخ الميلاد',
+      "Heure de naissance": 'ساعة الميلاد',
+      "Lieu de naissance": 'مكان الميلاد',
+      "Père": 'الأب',
+      "Date de naissance du père": 'تاريخ ميلاد الأب',
+      "Lieu de naissance du père": 'مكان ميلاد الأب',
+      "Nationalité du père": 'الجنسية (الأب)',
+      "Mère": 'الأم',
+      "Date de naissance de la mère": 'تاريخ ميلاد الأم',
+      "Lieu de naissance de la mère": 'مكان ميلاد الأم',
+      "Nationalité de la mère": 'الجنسية (الأم)',
+      "Profession du père": 'مهنة الأب',
+      "Profession de la mère": 'مهنة الأم',
+      "Domicile des parents": 'موطن الأبوين',
+      "Premier époux/épouse": 'الزوج/الزوجة الأول',
+      "Deuxième époux/épouse": 'الزوج/الزوجة الثاني',
+      "Date de mariage": 'تاريخ الزواج',
+      "Lieu de mariage": 'مكان الزواج',
+      "Profession du premier époux": 'مهنة الزوج الأول',
+      "Profession du deuxième époux": 'مهنة الزوج الثاني',
+      "Premier témoin": 'الشاهد الأول',
+      "Deuxième témoin": 'الشاهد الثاني',
+      "Profession du premier témoin": 'مهنة الشاهد الأول',
+      "Profession du deuxième témoin": 'مهنة الشاهد الثاني',
+      "Nom de famille": 'اللقب',
+      "Prénom(s)": 'الاسم',
+      "INFORMATIONS SUR LE DÉFUNT": 'المتوفى',
+      "Profession": 'المهنة',
+      "Domicile": 'العنوان',
+      "Date du décès": 'تاريخ الوفاة',
+      "Heure du décès": 'ساعة الوفاة',
+      "Lieu du décès": 'مكان الوفاة',
+      "Cause du décès": 'سبب الوفاة',
+      "Lien avec le défunt": 'صلة القرابة'
+    };
+
     content.forEach(item => {
       if (typeof item === 'string') {
         doc.fillColor(COLORS.secondary);
         doc.fontSize(FONTS.text.size).font('Helvetica');
-        const blockH = doc.heightOfString(item, { width: sectionWidth, lineGap: 2 });
-        doc.text(item, marginLeft, y, { width: sectionWidth, lineGap: 2 });
+        const blockH = doc.heightOfString(item, { width: halfWidth, lineGap: 2 });
+        doc.text(item, leftX, y, { width: halfWidth, lineGap: 2 });
         y += blockH + 4;
       } else if (item && (item.label || item.value)) {
         const labelText = item.label ? `${item.label} :` : '';
         const valueText = item.value ? String(item.value) : '';
-
-        // Mesurer les hauteurs selon les polices utilisées
+        
+        // Mesurer hauteurs côté gauche (FR)
         doc.font('Helvetica-Bold').fontSize(FONTS.label.size);
-        const labelH = labelText 
-          ? doc.heightOfString(labelText, { width: labelColWidth }) 
-          : 0;
-
+        const labelH_L = labelText ? doc.heightOfString(labelText, { width: labelColWidth }) : 0;
         doc.font('Helvetica-Bold').fontSize(FONTS.text.size);
-        const valueH = valueText 
-          ? doc.heightOfString(valueText, { width: valueColWidth }) 
-          : 0;
+        const valueH_L = valueText ? doc.heightOfString(valueText, { width: valueColWidth }) : 0;
 
-        const rowH = Math.max(labelH, valueH) || FONTS.text.size + 4;
+        // Mesurer hauteurs côté droit (AR) si activé et si libellé mappé
+        let labelH_R = 0, valueH_R = 0, arLabelText = '';
+        const mapped = arabicLabelMap[item.label];
+        if (twoColArabic && mapped) {
+          if (arabicFontPath) {
+            const arFont = arabicBoldFontPath || arabicFontPath; // bold si dispo
+            const arSize = FONTS.label.size + 2; // un peu plus grand
+            doc.font(arFont).fontSize(arSize);
+            arLabelText = `${mapped} :`;
+            labelH_R = doc.heightOfString(arLabelText, { width: labelColWidth });
+          }
+          // Ne pas calculer la hauteur des valeurs à droite: on ne les affiche plus
+          valueH_R = 0;
+        }
 
-        // Dessiner label et valeur
+        const rowH = Math.max(labelH_L, valueH_L, labelH_R, valueH_R, FONTS.text.size + 4);
+
+        // Dessiner côté gauche (FR)
         if (labelText) {
           doc.fillColor(COLORS.gray).font('Helvetica-Bold').fontSize(FONTS.label.size)
-             .text(labelText, marginLeft, y, { width: labelColWidth });
+             .text(labelText, leftX, y, { width: labelColWidth });
         }
         if (valueText) {
           doc.fillColor(COLORS.secondary).font('Helvetica-Bold').fontSize(FONTS.text.size)
-             .text(valueText, marginLeft + labelColWidth + 10, y, { width: valueColWidth });
+             .text(valueText, leftX + labelColWidth + 10, y, { width: valueColWidth });
+        }
+
+        // Dessiner côté droit (AR) - seulement le libellé, pas la valeur
+        if (twoColArabic && mapped) {
+          if (arabicFontPath) {
+            const arFont = arabicBoldFontPath || arabicFontPath; // bold si dispo
+            const arSize = FONTS.label.size + 2; // un peu plus grand
+            doc.fillColor(COLORS.primary).font(arFont).fontSize(arSize)
+               .text(arLabelText, rightX, y, { width: labelColWidth, align: 'right' });
+          }
         }
 
         y += rowH + 3; // petit espace entre lignes
