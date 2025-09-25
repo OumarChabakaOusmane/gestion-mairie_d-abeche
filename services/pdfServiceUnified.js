@@ -391,7 +391,7 @@ function generateSection(doc, title, content, startY) {
             const arFont = arabicBoldFontPath || arabicFontPath; // bold si dispo
             const arSize = FONTS.label.size + 2; // un peu plus grand
             doc.font(arFont).fontSize(arSize);
-            arLabelText = `${mapped} :`;
+            arLabelText = `: ${mapped}`;
             labelH_R = doc.heightOfString(arLabelText, { width: labelColWidth });
           }
           // Ne pas calculer la hauteur des valeurs à droite: on ne les affiche plus
@@ -438,7 +438,7 @@ function generateSignatureArea(doc, mairie, dateEnregistrement, startY) {
   
   let y = startY + 20;
   
-  // Ligne de signature
+  // Ligne de signature (revenir à droite)
   doc.moveTo(marginLeft + 200, y)
      .lineTo(doc.page.width - marginRight, y)
      .strokeColor(COLORS.lightGray)
@@ -460,14 +460,14 @@ function generateSignatureArea(doc, mairie, dateEnregistrement, startY) {
   // Signature de l'officier
   doc.fillColor(COLORS.secondary);
   doc.fontSize(FONTS.text.size).font('Helvetica-Bold')
-     .text('L\'Officier de l\'État Civil', marginLeft + 200, y, { 
-       width: doc.page.width - marginRight - marginLeft - 200,
-       align: 'right' 
+     .text('L\'Officier de l\'État Civil', marginLeft, y, { 
+       width: 250,
+       align: 'left' 
      });
   
   y += 20;
   
-  // Ligne pour la signature
+  // Ligne pour la signature (revenir à droite)
   doc.moveTo(marginLeft + 200, y)
      .lineTo(doc.page.width - marginRight, y)
      .strokeColor(COLORS.secondary)
@@ -540,10 +540,7 @@ async function generateNaissancePdf(acteData) {
       
       y = generateSection(doc, 'INFORMATIONS SUR LES PARENTS', parentsInfo, y);
       
-      // Section déclaration
-      const declarationText = `Nous, Officier de l'État Civil, certifions que l'enfant mentionné ci-dessus est né le ${details.dateNaissance ? new Date(details.dateNaissance).toLocaleDateString('fr-FR') : ''} à ${details.lieuNaissance || ''} et déclaré par ses parents.`;
-      
-      y = generateSection(doc, 'DÉCLARATION DE NAISSANCE', declarationText, y);
+      // Section déclaration supprimée sur demande
       
       // Section "MENTIONS MARGINALES" supprimée sur demande: ne pas l'afficher
       
