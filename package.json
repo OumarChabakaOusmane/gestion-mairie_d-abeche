@@ -11,7 +11,9 @@
     "security-check": "npm audit"
   },
   "dependencies": {
+    "arabic-reshaper": "^1.1.0",
     "bcryptjs": "^2.4.3",
+    "bidi-js": "^1.0.3",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

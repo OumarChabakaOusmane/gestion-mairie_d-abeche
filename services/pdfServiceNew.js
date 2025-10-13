@@ -3,6 +3,31 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../config/logger');
 
+// Chargement optionnel des utilitaires de mise en forme arabe (RTL)
+let arabicReshaper = null;
+let bidi = null;
+try {
+  arabicReshaper = require('arabic-reshaper');
+  bidi = require('bidi-js');
+} catch (e) {
+  // Continuer en mode dégradé si non installés
+  try { logger.warn('arabic-reshaper/bidi-js non installés. Le texte arabe peut apparaître inversé. Installez-les avec: npm i arabic-reshaper bidi-js'); } catch {}
+}
+
+// Mise en forme d'une chaîne arabe (shaping + réordonnancement RTL)
+function shapeArabic(text) {
+  if (!text) return text;
+  try {
+    const reshaped = arabicReshaper ? arabicReshaper.reshape(text) : text;
+    if (bidi && bidi.hasRTL(text)) {
+      return bidi.getEmbeddingLevels(reshaped).map(ch => ch.ch).join('');
+    }
+    return reshaped;
+  } catch (_) {
+    return text;
+  }
+}
+
 // Configuration
 const CONFIG = {
   OUTPUT_DIR: path.join(__dirname, '../public/pdfs'),
@@ -528,7 +553,41 @@ const generateNaissancePdf = async (data) => {
         const lineH = 12; // interligne encore réduit
         let y = headerY + 10;
         
-        // Fonction utilitaire pour ajouter une ligne d'information
+        // Préparer police arabe et mapping FR->AR
+        let arabicFontPath = null;
+        try {
+          const arabicFontCandidates = [
+            path.join(__dirname, '../public/fonts/Amiri-Regular.ttf'),
+            path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf'),
+            path.join(__dirname, '../public/fonts/NotoNaskhArabic-Regular.ttf'),
+            path.resolve(process.cwd(), 'public/fonts/NotoNaskhArabic-Regular.ttf'),
+            path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf'),
+            path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf')
+          ];
+          arabicFontPath = arabicFontCandidates.find(p => { try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } }) || null;
+        } catch {}
+
+        const frToAr = {
+          'Nom': 'اللقب',
+          'Prénoms': 'الاسم',
+          'Sexe': 'الجنس',
+          'Date de naissance': 'تاريخ الميلاد',
+          'Heure de naissance': 'ساعة الميلاد',
+          'Lieu de naissance': 'مكان الميلاد',
+          '• Nom': 'الاسم',
+          '• Prénoms': 'الأسماء',
+          '• Date de naissance': 'تاريخ الميلاد',
+          '• Lieu de naissance': 'مكان الميلاد',
+          '• Profession': 'المهنة',
+          '• Domicile': 'العنوان',
+          "• Officier d'état civil": 'الموظف المدني',
+          "• Date d'établissement": 'تاريخ الإصدار',
+          '• Mairie': 'البلدية',
+          'Déclarant': 'المصرّح',
+          '• Qualité': 'الصفة'
+        };
+
+        // Fonction utilitaire pour ajouter une ligne d'information (FR + étiquette AR à droite)
         const addLine = (label, value, yPos, isBold = false) => {
           const val = (value || '').toString().trim();
           if (!val) return yPos; // sauter les lignes vides pour économiser l'espace
@@ -538,6 +597,18 @@ const generateNaissancePdf = async (data) => {
             .fillColor(CONFIG.COLORS.TEXT)
             .text(`${label}: `, col1, yPos, { continued: true, width: 150, align: 'left' })
             .text(val, { width: 400 });
+
+          // Dessiner l'étiquette arabe alignée à droite si disponible
+          const ar = frToAr[label];
+          if (arabicFontPath && ar) {
+            try {
+              doc.font(arabicFontPath).fontSize(11).fillColor('#0e5b23')
+                 .text(shapeArabic(ar), CONFIG.MARGINS.LEFT, yPos, {
+                   width: doc.page.width - CONFIG.MARGINS.LEFT - CONFIG.MARGINS.RIGHT,
+                   align: 'right'
+                 });
+            } catch {}
+          }
           return yPos + lineH;
         };
         
@@ -746,13 +817,34 @@ const generateActeHeader = (doc, title, data) => {
       y: 150
     })
     .moveDown(0.8);
-    
+
+  // Ajouter le titre arabe aligné à droite si une police arabe est disponible
+  try {
+    const arabicFontCandidates = [
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf'),
+      path.join(__dirname, '../public/fonts/NotoNaskhArabic-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/NotoNaskhArabic-Regular.ttf'),
+      // Cas d'extraction dans un dossier Amiri-Regular.ttf/
+      path.join(__dirname, '../public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf'),
+      path.resolve(process.cwd(), 'public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf')
+    ];
+    const arabicFontPath = arabicFontCandidates.find(p => { try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } });
+    if (arabicFontPath && /NAISSANCE/i.test(title)) {
+      doc.font(arabicFontPath).fontSize(22).fillColor('#0e5b23')
+        .text(shapeArabic('شهادة ميلاد'), CONFIG.MARGINS.LEFT, 120, {
+          width: doc.page.width - CONFIG.MARGINS.LEFT - CONFIG.MARGINS.RIGHT,
+          align: 'right'
+        });
+    }
+  } catch {}
+  
   return 180; // Retourne la position Y après l'en-tête
 };
 
 /**
  * Génère une section d'information avec titre et contenu
- * @param {PDFDocument} doc - L'instance PDFKit
+{{ ... }}
  * @param {string} title - Titre de la section
  * @param {Object} content - Contenu de la section
  * @param {Object} options - Options de mise en forme

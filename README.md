@@ -74,6 +74,44 @@ npm start
 
 L'application sera accessible sur `http://localhost:3000`
 
+## PDF en Arabe (RTL)
+
+- **Dépendances RTL**
+  - Installer le shaping arabe et le réordonnancement visuel:
+  ```bash
+  npm i arabic-reshaper bidi-js
+  ```
+
+- **Polices arabes**
+  - Placez une police arabe dans `public/fonts/` (au moins l'une de):
+    - `public/fonts/Amiri-Regular.ttf`
+    - `public/fonts/NotoNaskhArabic-Regular.ttf`
+  - Le service détecte aussi ces chemins si vous avez extrait un dossier:
+    - `public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf`
+  - Les logs indiquent si la police a été trouvée.
+
+- **Fichier de génération PDF à modifier**
+  - `services/pdfServiceUnified.js` est le service utilisé par la route `/api/actes/:id/pdf`.
+  - Ne pas modifier `services/pdfService.unified.js` (avec un point) : il n'est pas chargé.
+
+- **Où ajuster le rendu arabe**
+  - Titre: fonction `generateMainTitle()` – le texte arabe utilise `shapeArabicVisual('شهادة ميلاد')` avec `align: 'right'`.
+  - Libellés de sections: fonction `generateSection()`
+    - Mappage FR→AR: objet `arabicLabelMap` (ex: `"Date de naissance" → "تاريخ الميلاد"`).
+    - Rendu colonne droite: `arLabelText = shapeArabicVisual(mapped)` puis `.text(..., { align: 'right' })`.
+    - Pas de ponctuation « : » côté arabe.
+
+- **Regénérer un PDF**
+  - Redémarrez l'application après chaque changement de code: `node app.js`.
+  - Générez un PDF via l'interface (ou `/api/actes/:id/pdf`).
+
+- **Dépannage rapide**
+  - Texte arabe inversé ou non connecté:
+    - Vérifiez la présence d'une police arabe dans `public/fonts/`.
+    - Assurez-vous que les libellés passent par `shapeArabicVisual()` et `align: 'right'`.
+    - Confirmez que vous éditez `services/pdfServiceUnified.js` (et non `pdfService.unified.js`).
+    - Redémarrez le serveur pour recharger les modules.
+
 ## Structure du projet
 
 ```
@@ -174,4 +212,4 @@ Ce projet est sous licence ISC.
 
 ## 🆘 Support
 
-Pour toute question ou problème, créer une issue sur le repository GitHub.
+

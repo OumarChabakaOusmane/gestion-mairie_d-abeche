@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 const Acte = require('../models/Acte');
-const { generateDecesPdf } = require('../services/pdfService');
+const pdfServiceUnified = require('../services/pdfServiceUnified');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 
@@ -79,48 +79,10 @@ decesController.generateDecesPdf = async (req, res) => {
       });
     }
 
-    // Préparer les données pour le PDF dans le format attendu
-    const pdfData = {
-      // Informations administratives
-      numeroActe: acte.numeroActe || 'En attente',
-      dateEnregistrement: formatDate(acte.dateEnregistrement) || 'Non spécifiée',
-      mairie: acte.mairie?.nom || 'Mairie non spécifiée',
-      ville: acte.mairie?.ville || '',
-      
-      // Informations du défunt
-      nomDefunt: acte.details.nomDefunt || 'Non renseigné',
-      prenomsDefunt: acte.details.prenomsDefunt || 'Non renseigné',
-      dateNaissanceDefunt: formatDate(acte.details.dateNaissanceDefunt),
-      lieuNaissanceDefunt: acte.details.lieuNaissanceDefunt || 'Non renseigné',
-      professionDefunt: acte.details.professionDefunt || 'Non renseignée',
-      domicileDefunt: acte.details.domicileDefunt || 'Non renseigné',
-      dateDeces: formatDate(acte.details.dateDeces) || 'Non spécifiée',
-      heureDeces: acte.details.heureDeces || 'Non spécifiée',
-      lieuDeces: acte.details.lieuDeces || 'Non renseigné',
-      causeDeces: acte.details.causeDeces || 'Non spécifiée',
-      
-      // Informations du déclarant
-      nomDeclarant: acte.details.nomDeclarant || 'Non renseigné',
-      prenomsDeclarant: acte.details.prenomsDeclarant || 'Non renseigné',
-      dateNaissanceDeclarant: formatDate(acte.details.dateNaissanceDeclarant),
-      lieuNaissanceDeclarant: acte.details.lieuNaissanceDeclarant || 'Non renseigné',
-      professionDeclarant: acte.details.professionDeclarant || 'Non renseignée',
-      domicileDeclarant: acte.details.domicileDeclarant || 'Non renseigné',
-      lienDeclarant: acte.details.lienDeclarant || 'Non spécifié',
-      
-      // Métadonnées
-      createdAt: formatDate(acte.createdAt),
-      createdBy: acte.createdBy ? 
-        `${acte.createdBy.prenom} ${acte.createdBy.nom}` : 
-        'Utilisateur inconnu'
-    };
-
-    log('Données préparées pour la génération du PDF');
-    
-    // Générer le PDF
+    // Générer le PDF directement via le service unifié avec l'acte complet
     try {
-      log('Début de la génération du PDF...');
-      const pdfBuffer = await generateDecesPdf(pdfData);
+      log('Début de la génération du PDF (service unifié)...');
+      const pdfBuffer = await pdfServiceUnified.generateDecesPdf(acte);
       
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
         const errorMsg = 'Le buffer du PDF est invalide';
@@ -136,7 +98,7 @@ decesController.generateDecesPdf = async (req, res) => {
       }
       
       // Créer un nom de fichier sécurisé
-      const safeFileName = `acte-deces-${(pdfData.numeroActe || 'sans-numero')
+      const safeFileName = `acte-deces-${(acte.numeroActe || 'sans-numero')
         .toString()
         .toLowerCase()
         .replace(/[^a-z0-9-]/g, '-')}-${Date.now()}.pdf`;

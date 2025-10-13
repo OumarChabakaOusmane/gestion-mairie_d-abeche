@@ -3,6 +3,56 @@ const { logger } = require('../config/logger');
 const fs = require('fs');
 const path = require('path');
 
+// Chargement optionnel des utilitaires de mise en forme arabe
+// Si les dépendances ne sont pas installées, le code continue sans crash
+let arabicReshaper = null;
+let bidi = null;
+try {
+  arabicReshaper = require('arabic-reshaper');
+  bidi = require('bidi-js');
+} catch (e) {
+  // Dépendances manquantes: on continuera en mode dégradé
+  if (logger && logger.warn) {
+    logger.warn('arabic-reshaper/bidi-js non installés. Le texte arabe peut apparaître inversé. Installez-les avec: npm i arabic-reshaper bidi-js');
+  }
+}
+
+// Mise en forme d'une chaîne arabe (shaping uniquement)
+function shapeArabic(text) {
+  if (!text) return text;
+  try {
+    // Ne pas inverser les caractères ni les mots. PDFKit + police Amiri
+    // avec align: 'right' affichent correctement les libellés courts
+    // si les glyphes sont reshaped.
+    return arabicReshaper ? arabicReshaper.reshape(text) : text;
+  } catch (_) {
+    return text;
+  }
+}
+
+// Version visuelle pour PDFKit: reshape chaque mot puis inverser l'ordre des caractères
+// à l'intérieur de chaque mot et enfin inverser l'ordre des mots.
+// Ceci donne une présentation droite->gauche correcte lorsque PDFKit écrit en LTR.
+function shapeArabicVisual(text) {
+  if (!text) return text;
+  try {
+    const tokens = String(text).split(/(\s+)/); // conserver les espaces comme tokens
+    // Traiter chaque mot arabe et laisser les espaces tels quels
+    const shapedTokens = tokens.map(tok => {
+      if (/\s+/.test(tok)) return tok; // espace inchangé
+      const hasArabic = /[\u0600-\u06FF]/.test(tok);
+      const t = arabicReshaper ? arabicReshaper.reshape(tok) : tok;
+      if (!hasArabic) return t; // mots latins inchangés
+      // inverser les caractères du mot pour rendu visuel RTL
+      return Array.from(t).reverse().join('');
+    });
+    // Inverser l'ordre des tokens pour obtenir l'ordre des mots RTL
+    return shapedTokens.reverse().join('');
+  } catch (_) {
+    return text;
+  }
+}
+
 /**
  * Service PDF unifié pour tous les types d'actes
  * Utilise la même structure professionnelle pour tous les documents
@@ -180,7 +230,7 @@ function generateMainTitle(doc, title, subtitle = '') {
       // mais avec une police arabe le rendu reste acceptable pour des titres courts.
       doc.fillColor(COLORS.primary);
       doc.fontSize(FONTS.title.size).font(arabicFontPath)
-         .text('شهادة ميلاد', marginLeft, 120, {
+         .text(shapeArabicVisual('شهادة ميلاد'), marginLeft, 120, {
            width: doc.page.width - marginLeft - marginRight,
            align: 'right'
          });
@@ -336,11 +386,11 @@ function generateSection(doc, title, content, startY) {
       "Père": 'الأب',
       "Date de naissance du père": 'تاريخ ميلاد الأب',
       "Lieu de naissance du père": 'مكان ميلاد الأب',
-      "Nationalité du père": 'الجنسية (الأب)',
+      "Nationalité du père": 'جنسية الأب',
       "Mère": 'الأم',
       "Date de naissance de la mère": 'تاريخ ميلاد الأم',
       "Lieu de naissance de la mère": 'مكان ميلاد الأم',
-      "Nationalité de la mère": 'الجنسية (الأم)',
+      "Nationalité de la mère": 'جنسية الأم',
       "Profession du père": 'مهنة الأب',
       "Profession de la mère": 'مهنة الأم',
       "Domicile des parents": 'موطن الأبوين',
@@ -391,7 +441,8 @@ function generateSection(doc, title, content, startY) {
             const arFont = arabicBoldFontPath || arabicFontPath; // bold si dispo
             const arSize = FONTS.label.size + 2; // un peu plus grand
             doc.font(arFont).fontSize(arSize);
-            arLabelText = `: ${mapped}`;
+            // Important: ne pas préfixer par une ponctuation. Dessiner uniquement l'étiquette arabe.
+            arLabelText = shapeArabicVisual(`${mapped}`);
             labelH_R = doc.heightOfString(arLabelText, { width: labelColWidth });
           }
           // Ne pas calculer la hauteur des valeurs à droite: on ne les affiche plus
@@ -583,30 +634,51 @@ async function generateMariagePdf(acteData) {
       // Titre principal
       generateMainTitle(doc, 'ACTE DE MARIAGE', 'Certificat officiel de mariage');
       
+      // Helpers pour récupérer en toute sécurité des champs alternatifs
+      const safe = (fn, dflt = '') => { try { const v = fn(); return (v === undefined || v === null) ? dflt : v; } catch { return dflt; } };
+
+      // Conjoint 1 (époux/épouse 1)
+      const c1Nom = (details.conjoint1) || safe(() => details.conjoint1_details.nom);
+      const c1Prenom = (details.prenomConjoint1) || safe(() => details.conjoint1_details.prenom);
+      const c1Profession = (details.professionConjoint1) || safe(() => details.conjoint1_details.profession);
+
+      // Conjoint 2 (époux/épouse 2) – accepter conjointe2 et structures imbriquées
+      const c2Nom = (details.conjoint2) || (details.conjointe2) || safe(() => details.conjoint2_details.nom);
+      const c2Prenom = (details.prenomConjoint2) || safe(() => details.conjoint2_details.prenom);
+      const c2Profession = (details.professionConjoint2) || safe(() => details.conjoint2_details.profession);
+
       // Section informations sur les époux
       const epouxInfo = [
-        { label: 'Premier époux/épouse', value: `${details.conjoint1 || ''} ${details.prenomConjoint1 || ''}`.trim() },
-        { label: 'Deuxième époux/épouse', value: `${details.conjoint2 || ''} ${details.prenomConjoint2 || ''}`.trim() },
+        { label: 'Premier époux/épouse', value: `${(c1Nom || '').trim()} ${(c1Prenom || '').trim()}`.trim() },
+        { label: 'Deuxième époux/épouse', value: `${(c2Nom || '').trim()} ${(c2Prenom || '').trim()}`.trim() },
         { label: 'Date de mariage', value: details.dateMariage ? new Date(details.dateMariage).toLocaleDateString('fr-FR') : '' },
         { label: 'Lieu de mariage', value: details.lieuMariage || '' },
-        { label: 'Profession du premier époux', value: details.professionConjoint1 || '' },
-        { label: 'Profession du deuxième époux', value: details.professionConjoint2 || '' }
+        { label: 'Profession du premier époux', value: c1Profession || '' },
+        { label: 'Profession du deuxième époux', value: c2Profession || '' }
       ];
       
       let y = generateSection(doc, 'INFORMATIONS SUR LES ÉPOUX', epouxInfo, 170);
       
+      // Témoins: accepter à la fois les champs à plat et le tableau details.temoins[]
+      const t1Nom = (details.temoin1) || safe(() => details.temoins[0].nom);
+      const t1Prenom = (details.prenomTemoin1) || safe(() => details.temoins[0].prenom);
+      const t1Profession = (details.professionTemoin1) || safe(() => details.temoins[0].profession);
+      const t2Nom = (details.temoin2) || safe(() => details.temoins[1].nom);
+      const t2Prenom = (details.prenomTemoin2) || safe(() => details.temoins[1].prenom);
+      const t2Profession = (details.professionTemoin2) || safe(() => details.temoins[1].profession);
+
       // Section témoins
       const temoinsInfo = [
-        { label: 'Premier témoin', value: `${details.temoin1 || ''} ${details.prenomTemoin1 || ''}`.trim() },
-        { label: 'Deuxième témoin', value: `${details.temoin2 || ''} ${details.prenomTemoin2 || ''}`.trim() },
-        { label: 'Profession du premier témoin', value: details.professionTemoin1 || '' },
-        { label: 'Profession du deuxième témoin', value: details.professionTemoin2 || '' }
+        { label: 'Premier témoin', value: `${(t1Nom || '').trim()} ${(t1Prenom || '').trim()}`.trim() },
+        { label: 'Deuxième témoin', value: `${(t2Nom || '').trim()} ${(t2Prenom || '').trim()}`.trim() },
+        { label: 'Profession du premier témoin', value: t1Profession || '' },
+        { label: 'Profession du deuxième témoin', value: t2Profession || '' }
       ];
       
       y = generateSection(doc, 'INFORMATIONS SUR LES TÉMOINS', temoinsInfo, y);
       
       // Section déclaration
-      const declarationText = `Nous, Officier de l'État Civil, certifions que le mariage entre ${details.conjoint1 || ''} et ${details.conjoint2 || ''} a été célébré le ${details.dateMariage ? new Date(details.dateMariage).toLocaleDateString('fr-FR') : ''} à ${details.lieuMariage || ''} en présence des témoins mentionnés ci-dessus.`;
+      const declarationText = `Nous, Officier de l'État Civil, certifions que le mariage entre ${(c1Nom || '').trim()} et ${(c2Nom || '').trim()} a été célébré le ${details.dateMariage ? new Date(details.dateMariage).toLocaleDateString('fr-FR') : ''} à ${details.lieuMariage || ''} en présence des témoins mentionnés ci-dessus.`;
       
       y = generateSection(doc, 'DÉCLARATION DE MARIAGE', declarationText, y);
       
@@ -630,17 +702,42 @@ async function generateMariagePdf(acteData) {
 async function generateDecesPdf(acteData) {
   return new Promise((resolve, reject) => {
     try {
+      // Marges légèrement réduites pour compacter sur une page
       const doc = new PDFDocument({ 
         size: 'A4', 
-        margins: { top: 40, bottom: 40, left: 35, right: 35 }
+        margins: { top: 30, bottom: 30, left: 30, right: 30 }
       });
       
       const chunks = [];
       doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('end', () => {
+        // Restaurer les polices après génération
+        if (originalFonts) {
+          Object.assign(FONTS.title, originalFonts.title);
+          Object.assign(FONTS.subtitle, originalFonts.subtitle);
+          Object.assign(FONTS.label, originalFonts.label);
+          Object.assign(FONTS.text, originalFonts.text);
+          Object.assign(FONTS.small, originalFonts.small);
+        }
+        resolve(Buffer.concat(chunks));
+      });
       doc.on('error', reject);
       
       const details = acteData.details || {};
+      
+      // Réduction temporaire des tailles de police pour ce document
+      const originalFonts = {
+        title: { ...FONTS.title },
+        subtitle: { ...FONTS.subtitle },
+        label: { ...FONTS.label },
+        text: { ...FONTS.text },
+        small: { ...FONTS.small }
+      };
+      FONTS.title.size = Math.max(16, FONTS.title.size - 3);
+      FONTS.subtitle.size = Math.max(10, FONTS.subtitle.size - 1);
+      FONTS.label.size = Math.max(8, FONTS.label.size - 1);
+      FONTS.text.size = Math.max(8, FONTS.text.size - 1);
+      FONTS.small.size = Math.max(6, FONTS.small.size - 1);
       
       // En-tête
       generateHeader(doc, acteData);
@@ -651,37 +748,41 @@ async function generateDecesPdf(acteData) {
       // Titre principal
       generateMainTitle(doc, 'ACTE DE DÉCÈS', 'Certificat officiel de décès');
       
-      // Section informations sur le défunt
+      // Section informations sur le défunt (tolérance aux différents schémas de champs)
       const defuntInfo = [
-        { label: 'Nom de famille', value: (details.nomDefunt || '').toUpperCase() },
-        { label: 'Prénom(s)', value: details.prenomsDefunt || '' },
-        { label: 'Date de naissance', value: details.dateNaissanceDefunt ? new Date(details.dateNaissanceDefunt).toLocaleDateString('fr-FR') : '' },
-        { label: 'Lieu de naissance', value: details.lieuNaissanceDefunt || '' },
-        { label: 'Profession', value: details.professionDefunt || '' },
-        { label: 'Domicile', value: details.domicileDefunt || '' },
+        { label: 'Nom de famille', value: ((details.nomDefunt || details.nom || '')).toUpperCase() },
+        { label: 'Prénom(s)', value: details.prenomsDefunt || details.prenom || '' },
+        { label: 'Date de naissance', value: (details.dateNaissanceDefunt || details.dateNaissance) ? new Date(details.dateNaissanceDefunt || details.dateNaissance).toLocaleDateString('fr-FR') : '' },
+        { label: 'Lieu de naissance', value: details.lieuNaissanceDefunt || details.lieuNaissance || '' },
+        { label: 'Profession', value: details.professionDefunt || details.profession || '' },
+        { label: 'Domicile', value: details.domicileDefunt || details.adresse || '' },
         { label: 'Date du décès', value: details.dateDeces ? new Date(details.dateDeces).toLocaleDateString('fr-FR') : '' },
         { label: 'Heure du décès', value: details.heureDeces || '' },
         { label: 'Lieu du décès', value: details.lieuDeces || '' },
-        { label: 'Cause du décès', value: details.causeDeces || '' }
+        { label: 'Cause du décès', value: details.causeDeces || details.cause || '' }
       ];
       
       let y = generateSection(doc, 'INFORMATIONS SUR LE DÉFUNT', defuntInfo, 170);
       
-      // Section informations sur le déclarant
+      // Section informations sur le déclarant (tolérance aux différents schémas)
       const declarantInfo = [
-        { label: 'Nom de famille', value: (details.nomDeclarant || '').toUpperCase() },
-        { label: 'Prénom(s)', value: details.prenomsDeclarant || '' },
-        { label: 'Date de naissance', value: details.dateNaissanceDeclarant ? new Date(details.dateNaissanceDeclarant).toLocaleDateString('fr-FR') : '' },
-        { label: 'Lieu de naissance', value: details.lieuNaissanceDeclarant || '' },
-        { label: 'Profession', value: details.professionDeclarant || '' },
-        { label: 'Domicile', value: details.domicileDeclarant || '' },
-        { label: 'Lien avec le défunt', value: details.lienDeclarant || '' }
+        { label: 'Nom de famille', value: ((details.nomDeclarant || details.declarantNom || '')).toUpperCase() },
+        { label: 'Prénom(s)', value: details.prenomsDeclarant || details.prenomDeclarant || details.declarantPrenom || '' },
+        { label: 'Date de naissance', value: (details.dateNaissanceDeclarant || details.declarantDateNaissance) ? new Date(details.dateNaissanceDeclarant || details.declarantDateNaissance).toLocaleDateString('fr-FR') : '' },
+        { label: 'Lieu de naissance', value: details.lieuNaissanceDeclarant || details.declarantLieuNaissance || '' },
+        { label: 'Profession', value: details.professionDeclarant || details.declarantProfession || '' },
+        { label: 'Domicile', value: details.domicileDeclarant || details.declarantAdresse || '' },
+        { label: 'Lien avec le défunt', value: details.lienDeclarant || details.declarantLien || '' }
       ];
       
       y = generateSection(doc, 'INFORMATIONS SUR LE DÉCLARANT', declarantInfo, y);
       
-      // Section déclaration
-      const declarationText = `Nous, Officier de l'État Civil, certifions que ${details.nomDefunt || ''} ${details.prenomsDefunt || ''} est décédé(e) le ${details.dateDeces ? new Date(details.dateDeces).toLocaleDateString('fr-FR') : ''} à ${details.lieuDeces || ''} et déclaré par ${details.nomDeclarant || ''} ${details.prenomsDeclarant || ''}.`;
+      // Section déclaration (tolérance aux différents schémas)
+      const nomDef = (details.nomDefunt || details.nom || '').trim();
+      const prenomDef = (details.prenomsDefunt || details.prenom || '').trim();
+      const nomDec = (details.nomDeclarant || details.declarantNom || '').trim();
+      const prenomDec = (details.prenomsDeclarant || details.prenomDeclarant || details.declarantPrenom || '').trim();
+      const declarationText = `Nous, Officier de l'État Civil, certifions que ${[nomDef, prenomDef].filter(Boolean).join(' ')} est décédé(e) le ${details.dateDeces ? new Date(details.dateDeces).toLocaleDateString('fr-FR') : ''} à ${details.lieuDeces || ''} et déclaré par ${[nomDec, prenomDec].filter(Boolean).join(' ')}.`;
       
       y = generateSection(doc, 'DÉCLARATION DE DÉCÈS', declarationText, y);
       

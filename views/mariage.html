@@ -396,6 +396,20 @@
       
       document.getElementById('common-styles').textContent = commonCSS;
       document.getElementById('sidebar-container').innerHTML = createSidebar('mariage');
+      // Bouton "Modifier un acte" -> demande un ID et redirige en mode édition
+      const editBtn = document.getElementById('editActeBtn');
+      if (editBtn) {
+        editBtn.addEventListener('click', function() {
+          const entered = prompt("Entrer l'ID de l'acte de mariage à modifier (24 caractères):");
+          if (!entered) return;
+          const id = (entered || '').trim();
+          if (/^[0-9a-fA-F]{24}$/.test(id)) {
+            window.location.href = `/mariage?edit=${id}`;
+          } else {
+            alert("ID invalide. Veuillez saisir l'ID MongoDB de 24 caractères (ex: 64a1...)");
+          }
+        });
+      }
       
       // Gérer la soumission du formulaire
       document.getElementById('formMariage').addEventListener('submit', async function(e) {

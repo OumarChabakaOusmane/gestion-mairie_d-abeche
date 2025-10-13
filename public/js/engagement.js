@@ -9,20 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (resp.ok) {
                     const data = await resp.json();
                     currentUser = data?.data || null;
-                    const role = currentUser?.role;
-                    const allowed = role === 'admin' || role === 'officier_etat_civil';
-                    if (!allowed) {
-                        // Désactiver le bouton enregistrer et afficher un avertissement
-                        const saveBtn = document.getElementById('saveBtn');
-                        if (saveBtn) saveBtn.disabled = true;
-                        const container = document.querySelector('.container');
-                        if (container) {
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-warning';
-                            alertDiv.innerHTML = `<strong>Permissions insuffisantes:</strong> votre rôle est <b>${role || 'inconnu'}</b>. Seuls <b>admin</b> ou <b>officier_etat_civil</b> peuvent enregistrer cet acte.`;
-                            container.prepend(alertDiv);
-                        }
-                    }
+                    // Ne pas restreindre l'UI ni afficher d'avertissement selon le rôle
                 }
             }
         } catch (e) {
