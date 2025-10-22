@@ -10,7 +10,7 @@
   <style id="common-styles"></style>
   <style>
     .dashboard-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #0ea5e9;
       color: white;
       padding: 2rem 0;
       margin-bottom: 2rem;
@@ -240,6 +240,23 @@
       border-radius: 10px;
     }
 
+    /* Styles du titre et sous-titre du header: blanc et gras */
+    .dashboard-header .title-text {
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .dashboard-header .subtitle-text {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Style texte simple pour la date de dernière mise à jour (sans badge) */
+    .dashboard-header .last-updated-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+
     .stat-card {
       height: 160px;
       padding: 1.25rem;
@@ -322,13 +339,13 @@
 <body>
   <div id="sidebar-container"></div>
 
-  <div class="main-content">
+  <div id="dashboard-page" class="main-content">
     <div class="dashboard-header">
       <div class="row align-items-center">
         <div class="col-md-4">
-          <h1 class="mb-2">Tableau de Bord d'Abéché</h1>
-          <p class="mb-0 opacity-75">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span>
-          </p>
+          <h1 class="mb-2 title-text">Tableau de Bord d'Abéché</h1>
+          <p class="mb-1 subtitle-text">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span></p>
+          <span id="lastUpdatedBadge" class="last-updated-text" title="Dernière mise à jour des statistiques">MAJ: —</span>
         </div>
         <div class="col-md-4">
           <div class="search-container">
@@ -373,6 +390,7 @@
         </div>
       </div>
     </div>
+    <div id="alerts-container"></div>
     <!-- Statistiques principales -->
     <div class="row mb-4">
       <div class="col-lg-3 col-md-6">
@@ -458,7 +476,19 @@
     <div class="row mb-4">
       <div class="col-lg-12">
         <div class="quick-actions">
-          <h5 class="mb-4">Gestion d'actes</h5>
+          <h5 class="mb-4 d-flex align-items-center justify-content-between">Gestion d'actes
+            <div class="d-flex align-items-center gap-2">
+              <label for="typeFilter" class="me-2 mb-0 small text-muted">Filtrer:</label>
+              <select id="typeFilter" class="form-select form-select-sm" style="width:auto;">
+                <option value="all" selected>Tous</option>
+                <option value="naissance">Naissance</option>
+                <option value="mariage">Mariage</option>
+                <option value="deces">Décès</option>
+                <option value="divorce">Divorce</option>
+                <option value="engagement">Engagement</option>
+              </select>
+            </div>
+          </h5>
           <table class="table table-striped" id="actesTable">
             <thead>
               <tr>
@@ -469,7 +499,7 @@
                 <th scope="col">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="recentActesBody">
             </tbody>
           </table>
         </div>
@@ -820,7 +850,7 @@
 
     async function loadRecentActes() {
       try {
-        const response = await apiRequest('/api/actes?limit=10&sort=-dateEnregistrement');
+        const response = await apiRequest('/api/dashboard/recent-actes?limit=10');
         if (response && response.success) {
           displayActes(response.data);
           // Mettre à jour les compteurs après le chargement des actes
@@ -885,6 +915,10 @@
             nomComplet = `${acte.details.prenom || ''} ${acte.details.nom || ''}`.trim();
           } else if (acte.type === 'mariage') {
             nomComplet = `${acte.details.conjoint1 || ''} et ${acte.details.conjointe2 || ''}`.trim();
+          } else if (acte.type === 'divorce' || acte.type === 'engagement') {
+            const c1 = acte.details.concubin1 || acte.details.epoux || '';
+            const c2 = acte.details.concubin2 || acte.details.epouse || '';
+            nomComplet = [c1, c2].filter(Boolean).join(' et ');
           }
         }
 
@@ -912,6 +946,9 @@
                 </button>
                 <button type="button" class="btn btn-secondary edit-acte" data-id="${acteId}">
                   <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-outline-success download-pdf" data-id="${acteId}" data-numero="${acte.numeroActe || ''}" data-type="${acte.type}" title="Télécharger le PDF">
+                  <i class="fas fa-file-pdf"></i>
                 </button>
                 <button type="button" class="btn btn-danger delete-acte" data-id="${acteId}" data-numero="${acte.numeroActe || ''}">
                   <i class="fas fa-trash"></i>
@@ -951,6 +988,51 @@
           if (id) deleteActe(id, numero);
         });
       });
+
+      // Gestionnaire pour le bouton Télécharger PDF
+      document.querySelectorAll('.download-pdf').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const numero = e.currentTarget.getAttribute('data-numero') || 'sans-numero';
+          const type = e.currentTarget.getAttribute('data-type') || '';
+          if (id) await downloadActePdf(id, numero, type);
+        });
+      });
+    }
+
+    // Télécharger le PDF d'un acte (tous types, y compris divorce)
+    async function downloadActePdf(id, numeroActe = 'sans-numero', type = '') {
+      try {
+        const token = localStorage.getItem('token');
+        // Choisir l'endpoint selon le type
+        const endpoint = (type === 'divorce') ? `/api/divorces/${id}/pdf` : `/api/actes/${id}/pdf`;
+        const res = await fetch(endpoint, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `Erreur ${res.status}`);
+        }
+
+        // Nom de fichier depuis Content-Disposition si présent
+        const cd = res.headers.get('Content-Disposition') || '';
+        const match = cd.match(/filename="?([^";]+)"?/i);
+        const suggested = match ? match[1] : `acte-${type || 'document'}-${numeroActe}.pdf`;
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = suggested;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showSuccess('PDF téléchargé');
+      } catch (error) {
+        console.error('Erreur téléchargement PDF:', error);
+        showError('Impossible de télécharger le PDF');
+      }
     }
 
     // S'assurer que les fonctions sont disponibles dans la portée globale

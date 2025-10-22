@@ -8,16 +8,17 @@ const logger = {
   warn: (message, meta) => console.warn(`[WARN] ${message}`, JSON.stringify(meta))
 };
 
-// Mock du logger dans le module
-jest.mock('../config/logger', () => ({
-  logger: {
-    info: (message, meta) => console.log(`[MOCK INFO] ${message}`, JSON.stringify(meta)),
-    error: (message, meta) => console.error(`[MOCK ERROR] ${message}`, JSON.stringify(meta)),
-    warn: (message, meta) => console.warn(`[MOCK WARN] ${message}`, JSON.stringify(meta))
-  }
-}));
+// Mock du logger du projet (répertoire racine /config/logger) en résolvant le chemin absolu
+const loggerModulePath = require.resolve('../../../config/logger');
+// Le module config/logger exporte directement un objet logger (module.exports = logger)
+jest.mock(loggerModulePath, () => ({
+  info: (message, meta) => console.log(`[MOCK INFO] ${message}`, JSON.stringify(meta)),
+  error: (message, meta) => console.error(`[MOCK ERROR] ${message}`, JSON.stringify(meta)),
+  warn: (message, meta) => console.warn(`[MOCK WARN] ${message}`, JSON.stringify(meta))
+}), { virtual: false });
 
-const { generateNaissancePdf } = require('../services/pdfServiceNew');
+// Importer le service réel depuis /services/pdfServiceNew.js
+const { generateNaissancePdf } = require('../../../services/pdfServiceNew');
 
 // Données de test pour la génération du PDF
 const testData = {

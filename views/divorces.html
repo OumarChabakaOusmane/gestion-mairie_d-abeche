@@ -146,13 +146,16 @@
                         <td>${divorce.epouse?.nom || 'N/A'} ${divorce.epouse?.prenoms || ''}</td>
                         <td><span class="badge bg-info">${divorce.typeDivorce || 'N/A'}</span></td>
                         <td>
-                            <a href="/divorce/${divorce._id}" class="btn btn-sm action-btn action-view">
+                            <a href="/divorce/${divorce._id}" class="btn btn-sm action-btn action-view" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="/divorce/${divorce._id}?edit=true" class="btn btn-sm action-btn action-edit">
+                            <a href="/divorce/${divorce._id}?edit=true" class="btn btn-sm action-btn action-edit" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button onclick="confirmDelete('${divorce._id}')" class="btn btn-sm action-btn action-delete">
+                            <button onclick="downloadDivorcePdf('${divorce._id}','${divorce.numeroActe || ''}')" class="btn btn-sm action-btn" style="background: rgba(40, 167, 69, 0.1); color: #28a745;" title="Télécharger PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                            <button onclick="confirmDelete('${divorce._id}')" class="btn btn-sm action-btn action-delete" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -219,14 +222,69 @@
             });
         }
 
+        async function downloadDivorcePdf(id, numeroActe = 'sans-numero') {
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const res = await fetch(`/api/divorces/${id}/pdf`, {
+                    method: 'GET',
+                    headers,
+                    credentials: 'same-origin'
+                });
+
+                // Gérer non OK
+                if (!res.ok) {
+                    // Essayer de lire du JSON d'erreur
+                    let msg = `Erreur ${res.status}`;
+                    try {
+                        const err = await res.json();
+                        if (err && (err.error || err.message)) msg = err.error || err.message;
+                    } catch {}
+                    throw new Error(msg);
+                }
+
+                // Vérifier le type de contenu
+                const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+                if (!ct.includes('application/pdf')) {
+                    let text = await res.text().catch(() => '');
+                    if (text && text.length > 200) text = text.slice(0, 200) + '...';
+                    throw new Error('Réponse inattendue (pas un PDF). ' + text);
+                }
+
+                const cd = res.headers.get('Content-Disposition') || '';
+                const match = cd.match(/filename="?([^";]+)"?/i);
+                const suggested = match ? match[1] : `acte-divorce-${numeroActe || 'sans-numero'}.pdf`;
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = suggested;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                showAlert('success', 'PDF téléchargé');
+            } catch (e) {
+                console.error('Téléchargement PDF divorce échoué:', e);
+                showAlert('danger', e.message || 'Impossible de télécharger le PDF');
+            }
+        }
+
         function showAlert(type, message) {
             const alert = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert" style="position:sticky; top:10px; z-index:1055;">
                     ${message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             `;
-            $('.container-fluid').prepend(alert);
+            const $container = $('.container').first();
+            if ($container.length) {
+                $container.prepend(alert);
+            } else {
+                $('body').prepend(alert);
+            }
             setTimeout(() => $('.alert').alert('close'), 5000);
         }
     </script>

@@ -182,6 +182,11 @@ console.log('9. Route calendrier chargée');
 
 // Chargement de la route des conversations (déclaration sans montage immédiat)
 let conversationRoutes = null;
+// Routes additionnelles
+const naissancesRoutes = require('./routes/naissances');
+const messagerieRoutes = require('./routes/messagerie');
+const rapportsRoutes = require('./routes/rapports');
+const settingsRoutes = require('./routes/settings');
 try {
   console.log('Tentative de chargement de la route des conversations...');
   conversationRoutes = require('./routes/conversations');
@@ -311,6 +316,20 @@ console.log('Route /api/conversations configurée avec succès!');
 app.use('/api/calendrier', calendrierRoutes);
 console.log('Route /api/calendrier configurée');
 
+// Routes additionnelles
+app.use('/api/naissances', naissancesRoutes);
+console.log('Route /api/naissances configurée');
+
+// Ces routeurs utilisent req.user -> protéger avec authMiddleware
+app.use('/api/messagerie', authMiddleware, messagerieRoutes);
+console.log('Route /api/messagerie configurée');
+
+app.use('/api/rapports', authMiddleware, rapportsRoutes);
+console.log('Route /api/rapports configurée');
+
+app.use('/api/settings', authMiddleware, settingsRoutes);
+console.log('Route /api/settings configurée');
+
 console.log('=== FIN DE LA CONFIGURATION DES ROUTES ===\n');
 
 // Rate limiter déjà appliqué avant
@@ -366,6 +385,17 @@ app.get('/divorce', csrfProtection, (req, res) => {
       res.status(500).send('Erreur interne du serveur');
     }
   });
+});
+
+// Alias pratique: /divorce/:id -> redirige vers le formulaire en mode édition
+app.get('/divorce/:id', (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.redirect('/divorce');
+  }
+  // Conserve la query string existante en ajoutant edit
+  const qs = new URLSearchParams({ ...req.query, edit: id }).toString();
+  res.redirect(`/divorce?${qs}`);
 });
 
 htmlPages.forEach(page => {
@@ -551,6 +581,6 @@ server.listen(PORT, () => {
   console.log('Structure chargée:');
   console.log('- Middleware: auth.js');
   console.log('- Models: Acte, Conversation, Document, Message, PendingUser, User');
-  console.log('- Routes: actes, auth, calendar, conversations, documents, messagerie, rapports, users');
+  console.log('- Routes: auth, users, actes, documents, divorces, engagements, mariages, dashboard, calendrier, conversations, naissances, messagerie, rapports, settings');
   console.log('- Views:  pages HTML');
 });

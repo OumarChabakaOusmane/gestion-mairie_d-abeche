@@ -5,6 +5,7 @@ class Dashboard {
     this.isLoading = false;
     this.abortController = null;
     this.refreshHandler = this.handleRefresh.bind(this);
+    this.actes = [];
     this.init();
   }
 
@@ -29,6 +30,7 @@ class Dashboard {
     }
 
     this.isLoading = true;
+    this.showLoadingState();
     
     try {
       const token = localStorage.getItem('token');
@@ -52,7 +54,7 @@ class Dashboard {
           },
           signal: this.abortController.signal
         }),
-        fetch('/api/actes?limit=5&sort=-dateCreation', {
+        fetch('/api/dashboard/recent-actes?limit=5', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -77,7 +79,8 @@ class Dashboard {
 
       // Mettre à jour l'interface
       this.updateStats(statsData.data);
-      this.updateRecentActivity(actesData.data);
+      this.actes = Array.isArray(actesData.data) ? actesData.data : [];
+      this.applyFilterAndRender();
       
       this.retryCount = 0; // Reset sur succès
     } catch (error) {
@@ -87,6 +90,7 @@ class Dashboard {
       }
     } finally {
       this.isLoading = false;
+      this.hideLoadingState();
     }
   }
 
@@ -98,13 +102,19 @@ class Dashboard {
       'naissances': 'births-count',
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
+      'divorces': 'divorces-count',
+      'engagements': 'engagements-count',
       'documents': 'documents-count'
     };
 
     Object.entries(statsElements).forEach(([key, elementId]) => {
       const element = document.getElementById(elementId);
       if (element) {
-        element.textContent = stats[key] || 0;
+        if (key === 'documents') {
+          element.textContent = (typeof stats.total === 'number' ? stats.total : (stats.documents || 0));
+        } else {
+          element.textContent = stats[key] || 0;
+        }
       }
     });
   }
@@ -117,6 +127,10 @@ class Dashboard {
 
     // Vider le tableau
     tbody.innerHTML = '';
+    if (recentActes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte pour ce filtre</td></tr>';
+      return;
+    }
 
     // Ajouter chaque acte récent
     actes.forEach(acte => {
@@ -175,29 +189,42 @@ class Dashboard {
     }
   }
 
-  // Méthode de mise à jour des statistiques
+  // Méthode de mise à jour des statistiques (définition effective)
   updateStats(stats) {
     if (!stats) return;
-    
-    // Mettre à jour les compteurs
     const statsElements = {
       'naissances': 'births-count',
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
+      'divorces': 'divorces-count',
+      'engagements': 'engagements-count',
       'documents': 'documents-count'
     };
-
     Object.entries(statsElements).forEach(([key, elementId]) => {
       const element = document.getElementById(elementId);
       if (element) {
-        element.textContent = stats[key] || 0;
+        if (key === 'documents') {
+          element.textContent = (typeof stats.total === 'number' ? stats.total : (stats.documents || 0));
+        } else {
+          element.textContent = stats[key] || 0;
+        }
       }
     });
+    // Mettre à jour le badge "Dernière mise à jour"
+    const badge = document.getElementById('lastUpdatedBadge');
+    if (badge) {
+      const d = stats.lastUpdated ? new Date(stats.lastUpdated) : null;
+      const txt = d ? d.toLocaleString('fr-FR') : '—';
+      badge.textContent = `MAJ: ${txt}`;
+    }
+    this.updateProgressBars(stats);
   }
 
   updateRecentActivity(actes) {
     if (!actes || !Array.isArray(actes)) {
       console.error('Aucun acte reçu ou format invalide:', actes);
+      const tbody = document.getElementById('recentActesBody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
       return;
     }
     
@@ -384,6 +411,12 @@ class Dashboard {
     } else {
       console.error('Bouton d\'actualisation non trouvé');
     }
+
+    // Filtre par type
+    const typeFilter = document.getElementById('typeFilter');
+    if (typeFilter) {
+      typeFilter.addEventListener('change', () => this.applyFilterAndRender());
+    }
   }
 
   async handleRefresh(event) {
@@ -423,6 +456,58 @@ class Dashboard {
     if (this.abortController) {
       this.abortController.abort();
     }
+  }
+
+  // Afficher un état de chargement simple
+  showLoadingState() {
+    const tbody = document.getElementById('recentActesBody');
+    if (tbody) {
+      tbody.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td colspan="5">
+            <div class="loading-skeleton" style="height:16px; width:100%"></div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+  }
+
+  hideLoadingState() {
+    // Rien à faire ici, le rendu réel écrasera le skeleton
+  }
+
+  // Applique le filtre sélectionné et rend la table
+  applyFilterAndRender() {
+    const typeFilter = document.getElementById('typeFilter');
+    const selected = typeFilter ? typeFilter.value : 'all';
+    const data = this.actes || [];
+    const filtered = selected === 'all' ? data : data.filter(a => a.type === selected);
+    this.updateRecentActivity(filtered);
+  }
+
+  // Met à jour les barres de progression sur les cartes
+  updateProgressBars(stats) {
+    if (!stats) return;
+    const total = (typeof stats.total === 'number' ? stats.total : 0) || 0;
+    const safePct = (n) => total > 0 ? Math.min(100, Math.round((n / total) * 100)) : 0;
+    const map = [
+      { key: 'naissances', id: 'births-progress' },
+      { key: 'mariages', id: 'marriages-progress' },
+      { key: 'deces', id: 'deaths-progress' },
+      { key: 'divorces', id: 'divorces-progress' },
+      { key: 'engagements', id: 'engagements-progress' },
+      { key: 'total', id: 'documents-progress' }
+    ];
+    map.forEach(({ key, id }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const val = key === 'total' ? total : (stats[key] || 0);
+        el.style.width = safePct(val) + '%';
+      }
+    });
   }
 
   // Méthode pour nettoyer avant destruction

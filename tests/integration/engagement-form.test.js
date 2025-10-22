@@ -77,8 +77,8 @@ const html = `
 </body>
 </html>`;
 
-// Charger le fichier JS du formulaire
-const js = fs.readFileSync(path.resolve(__dirname, '../public/js/engagement.js'), 'utf8');
+// Charger le fichier JS du formulaire depuis le dossier public du projet
+const js = fs.readFileSync(path.resolve(__dirname, '../../public/js/engagement.js'), 'utf8');
 
 // Créer un mock pour les fonctions globales utilisées dans le code
 const mockAlert = jest.fn();

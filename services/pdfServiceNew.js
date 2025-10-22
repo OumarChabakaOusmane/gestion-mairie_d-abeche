@@ -2,6 +2,30 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../config/logger');
+// Sécuriser l'utilisation du logger (certaines exécutions de tests peuvent mocker/altérer le module)
+const safeLogger = {
+  info: (...args) => {
+    try {
+      if (logger && typeof logger.info === 'function') return logger.info(...args);
+      if (logger && logger.default && typeof logger.default.info === 'function') return logger.default.info(...args);
+    } catch {}
+    try { return console.log(...args); } catch {}
+  },
+  warn: (...args) => {
+    try {
+      if (logger && typeof logger.warn === 'function') return logger.warn(...args);
+      if (logger && logger.default && typeof logger.default.warn === 'function') return logger.default.warn(...args);
+    } catch {}
+    try { return console.warn(...args); } catch {}
+  },
+  error: (...args) => {
+    try {
+      if (logger && typeof logger.error === 'function') return logger.error(...args);
+      if (logger && logger.default && typeof logger.default.error === 'function') return logger.default.error(...args);
+    } catch {}
+    try { return console.error(...args); } catch {}
+  }
+};
 
 // Chargement optionnel des utilitaires de mise en forme arabe (RTL)
 let arabicReshaper = null;
@@ -11,7 +35,7 @@ try {
   bidi = require('bidi-js');
 } catch (e) {
   // Continuer en mode dégradé si non installés
-  try { logger.warn('arabic-reshaper/bidi-js non installés. Le texte arabe peut apparaître inversé. Installez-les avec: npm i arabic-reshaper bidi-js'); } catch {}
+  try { safeLogger.warn('arabic-reshaper/bidi-js non installés. Le texte arabe peut apparaître inversé. Installez-les avec: npm i arabic-reshaper bidi-js'); } catch {}
 }
 
 // Mise en forme d'une chaîne arabe (shaping + réordonnancement RTL)
@@ -63,10 +87,10 @@ const ensureOutputDir = () => {
   try {
     if (!fs.existsSync(CONFIG.OUTPUT_DIR)) {
       fs.mkdirSync(CONFIG.OUTPUT_DIR, { recursive: true });
-      logger.info(`Dossier de sortie créé: ${CONFIG.OUTPUT_DIR}`);
+      safeLogger.info(`Dossier de sortie créé: ${CONFIG.OUTPUT_DIR}`);
     }
   } catch (error) {
-    logger.error('Erreur lors de la création du dossier de sortie', {
+    safeLogger.error('Erreur lors de la création du dossier de sortie', {
       error: error.message,
       path: CONFIG.OUTPUT_DIR
     });
@@ -84,13 +108,13 @@ const checkFonts = (doc) => {
       availableFonts.push({ name, available: true });
     } catch (error) {
       availableFonts.push({ name, available: false, error: error.message });
-      logger.warn(`Police non disponible: ${font}`, { error: error.message });
+      safeLogger.warn(`Police non disponible: ${font}`, { error: error.message });
     }
   });
   
   const missingFonts = availableFonts.filter(f => !f.available);
   if (missingFonts.length > 0) {
-    logger.error('Polices manquantes', { missingFonts });
+    safeLogger.error('Polices manquantes', { missingFonts });
   }
   
   return availableFonts.every(f => f.available);
@@ -167,7 +191,7 @@ const generateHeader = (doc) => {
       .moveDown(2);
       
   } catch (error) {
-    logger.error('Erreur lors de la génération de l\'en-tête', {
+    safeLogger.error('Erreur lors de la génération de l\'en-tête', {
       error: error.message,
       stack: error.stack
     });
@@ -567,12 +591,14 @@ const generateNaissancePdf = async (data) => {
           arabicFontPath = arabicFontCandidates.find(p => { try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } }) || null;
         } catch {}
 
+        const containsArabic = (s) => typeof s === 'string' && /[\u0600-\u06FF]/.test(s);
+
         const frToAr = {
-          'Nom': 'اللقب',
-          'Prénoms': 'الاسم',
+          'Nom': 'الاسم العائلي',
+          'Prénoms': 'الأسماء',
           'Sexe': 'الجنس',
           'Date de naissance': 'تاريخ الميلاد',
-          'Heure de naissance': 'ساعة الميلاد',
+          'Heure de naissance': 'وقت الميلاد',
           'Lieu de naissance': 'مكان الميلاد',
           '• Nom': 'الاسم',
           '• Prénoms': 'الأسماء',
@@ -580,35 +606,67 @@ const generateNaissancePdf = async (data) => {
           '• Lieu de naissance': 'مكان الميلاد',
           '• Profession': 'المهنة',
           '• Domicile': 'العنوان',
-          "• Officier d'état civil": 'الموظف المدني',
+          "• Officier d'état civil": 'ضابط الحالة المدنية',
           "• Date d'établissement": 'تاريخ الإصدار',
           '• Mairie': 'البلدية',
           'Déclarant': 'المصرّح',
-          '• Qualité': 'الصفة'
+          '• Qualité': 'الصفة',
+          '• Nom de jeune fille': 'اسم العائلة قبل الزواج'
         };
 
         // Fonction utilitaire pour ajouter une ligne d'information (FR + étiquette AR à droite)
-        const addLine = (label, value, yPos, isBold = false) => {
-          const val = (value || '').toString().trim();
-          if (!val) return yPos; // sauter les lignes vides pour économiser l'espace
+        const addLine = (label, value, yPos, isBold = false, arLabelOverride = null) => {
+          const valRaw = (value || '').toString().trim();
+          if (!valRaw) return yPos; // sauter les lignes vides pour économiser l'espace
+
+          // Dessiner le label FR
           doc
             .font(isBold ? CONFIG.FONTS.BOLD : CONFIG.FONTS.NORMAL)
             .fontSize(9)
             .fillColor(CONFIG.COLORS.TEXT)
-            .text(`${label}: `, col1, yPos, { continued: true, width: 150, align: 'left' })
-            .text(val, { width: 400 });
+            .text(`${label}: `, col1, yPos, { continued: true, width: 150, align: 'left' });
+
+          // Dessiner la valeur avec gestion de l'arabe si nécessaire
+          try {
+            if (arabicFontPath && containsArabic(valRaw)) {
+              const RLE = '\u202B';
+              doc
+                .font(arabicFontPath)
+                .fontSize(11)
+                .fillColor(CONFIG.COLORS.TEXT)
+                .text(shapeArabic(`${RLE}${valRaw}`), { width: 400 });
+            } else {
+              doc
+                .font(CONFIG.FONTS.NORMAL)
+                .fontSize(9)
+                .fillColor(CONFIG.COLORS.TEXT)
+                .text(valRaw, { width: 400 });
+            }
+          } catch (_) {
+            // Fallback en police par défaut
+            doc
+              .font(CONFIG.FONTS.NORMAL)
+              .fontSize(9)
+              .fillColor(CONFIG.COLORS.TEXT)
+              .text(valRaw, { width: 400 });
+          }
 
           // Dessiner l'étiquette arabe alignée à droite si disponible
-          const ar = frToAr[label];
+          const ar = arLabelOverride || frToAr[label];
           if (arabicFontPath && ar) {
             try {
+              const RLE = '\u202B';
               doc.font(arabicFontPath).fontSize(11).fillColor('#0e5b23')
-                 .text(shapeArabic(ar), CONFIG.MARGINS.LEFT, yPos, {
+                 .text(shapeArabic(`${RLE}${ar}`), CONFIG.MARGINS.LEFT, yPos, {
                    width: doc.page.width - CONFIG.MARGINS.LEFT - CONFIG.MARGINS.RIGHT,
                    align: 'right'
                  });
             } catch {}
           }
+
+          // Restaurer police par défaut pour la suite
+          try { doc.font(CONFIG.FONTS.NORMAL).fontSize(9).fillColor(CONFIG.COLORS.TEXT); } catch {}
+
           return yPos + lineH;
         };
         
@@ -632,12 +690,12 @@ const generateNaissancePdf = async (data) => {
           .moveDown(0.2);
         y += 16;
 
-        y = addLine('• Nom', data.nomPere || data.pere, y);
-        y = addLine('• Prénoms', data.prenomsPere || data.prenomPere, y);
-        y = addLine('• Date de naissance', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
-        y = addLine('• Lieu de naissance', data.lieuNaissancePere, y);
-        y = addLine('• Profession', data.professionPere, y);
-        y = addLine('• Domicile', data.domicilePere, y);
+        y = addLine('• Nom', data.nomPere || data.pere, y, false, 'اسم الأب');
+        y = addLine('• Prénoms', data.prenomsPere || data.prenomPere, y, false, 'أسماء الأب');
+        y = addLine('• Date de naissance', data.dateNaissancePere ? new Date(data.dateNaissancePere).toLocaleDateString('fr-FR') : 'Non spécifiée', y, false, 'تاريخ ميلاد الأب');
+        y = addLine('• Lieu de naissance', data.lieuNaissancePere, y, false, 'مكان ميلاد الأب');
+        y = addLine('• Profession', data.professionPere, y, false, 'مهنة الأب');
+        y = addLine('• Domicile', data.domicilePere, y, false, 'عنوان الأب');
 
         // Ajouter un espace entre sections
         y += 8;
@@ -651,13 +709,13 @@ const generateNaissancePdf = async (data) => {
           .moveDown(0.2);
         y += 16;
 
-        y = addLine('• Nom', data.nomMere || data.mere, y);
-        y = addLine('• Nom de jeune fille', data.nomJeuneFilleMere, y);
-        y = addLine('• Prénoms', data.prenomsMere || data.prenomMere, y);
-        y = addLine('• Date de naissance', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', y);
-        y = addLine('• Lieu de naissance', data.lieuNaissanceMere, y);
-        y = addLine('• Profession', data.professionMere, y);
-        y = addLine('• Domicile', data.domicileMere, y);
+        y = addLine('• Nom', data.nomMere || data.mere, y, false, 'اسم الأم');
+        y = addLine('• Nom de jeune fille', data.nomJeuneFilleMere, y, false, 'اسم العائلة قبل الزواج');
+        y = addLine('• Prénoms', data.prenomsMere || data.prenomMere, y, false, 'أسماء الأم');
+        y = addLine('• Date de naissance', data.dateNaissanceMere ? new Date(data.dateNaissanceMere).toLocaleDateString('fr-FR') : 'Non spécifiée', y, false, 'تاريخ ميلاد الأم');
+        y = addLine('• Lieu de naissance', data.lieuNaissanceMere, y, false, 'مكان ميلاد الأم');
+        y = addLine('• Profession', data.professionMere, y, false, 'مهنة الأم');
+        y = addLine('• Domicile', data.domicileMere, y, false, 'عنوان الأم');
 
         // Ajouter un espace avant la section suivante
         y += 10;
@@ -831,8 +889,9 @@ const generateActeHeader = (doc, title, data) => {
     ];
     const arabicFontPath = arabicFontCandidates.find(p => { try { return fs.existsSync(p) && fs.statSync(p).isFile(); } catch { return false; } });
     if (arabicFontPath && /NAISSANCE/i.test(title)) {
+      const RLE = '\u202B'; // Right-to-Left Embedding mark
       doc.font(arabicFontPath).fontSize(22).fillColor('#0e5b23')
-        .text(shapeArabic('شهادة ميلاد'), CONFIG.MARGINS.LEFT, 120, {
+        .text(shapeArabic(`${RLE}شهادة ميلاد`), CONFIG.MARGINS.LEFT, 120, {
           width: doc.page.width - CONFIG.MARGINS.LEFT - CONFIG.MARGINS.RIGHT,
           align: 'right'
         });

@@ -82,6 +82,76 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// Endpoint unifié pour les actes récents (tous types)
+router.get('/recent-actes', async (req, res) => {
+  try {
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+
+    // Charger en parallèle
+    const [actes, divorces, engagements] = await Promise.all([
+      Acte.find()
+        .sort({ dateEnregistrement: -1 })
+        .limit(limit)
+        .select('type numeroActe details dateEnregistrement createdAt')
+        .lean(),
+      Divorce.find()
+        .sort({ dateEtablissement: -1 })
+        .limit(limit)
+        .select('numeroActe dateEtablissement epoux epouse createdAt')
+        .lean(),
+      EngagementConcubinage.find()
+        .sort({ dateEtablissement: -1 })
+        .limit(limit)
+        .select('numeroActe dateEtablissement concubin1 concubin2 createdAt')
+        .lean()
+    ]);
+
+    // Normaliser les objets au même format que la table attend
+    const normalizedActes = [
+      // Actes (naissance/mariage/deces)
+      ...actes.map(a => ({
+        _id: a._id,
+        type: a.type,
+        numeroActe: a.numeroActe,
+        dateEnregistrement: a.dateEnregistrement || a.createdAt,
+        details: a.details || {}
+      })),
+      // Divorces
+      ...divorces.map(d => ({
+        _id: d._id,
+        type: 'divorce',
+        numeroActe: d.numeroActe,
+        dateEnregistrement: d.dateEtablissement || d.createdAt,
+        details: {
+          epoux: d.epoux ? `${d.epoux.prenoms || ''} ${d.epoux.nom || ''}`.trim() : '',
+          epouse: d.epouse ? `${d.epouse.prenoms || ''} ${d.epouse.nom || ''}`.trim() : ''
+        }
+      })),
+      // Engagements de concubinage
+      ...engagements.map(e => ({
+        _id: e._id,
+        type: 'engagement',
+        numeroActe: e.numeroActe,
+        dateEnregistrement: e.dateEtablissement || e.createdAt,
+        details: {
+          concubin1: e.concubin1 ? `${e.concubin1.prenoms || ''} ${e.concubin1.nom || ''}`.trim() : '',
+          concubin2: e.concubin2 ? `${e.concubin2.prenoms || ''} ${e.concubin2.nom || ''}`.trim() : ''
+        }
+      }))
+    ];
+
+    // Trier par date décroissante et limiter
+    const merged = normalizedActes
+      .sort((x, y) => new Date(y.dateEnregistrement) - new Date(x.dateEnregistrement))
+      .slice(0, limit);
+
+    return res.json({ success: true, data: merged });
+  } catch (error) {
+    logger.error('Erreur /recent-actes', { error: error.message, stack: error.stack, userId: req.user?.id });
+    return res.status(500).json({ success: false, error: 'Impossible de récupérer les actes récents' });
+  }
+});
+
 // Endpoint pour obtenir les activités récentes
 router.get('/activities', async (req, res) => {
   try {
