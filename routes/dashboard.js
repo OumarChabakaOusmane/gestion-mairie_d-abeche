@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Divorce = require('../models/Divorce');
-const EngagementConcubinage = require('../models/EngagementConcubinage');
 const Acte = require('../models/Acte');
 const logger = require('../config/logger');
 const { authenticate } = require('../middleware/auth');
@@ -36,14 +35,12 @@ router.get('/stats', async (req, res) => {
   try {
     // Utiliser Promise.all pour exécuter les requêtes en parallèle
     const [
-      divorcesCount, 
-      engagementsCount,
+      divorcesCount,
       naissancesCount,
       mariagesCount,
       decesCount
     ] = await Promise.all([
       Divorce.countDocuments(),
-      EngagementConcubinage.countDocuments(),
       Acte.countDocuments({ type: 'naissance' }),
       Acte.countDocuments({ type: 'mariage' }),
       Acte.countDocuments({ type: 'deces' })
@@ -52,11 +49,11 @@ router.get('/stats', async (req, res) => {
     // Formater les statistiques
     const stats = {
       divorces: divorcesCount,
-      engagements: engagementsCount,
+      // engagements: retiré définitivement
       naissances: naissancesCount,
       mariages: mariagesCount,
       deces: decesCount,
-      total: divorcesCount + engagementsCount + naissancesCount + mariagesCount + decesCount,
+      total: divorcesCount + naissancesCount + mariagesCount + decesCount,
       lastUpdated: new Date()
     };
 
@@ -88,7 +85,7 @@ router.get('/recent-actes', async (req, res) => {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
 
     // Charger en parallèle
-    const [actes, divorces, engagements] = await Promise.all([
+    const [actes, divorces] = await Promise.all([
       Acte.find()
         .sort({ dateEnregistrement: -1 })
         .limit(limit)
@@ -98,11 +95,6 @@ router.get('/recent-actes', async (req, res) => {
         .sort({ dateEtablissement: -1 })
         .limit(limit)
         .select('numeroActe dateEtablissement epoux epouse createdAt')
-        .lean(),
-      EngagementConcubinage.find()
-        .sort({ dateEtablissement: -1 })
-        .limit(limit)
-        .select('numeroActe dateEtablissement concubin1 concubin2 createdAt')
         .lean()
     ]);
 
@@ -126,17 +118,6 @@ router.get('/recent-actes', async (req, res) => {
           epoux: d.epoux ? `${d.epoux.prenoms || ''} ${d.epoux.nom || ''}`.trim() : '',
           epouse: d.epouse ? `${d.epouse.prenoms || ''} ${d.epouse.nom || ''}`.trim() : ''
         }
-      })),
-      // Engagements de concubinage
-      ...engagements.map(e => ({
-        _id: e._id,
-        type: 'engagement',
-        numeroActe: e.numeroActe,
-        dateEnregistrement: e.dateEtablissement || e.createdAt,
-        details: {
-          concubin1: e.concubin1 ? `${e.concubin1.prenoms || ''} ${e.concubin1.nom || ''}`.trim() : '',
-          concubin2: e.concubin2 ? `${e.concubin2.prenoms || ''} ${e.concubin2.nom || ''}`.trim() : ''
-        }
       }))
     ];
 
@@ -158,13 +139,8 @@ router.get('/activities', async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     
     // Récupérer les activités récentes en parallèle
-    const [recentDivorces, recentEngagements] = await Promise.all([
+    const [recentDivorces] = await Promise.all([
       Divorce.find()
-        .sort({ dateEtablissement: -1 })
-        .limit(limit)
-        .select('dateEtablissement numeroActe')
-        .lean(),
-      EngagementConcubinage.find()
         .sort({ dateEtablissement: -1 })
         .limit(limit)
         .select('dateEtablissement numeroActe')
@@ -183,8 +159,7 @@ router.get('/activities', async (req, res) => {
     });
 
     const activities = [
-      ...recentDivorces.map(item => formatActivity(item, 'divorce')),
-      ...recentEngagements.map(item => formatActivity(item, 'engagement'))
+      ...recentDivorces.map(item => formatActivity(item, 'divorce'))
     ].sort((a, b) => new Date(b.date) - new Date(a.date))
      .slice(0, limit);
 

@@ -103,7 +103,6 @@ class Dashboard {
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
       'divorces': 'divorces-count',
-      'engagements': 'engagements-count',
       'documents': 'documents-count'
     };
 
@@ -498,7 +497,6 @@ class Dashboard {
       { key: 'mariages', id: 'marriages-progress' },
       { key: 'deces', id: 'deaths-progress' },
       { key: 'divorces', id: 'divorces-progress' },
-      { key: 'engagements', id: 'engagements-progress' },
       { key: 'total', id: 'documents-progress' }
     ];
     map.forEach(({ key, id }) => {

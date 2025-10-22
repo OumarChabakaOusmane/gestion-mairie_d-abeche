@@ -168,8 +168,7 @@ console.log('4. Route documents chargée');
 const divorceRoutes = require('./routes/divorces');
 console.log('5. Route divorces chargée');
 
-const engagementRoutes = require('./routes/engagements');
-console.log('6. Route engagements chargée');
+// Engagements désactivés définitivement
 
 const mariageRoutes = require('./routes/mariages');
 console.log('7. Route mariages chargée');
@@ -296,8 +295,7 @@ console.log('Route /api/documents configurée');
 app.use('/api/divorces', divorceRoutes);
 console.log('Route /api/divorces configurée');
 
-app.use('/api/engagements', engagementRoutes);
-console.log('Route /api/engagements configurée');
+// Route /api/engagements désactivée
 
 app.use('/api/mariages', mariageRoutes);
 console.log('Route /api/mariages configurée');
@@ -347,7 +345,7 @@ app.get('/', (req, res) => {
 
 // Routes pour les pages HTML
 const htmlPages = [
-  'dashboard', 'naissance', 'mariage', 'deces', 'divorces', 'engagement', 'engagements',
+  'dashboard', 'naissance', 'mariage', 'deces', 'divorces',
   'calendrier', 'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
   'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];
