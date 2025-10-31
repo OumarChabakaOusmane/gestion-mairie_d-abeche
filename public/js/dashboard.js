@@ -196,7 +196,6 @@ class Dashboard {
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
       'divorces': 'divorces-count',
-      'engagements': 'engagements-count',
       'documents': 'documents-count'
     };
     Object.entries(statsElements).forEach(([key, elementId]) => {

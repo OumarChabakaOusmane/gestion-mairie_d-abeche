@@ -49,7 +49,6 @@ router.get('/stats', async (req, res) => {
     // Formater les statistiques
     const stats = {
       divorces: divorcesCount,
-      // engagements: retiré définitivement
       naissances: naissancesCount,
       mariages: mariagesCount,
       deces: decesCount,

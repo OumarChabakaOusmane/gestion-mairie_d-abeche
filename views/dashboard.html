@@ -97,10 +97,6 @@
       color: white;
     }
 
-    .stat-card.engagements {
-      background: linear-gradient(135deg, #9b59b6, #8e44ad);
-      color: white;
-    }
 
     .stat-icon {
       position: absolute;
@@ -458,18 +454,6 @@
         </div>
       </div>
 
-      <div class="col-lg-3 col-md-6">
-        <div class="stat-card engagements">
-          <div class="stat-icon">
-            <i class="fas fa-handshake"></i>
-          </div>
-          <div class="stat-number" id="engagements-count">0</div>
-          <div class="stat-label">Engagements</div>
-          <div class="progress-custom">
-            <div class="progress-bar-custom" id="engagements-progress" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Gestion d'actes -->
@@ -485,7 +469,6 @@
                 <option value="mariage">Mariage</option>
                 <option value="deces">Décès</option>
                 <option value="divorce">Divorce</option>
-                <option value="engagement">Engagement</option>
               </select>
             </div>
           </h5>
@@ -790,7 +773,6 @@
         deces: 0,
         documents: 0,
         divorces: 0,
-        engagements: 0
       };
       
       try {
@@ -808,7 +790,6 @@
             deces: parseInt(response.data.deces) || 0,
             documents: parseInt(response.data.total) || 0,
             divorces: parseInt(response.data.divorces) || 0,
-            engagements: parseInt(response.data.engagements) || 0
           };
           
           // Mettre à jour l'interface utilisateur
@@ -844,7 +825,6 @@
       if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
       if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
       if (stats.divorces !== undefined) animateNumber('divorces-count', stats.divorces);
-      if (stats.engagements !== undefined) animateNumber('engagements-count', stats.engagements);
       if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
     }
 
@@ -872,7 +852,6 @@
         mariage: 0,
         deces: 0,
         divorce: 0,
-        engagement: 0
       };
 
       actes.forEach(acte => {
@@ -886,7 +865,6 @@
       if (counts.mariage > 0) animateNumber('marriages-count', counts.mariage);
       if (counts.deces > 0) animateNumber('deaths-count', counts.deces);
       if (counts.divorce > 0) animateNumber('divorces-count', counts.divorce);
-      if (counts.engagement > 0) animateNumber('engagements-count', counts.engagement);
 
       // Mettre à jour le nombre total de documents
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -915,7 +893,7 @@
             nomComplet = `${acte.details.prenom || ''} ${acte.details.nom || ''}`.trim();
           } else if (acte.type === 'mariage') {
             nomComplet = `${acte.details.conjoint1 || ''} et ${acte.details.conjointe2 || ''}`.trim();
-          } else if (acte.type === 'divorce' || acte.type === 'engagement') {
+          } else if (acte.type === 'divorce') {
             const c1 = acte.details.concubin1 || acte.details.epoux || '';
             const c2 = acte.details.concubin2 || acte.details.epouse || '';
             nomComplet = [c1, c2].filter(Boolean).join(' et ');
@@ -1093,8 +1071,7 @@
         naissance: 'Naissance',
         mariage: 'Mariage',
         deces: 'Décès',
-        divorce: 'Divorce',
-        engagement: 'Engagement de concubinage'
+        divorce: 'Divorce'
       };
       return labels[type] || type;
     }
@@ -1104,8 +1081,7 @@
         naissance: 'primary',
         mariage: 'success',
         deces: 'danger',
-        divorce: 'warning',
-        engagement: 'info'
+        divorce: 'warning'
       };
       return colors[type] || 'secondary';
     }
@@ -1518,7 +1494,6 @@
       if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
       if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
       if (stats.divorces !== undefined) animateNumber('divorces-count', stats.divorces);
-      if (stats.engagements !== undefined) animateNumber('engagements-count', stats.engagements);
       if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
     }
 

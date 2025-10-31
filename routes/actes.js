@@ -9,10 +9,9 @@ const PDFDocument = require('pdfkit');
 const { authenticate } = require('../middleware/auth');
 const decesController = require('../controllers/decesController');
 const logger = require('../config/logger');
-const engagementConcubinageController = require('../controllers/engagementConcubinageController');
 const naissanceController = require('../controllers/naissanceController');
 const mariageController = require('../controllers/mariageController');
-const pdfServiceUnified = require('../services/pdfServiceUnified');
+const pdfService = require('../services/pdfService');
 
 // Validation des actes
 const validateActe = (type, details) => {
@@ -364,32 +363,26 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       
       switch (acte.type) {
         case 'naissance':
-          log('Génération PDF de naissance via service unifié');
-          pdfBuffer = await pdfServiceUnified.generateNaissancePdf(acte);
+          log('Génération PDF de naissance...');
+          pdfBuffer = await pdfService.generatePdf('naissance', acte);
           fileName = `acte-naissance-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
         case 'mariage':
-          log('Génération PDF de mariage via service unifié');
-          pdfBuffer = await pdfServiceUnified.generateMariagePdf(acte);
+          log('Génération PDF de mariage...');
+          pdfBuffer = await pdfService.generatePdf('mariage', acte);
           fileName = `acte-mariage-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
-        case 'engagement-concubinage':
-          log('Génération PDF d\'engagement via service unifié');
-          pdfBuffer = await pdfServiceUnified.generateEngagementPdf(acte);
-          fileName = `acte-engagement-${(acte.numeroActe || 'sans-numero')}.pdf`;
-          break;
-          
         case 'deces':
-          log('Génération PDF de décès via service unifié');
-          pdfBuffer = await pdfServiceUnified.generateDecesPdf(acte);
+          log('Génération PDF de décès...');
+          pdfBuffer = await pdfService.generatePdf('deces', acte);
           fileName = `acte-deces-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
         case 'divorce':
-          log('Génération PDF de divorce via service unifié');
-          pdfBuffer = await pdfServiceUnified.generateDivorcePdf(acte);
+          log('Génération PDF de divorce...');
+          pdfBuffer = await pdfService.generatePdf('divorce', acte);
           fileName = `acte-divorce-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
@@ -400,7 +393,7 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
             success: false,
             error: error.message,
             requestId,
-            supportedTypes: ['naissance', 'mariage', 'deces', 'engagement-concubinage', 'divorce']
+            supportedTypes: ['naissance', 'mariage', 'deces', 'divorce']
           });
       }
       
@@ -408,7 +401,7 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
-      res.setHeader('X-PDF-Generator', 'pdfServiceUnified');
+      res.setHeader('X-PDF-Generator', 'pdfService');
       
       log('PDF généré avec succès', { 
         fileName,
@@ -495,10 +488,6 @@ router.get('/naissances/:id/pdf', authenticate, (req, res) => {
 });
 
 router.get('/mariages/:id/pdf', authenticate, (req, res) => {
-  return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
-});
-
-router.get('/engagements/:id/pdf', authenticate, (req, res) => {
   return res.redirect(307, `/api/actes/${req.params.id}/pdf`);
 });
 

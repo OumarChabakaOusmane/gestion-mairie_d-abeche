@@ -20,7 +20,6 @@ Le système couvre la gestion complète des actes d'état civil :
 - Actes de mariage
 - Actes de décès
 - Actes de divorce
-- Engagements de concubinage
 
 ---
 
@@ -90,13 +89,6 @@ Le système couvre la gestion complète des actes d'état civil :
 - Date et lieu du mariage
 - Motif du divorce
 - Jugement de divorce
-
-#### 2.2.5 Engagements de Concubinage
-**Informations des partenaires :**
-- Identité complète des deux partenaires
-- Date de début de l'union
-- Déclaration commune
-- Témoins
 
 ### 2.3 Fonctionnalités Transversales
 
@@ -171,7 +163,7 @@ wenaklabs/
 #### 3.2.2 Modèles de Données
 - **User** : Profil utilisateur avec rôles
 - **Acte** : Acte générique avec détails spécifiques
-- **Naissance, Mariage, Décès, Divorce, EngagementConcubinage** : Modèles spécialisés
+- **Naissance, Mariage, Décès, Divorce** : Modèles spécialisés
 - **Document** : Gestion des fichiers
 - **Conversation/Message** : Système de messagerie
 

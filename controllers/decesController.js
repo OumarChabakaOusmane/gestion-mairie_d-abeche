@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 const Acte = require('../models/Acte');
-const pdfServiceUnified = require('../services/pdfServiceUnified');
+const pdfService = require('../services/pdfService');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 
@@ -79,10 +79,10 @@ decesController.generateDecesPdf = async (req, res) => {
       });
     }
 
-    // Générer le PDF directement via le service unifié avec l'acte complet
+    // Générer le PDF directement via le service avec l'acte complet
     try {
-      log('Début de la génération du PDF (service unifié)...');
-      const pdfBuffer = await pdfServiceUnified.generateDecesPdf(acte);
+      log('Début de la génération du PDF...');
+      const pdfBuffer = await pdfService.generatePdf('deces', acte);
       
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
         const errorMsg = 'Le buffer du PDF est invalide';

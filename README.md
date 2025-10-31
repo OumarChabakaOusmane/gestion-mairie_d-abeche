@@ -90,16 +90,14 @@ L'application sera accessible sur `http://localhost:3000`
     - `public/fonts/Amiri-Regular.ttf/Amiri-Regular.ttf`
   - Les logs indiquent si la police a été trouvée.
 
-- **Fichier de génération PDF à modifier**
-  - `services/pdfServiceUnified.js` est le service utilisé par la route `/api/actes/:id/pdf`.
-  - Ne pas modifier `services/pdfService.unified.js` (avec un point) : il n'est pas chargé.
+- **Fichier de génération PDF**
+  - `services/pdfService.js` est le service utilisé par la route `/api/actes/:id/pdf`.
+  - Le service prend en charge les types d'actes suivants : naissance, mariage, décès et divorce.
 
 - **Où ajuster le rendu arabe**
-  - Titre: fonction `generateMainTitle()` – le texte arabe utilise `shapeArabicVisual('شهادة ميلاد')` avec `align: 'right'`.
-  - Libellés de sections: fonction `generateSection()`
-    - Mappage FR→AR: objet `arabicLabelMap` (ex: `"Date de naissance" → "تاريخ الميلاد"`).
-    - Rendu colonne droite: `arLabelText = shapeArabicVisual(mapped)` puis `.text(..., { align: 'right' })`.
-    - Pas de ponctuation « : » côté arabe.
+  - La génération de PDF utilise maintenant le service unifié `pdfService`.
+  - Les modèles de PDF sont gérés dans le service avec une structure standardisée.
+  - Pour modifier le rendu, consultez les fonctions de génération dans `services/pdfService.js`.
 
 - **Regénérer un PDF**
   - Redémarrez l'application après chaque changement de code: `node app.js`.
@@ -108,8 +106,8 @@ L'application sera accessible sur `http://localhost:3000`
 - **Dépannage rapide**
   - Texte arabe inversé ou non connecté:
     - Vérifiez la présence d'une police arabe dans `public/fonts/`.
-    - Assurez-vous que les libellés passent par `shapeArabicVisual()` et `align: 'right'`.
-    - Confirmez que vous éditez `services/pdfServiceUnified.js` (et non `pdfService.unified.js`).
+    - Assurez-vous que les libellés sont correctement formatés pour l'arabe.
+    - Consultez les logs du serveur pour les erreurs de génération de PDF.
     - Redémarrez le serveur pour recharger les modules.
 
 ## Structure du projet

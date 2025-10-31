@@ -2,6 +2,7 @@ const Divorce = require('../models/Divorce');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 const path = require('path');
+const { generatePdf } = require('../services/pdfService');
 
 // Afficher le formulaire de création d'un acte de divorce
 exports.showCreateForm = (req, res) => {

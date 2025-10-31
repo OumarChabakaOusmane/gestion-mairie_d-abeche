@@ -1,8 +1,8 @@
 /**
  * Fonction utilitaire pour télécharger un PDF
- * @param {string} type - Type d'acte (naissance, mariage, deces, engagement)
+ * @param {string} type - Type d'acte (naissance, mariage, deces, divorce)
  * @param {string} id - ID de l'acte
- * @param {string} buttonId - ID du bouton de téléchargement (optionnel)
+ * @param {string} [buttonId] - ID du bouton de téléchargement (optionnel)
  * @returns {Promise<void>}
  */
 function downloadActePdf(type, id, buttonId = null) {
@@ -58,13 +58,10 @@ function downloadActePdf(type, id, buttonId = null) {
         case 'deces':
             apiUrl = `/api/actes/deces/${id}/pdf`;
             break;
-        case 'engagement':
-            apiUrl = `/api/engagements/${id}/pdf`;
-            break;
         default:
             const error = new Error('Type d\'acte non pris en charge');
-            updateButtonState(false);
-            return Promise.reject(error);
+            error.type = 'UNSUPPORTED_TYPE';
+            throw error;
     }
 
     // Ajouter un timestamp pour éviter le cache

@@ -31,11 +31,6 @@ window.createSidebar = function(activePage = '') {
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link ${activePage === 'engagement' ? 'active' : ''}" href="/engagement">
-            <i class="fas fa-handshake me-2"></i> Engagements de cial
-          </a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link ${activePage === 'deces' ? 'active' : ''}" href="/deces">
             <i class="fas fa-skull me-2"></i> Actes de Décès
           </a>

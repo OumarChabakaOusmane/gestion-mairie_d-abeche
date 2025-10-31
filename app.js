@@ -105,7 +105,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middleware pour les fichiers statiques
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1y',
+  etag: true,
+  lastModified: true
+}));
 
 // Middleware pour ajouter le token CSRF aux réponses
 app.use((req, res, next) => {
@@ -168,7 +172,6 @@ console.log('4. Route documents chargée');
 const divorceRoutes = require('./routes/divorces');
 console.log('5. Route divorces chargée');
 
-// Engagements désactivés définitivement
 
 const mariageRoutes = require('./routes/mariages');
 console.log('7. Route mariages chargée');
@@ -294,8 +297,6 @@ console.log('Route /api/documents configurée');
 
 app.use('/api/divorces', divorceRoutes);
 console.log('Route /api/divorces configurée');
-
-// Route /api/engagements désactivée
 
 app.use('/api/mariages', mariageRoutes);
 console.log('Route /api/mariages configurée');
@@ -579,6 +580,6 @@ server.listen(PORT, () => {
   console.log('Structure chargée:');
   console.log('- Middleware: auth.js');
   console.log('- Models: Acte, Conversation, Document, Message, PendingUser, User');
-  console.log('- Routes: auth, users, actes, documents, divorces, engagements, mariages, dashboard, calendrier, conversations, naissances, messagerie, rapports, settings');
+  console.log('- Routes: auth, users, actes, documents, divorces, mariages, dashboard, calendrier, conversations, naissances, messagerie, rapports, settings');
   console.log('- Views:  pages HTML');
 });

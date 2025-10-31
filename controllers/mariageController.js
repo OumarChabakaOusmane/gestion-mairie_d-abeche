@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { logger } = require('../config/logger');
 const Mariage = require('../models/Mariage');
-const { generatePdf } = require('../services/pdfService.unified');
+const { generatePdf } = require('../services/pdfService');
 const { format } = require('date-fns');
 const { fr } = require('date-fns/locale');
 
