@@ -1,32 +1,49 @@
-# WenaKlabs - Gestion Municipale
+# Gestion Mairie d'Abéché
 
-Solution complète de gestion municipale moderne développée avec Node.js, MongoDB et Socket.IO.
+Application de gestion municipale pour la mairie d'Abéché, développée avec Node.js, Express, MongoDB et Socket.IO.
 
-## 🚀 Fonctionnalités
+## 🚀 Fonctionnalités Principales
 
-- **Gestion des Actes** : Naissance, mariage, décès avec génération automatique de documents
-- **Documents & Rapports** : Génération PDF, archivage numérique, statistiques
-- **Messagerie Temps Réel** : Communication entre services avec Socket.IO
-- **Calendrier** : Planification d'événements et rendez-vous municipaux
-- **Gestion Utilisateurs** : Système de rôles et permissions sécurisé
-- **Tableau de Bord** : Vue d'ensemble avec indicateurs de performance
-- **Gestion des Comptes** : Gestion des comptes utilisateurs
+- **Gestion des Actes d'État Civil**
+  - Actes de naissance
+  - Actes de mariage
+  - Actes de divorce
+  - Actes de décès
+  - Génération automatique de documents PDF
 
-## Technologies
+- **Gestion des Utilisateurs**
+  - Authentification sécurisée avec JWT
+  - Rôles et permissions
+  - Profils personnalisables
 
-- **Backend** : Node.js, Express.js
-- **Base de données** : MongoDB avec Mongoose
-- **Authentification** : JWT (JSON Web Tokens)
-- **Temps réel** : Socket.IO
-- **Sécurité** : Helmet, CORS, Rate Limiting, Validation des données
-- **Documents** : PDFKit, jsPDF
-- **Email** : Nodemailer
+- **Tableau de Bord**
+  - Statistiques en temps réel
+  - Vue d'ensemble des activités
+  - Suivi des demandes
 
-## Prérequis
+## 🛠️ Technologies Utilisées
+
+- **Backend**
+  - Node.js avec Express.js
+  - MongoDB avec Mongoose pour la base de données
+  - JWT pour l'authentification
+  - Socket.IO pour les fonctionnalités en temps réel
+  - Multer pour la gestion des fichiers
+  - Nodemailer pour l'envoi d'emails
+  - PDFKit pour la génération de PDF
+
+- **Sécurité**
+  - Helmet pour la sécurité des en-têtes HTTP
+  - CORS pour la gestion des requêtes cross-origin
+  - Rate Limiting pour prévenir les attaques par force brute
+  - Validation des données avec express-validator
+
+## 📋 Prérequis
 
 - Node.js (v16 ou supérieur)
 - MongoDB (v4.4 ou supérieur)
-- npm ou yarn
+- npm (inclus avec Node.js)
+- Compte email pour l'envoi de notifications
 
 ## Installation
 

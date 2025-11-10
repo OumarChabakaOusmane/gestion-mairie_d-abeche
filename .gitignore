@@ -1,4 +1,95 @@
+# Dépendances
 node_modules/
+
+# Fichiers d'environnement
 .env
-logs/
+.env.*
+!.env.example
+
+# Logs
+logs/*.log
+
+# Fichiers système
 .DS_Store
+Thumbs.db
+
+# Dossiers de build et de déploiement
+/dist
+/build
+/.next
+/out
+
+# Fichiers de débogage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers temporaires
+*.tmp
+*.temp
+*~
+
+# Dossiers de test et de couverture
+/coverage
+/test-output
+
+# Fichiers d'éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers uploadés
+/uploads/*
+!/uploads/.gitkeep
+
+# Fichiers de cache
+.cache/
+.vercel/
+.next/
+
+# Fichiers loc
+*.local
+
+# Fichiers de configuration local
+config/local.*
+
+# Fichiers de lock alternatifs
+yarn.lock
+package-lock.json
+
+# Fichiers de déploiement
+*.pem
+*.p12
+*.key
+*.crt
+*.cert
+
+# Fichiers de base de données locale
+*.sqlite
+*.db
+
+# Fichiers de session
+*.sess
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Fichiers temporaires de MongoDB
+*.ns
+*.0
+mongod.lock
+
+# Fichiers temporaires de npm
+.npm
+.npmrc
+
+# Fichiers temporaires d'IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

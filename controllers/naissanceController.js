@@ -1,10 +1,10 @@
 const { validationResult } = require('express-validator');
 const { logger } = require('../config/logger');
 const Naissance = require('../models/Naissance');
-const { generateNaissancePdf } = require('../services/pdfServiceNew');
+const { generatePdf } = require('../services/pdfService');
 const Acte = require('../models/Acte');
-const { format } = require('date-fns');
-const { fr } = require('date-fns/locale');
+const { format, parseISO } = require('date-fns');
+const { fr } = require('date-fns/locale/fr');
 
 // Définition du contrôleur
 const naissanceController = {};
@@ -102,11 +102,50 @@ naissanceController.generateNaissancePdf = async (req, res) => {
         createdBy: acte.createdBy ? (acte.createdBy.name || '') : 'Utilisateur inconnu'
       };
 
-      log('Fallback Acte -> génération PDF via pdfServiceNew');
-      const pdfBuffer = await generateNaissancePdf(pdfDataFromActe);
+      log('Fallback Acte -> génération PDF via pdfService');
+      
+      // Préparer les données dans le format attendu par generateNaissancePdf
+      const pdfData = {
+        // Informations de base
+        numeroActe: pdfDataFromActe.numeroActe || '.../MAT-SG/DGAT/DLP/...',
+        dateEtablissement: pdfDataFromActe.dateEtablissement || new Date().toISOString(),
+        
+        // Détails de l'acte (format attendu par le service PDF)
+        details: {
+          // Informations de l'enfant
+          nom: pdfDataFromActe.nomEnfant || '',
+          prenom: pdfDataFromActe.prenomsEnfant || '',
+          dateNaissance: pdfDataFromActe.dateNaissance || '',
+          lieuNaissance: pdfDataFromActe.lieuNaissance || '',
+          sexe: pdfDataFromActe.sexe || '',
+          
+          // Informations du père
+          pere: pdfDataFromActe.nomPere || '',
+          prenomPere: pdfDataFromActe.prenomsPere || '',
+          
+          // Informations de la mère
+          mere: pdfDataFromActe.nomMere || '',
+          prenomMere: pdfDataFromActe.prenomsMere || '',
+          
+          // Adresse
+          adresse: pdfDataFromActe.adresseDeclarant || ''
+        }
+      };
+      
+      log('Données formatées pour le PDF:', JSON.stringify(pdfData, null, 2));
+      
+      // Utiliser directement generatePdf au lieu de generateNaissancePdf
+      // et passer le type de document et les données formatées
+      const pdfBuffer = await generatePdf('naissance', pdfData);
+      
+      log('PDF généré avec succès, taille du buffer:', pdfBuffer?.length || 0);
 
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
-        return res.status(500).json({ success: false, message: 'Erreur lors de la génération du PDF' });
+        log('Erreur: Le buffer PDF est vide ou invalide');
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Erreur lors de la génération du PDF: buffer vide' 
+        });
       }
 
       const safeFileName = `acte-naissance-${(pdfDataFromActe.numeroActe || 'sans-numero')}
@@ -215,7 +254,9 @@ naissanceController.generateNaissancePdf = async (req, res) => {
     // Générer le PDF
     try {
       log('Début de la génération du PDF...');
-      const pdfBuffer = await generateNaissancePdf(pdfData);
+      console.log('Données envoyées au générateur PDF:', JSON.stringify(pdfData, null, 2));
+      const pdfBuffer = await generatePdf('naissance', pdfData);
+      console.log('PDF généré avec succès, taille du buffer:', pdfBuffer?.length || 'inconnue');
       
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {
         const errorMsg = 'Le buffer du PDF est invalide';

@@ -156,7 +156,7 @@ connectDB();
 const { authenticate: authMiddleware } = require('./middleware/auth');
 
 // Import des routes
-console.log('=== DÉBUT DU CHARGEMENT DES ROUTES ===');
+// console.log('=== DÉBUT DU CHARGEMENT DES ROUTES ===');
 const authRoutes = require('./routes/auth');
 console.log('1. Route auth chargée');
 
@@ -189,6 +189,7 @@ const naissancesRoutes = require('./routes/naissances');
 const messagerieRoutes = require('./routes/messagerie');
 const rapportsRoutes = require('./routes/rapports');
 const settingsRoutes = require('./routes/settings');
+const demandeActeRoutes = require('./routes/demandeActeRoutes');
 try {
   console.log('Tentative de chargement de la route des conversations...');
   conversationRoutes = require('./routes/conversations');
@@ -272,17 +273,11 @@ process.on('uncaughtException', (error) => {
   if (process.env.NODE_ENV === 'production') process.exit(1);
 });
 
-// Journalisation HTTP gérée par morgan + logger.stream
+
 
 // Limitation du taux de requêtes pour l'API (avant le montage des routes)
-app.use('/api', apiLimiter);
-
-// Configuration des routes API
 console.log('=== CONFIGURATION DES ROUTES API ===');
 
-// Les routes sont déjà importées plus haut dans le fichier
-
-// Monter les routes avec leurs préfixes
 app.use('/api/auth', authLimiter, authRoutes);
 console.log('Route /api/auth configurée');
 
@@ -318,6 +313,10 @@ console.log('Route /api/calendrier configurée');
 // Routes additionnelles
 app.use('/api/naissances', naissancesRoutes);
 console.log('Route /api/naissances configurée');
+
+// Routes pour les demandes d'actes en ligne
+app.use('/api/demandes-actes', authMiddleware, demandeActeRoutes);
+console.log('Route /api/demandes-actes configurée');
 
 // Ces routeurs utilisent req.user -> protéger avec authMiddleware
 app.use('/api/messagerie', authMiddleware, messagerieRoutes);
@@ -508,12 +507,11 @@ io.on('connection', (socket) => {
     socket.disconnect(true);
   }, 30 * 60 * 1000);
   
-  // Nettoyer le timeout sur activité
-  const resetTimeout = () => {
+    const resetTimeout = () => {
     clearTimeout(inactivityTimeout);
   };
   
-  // Rejoindre une conversation
+  // Gestion des conversations
   socket.on('join-conversation', (conversationId) => {
     resetTimeout();
     if (typeof conversationId !== 'string' || conversationId.length > 50) {
@@ -567,7 +565,7 @@ io.on('connection', (socket) => {
     console.log('Déconnexion Socket.IO:', socket.id);
   });
   
-  // Gérer les erreurs Socket.IO
+  // Gestion des erreurs
   socket.on('error', (error) => {
     console.error('Erreur Socket.IO:', error);
   });

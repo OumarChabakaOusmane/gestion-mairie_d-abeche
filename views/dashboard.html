@@ -10,13 +10,141 @@
   <style id="common-styles"></style>
   <style>
     .dashboard-header {
-      background: #0ea5e9;
+      background: #0d6efd;
       color: white;
-      padding: 2rem 0;
-      margin-bottom: 2rem;
-      border-radius: 15px;
+      padding: 1.5rem 0 0.5rem 0;
+      margin: 0 0 2.5rem 0;
+      border-radius: 12px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
+    }
+    
+    .header-content {
+      padding: 0 1.5rem;
+    }
+    
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .header-title h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+    
+    .header-subtitle {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+    
+    /* Style amélioré pour la barre de recherche */
+    .search-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .search-container .input-group {
+      border-radius: 30px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .search-container .input-group:focus-within {
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+    
+    .search-container .form-control {
+      border: none;
+      padding: 0.75rem 1.25rem;
+      box-shadow: none;
+      background: white !important;
+    }
+    
+    .search-container .btn {
+      background: #0d6efd;
+      color: white;
+      border: none;
+      padding: 0 1.25rem;
+      transition: all 0.3s ease;
+    }
+    
+    .search-container .btn:hover {
+      background: #0b5ed7;
+    }
+    
+    /* Style amélioré pour les boutons de contrôle */
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    @media (max-width: 768px) {
+      .header-top {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      
+      .search-container {
+        max-width: 100%;
+      }
+    }
+    
+    .header-controls .btn {
+      border-radius: 30px;
+      padding: 0.4rem 1rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .header-controls .btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .header-controls .dropdown-menu {
+      border: none;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 0.5rem 0;
+      margin-top: 8px;
+    }
+    
+    .header-controls .dropdown-item {
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      margin: 0 0.5rem;
+      width: auto;
+    }
+    
+    .header-controls .dropdown-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .header-controls .dropdown-divider {
+      margin: 0.3rem 0.5rem;
     }
 
     .dashboard-header::before {
@@ -51,20 +179,18 @@
     /* Enhanced Stat Cards */
     .stat-card {
       background: white;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-      border: none;
-      margin-bottom: 2rem;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
       position: relative;
       overflow: hidden;
-      height: 200px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      will-change: transform;
-      backface-visibility: hidden;
+      align-items: center;
+      text-align: center;
     }
 
     .stat-card:hover {
@@ -73,27 +199,27 @@
     }
 
     .stat-card.births {
-      background: linear-gradient(135deg, #3498db, #2980b9);
+      background: linear-gradient(135deg, #0d6efd, #0b5ed7);
       color: white;
     }
 
     .stat-card.marriages {
-      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      background: linear-gradient(135deg, #198754, #157347);
       color: white;
     }
 
     .stat-card.deaths {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      background: linear-gradient(135deg, #dc3545, #bb2d3b);
       color: white;
     }
 
     .stat-card.documents {
-      background: linear-gradient(135deg, #1abc9c, #16a085);
+      background: linear-gradient(135deg, #6f42c1, #5a3d8a);
       color: white;
     }
 
     .stat-card.divorces {
-      background: linear-gradient(135deg, #f39c12, #d35400);
+      background: linear-gradient(135deg, #fd7e14, #dc6a04);
       color: white;
     }
 
@@ -106,24 +232,26 @@
       opacity: 0.3;
     }
 
-    .stat-number {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      line-height: 1;
+    .stat-card .stat-number {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: white;
+      line-height: 1.2;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     .stat-label {
-      font-size: 1rem;
-      opacity: 0.9;
-      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      opacity: 0.95;
+      margin: 0.5rem 0 1.5rem 0;
       font-weight: 500;
+      letter-spacing: 0.3px;
     }
 
+    /* Masquer les barres de progression */
     .progress-custom {
-      height: 8px;
-      border-radius: 10px;
-      background-color: rgba(255, 255, 255, 0.2);
+      display: none;
       margin-bottom: 1rem;
       overflow: hidden;
     }
@@ -138,10 +266,11 @@
 
     .quick-actions {
       background: white;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      border: 1px solid #f0f0f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
     }
 
     .quick-action-btn {
@@ -149,26 +278,29 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      padding: 20px;
-      border: 2px solid #f0f0f0;
-      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
       background: white;
       text-decoration: none;
-      color: #6c757d;
-      transition: all 0.3s ease;
-      height: 120px;
+      color: #495057;
+      transition: all 0.25s ease;
+      height: 140px;
+      text-align: center;
     }
 
     .quick-action-btn:hover {
-      border-color: #007bff;
-      color: #007bff;
+      border-color: #0d6efd;
+      color: #0d6efd;
       transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.15);
+      box-shadow: 0 8px 20px rgba(13, 110, 253, 0.15);
+      background-color: #f8f9fa;
     }
 
     .quick-action-icon {
-      font-size: 2rem;
-      margin-bottom: 10px;
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+      color: #0d6efd;
     }
 
     .loading-skeleton {
@@ -323,10 +455,22 @@
 
       .dashboard-header h1 {
         font-size: 1.5rem;
+        margin-bottom: 0.5rem;
       }
 
       .stat-card .stat-number {
-        font-size: 1.5rem;
+        font-size: 2rem;
+        color: white;
+      }
+      
+      .stat-card {
+        height: 160px;
+        padding: 1.25rem;
+      }
+      
+      .stat-label {
+        font-size: 1rem;
+        margin-bottom: 1rem;
       }
     }
   </style>
@@ -337,52 +481,67 @@
 
   <div id="dashboard-page" class="main-content">
     <div class="dashboard-header">
-      <div class="row align-items-center">
-        <div class="col-md-4">
-          <h1 class="mb-2 title-text">Tableau de Bord d'Abéché</h1>
-          <p class="mb-1 subtitle-text">Vue d'ensemble des activités d'état civil d'Abéché - <span id="currentDate"></span></p>
-          <span id="lastUpdatedBadge" class="last-updated-text" title="Dernière mise à jour des statistiques">MAJ: —</span>
-        </div>
-        <div class="col-md-4">
-          <div class="search-container">
-            <div class="input-group">
-              <input type="text" class="form-control" id="globalSearch" placeholder="Rechercher dans tous les actes..."
-                style="background: rgba(255,255,255,0.9); border: none;">
-              <button class="btn btn-light" type="button" id="searchBtn">
-                <i class="fas fa-search"></i>
-              </button>
-            </div>
+      <div class="header-content">
+        <!-- Ligne du haut avec titre et contrôles -->
+        <div class="header-top">
+          <div class="header-title">
+            <h1 class="title-text">Tableau de Bord d'Abéché</h1>
+            <div class="header-subtitle">Vue d'ensemble des activités d'état civil d'Abéché</div>
           </div>
-        </div>
-        <div class="col-md-4 text-end">
-          <div class="d-flex gap-2 justify-content-end align-items-center">
+          
+          <div class="header-controls">
+            <!-- Bouton de mode sombre -->
+            <button class="btn btn-outline-light" id="themeToggle" title="Changer de thème">
+              <i class="fas fa-moon" id="themeIcon"></i>
+              <span id="themeText">Mode sombre</span>
+            </button>
+            
             <!-- Sélecteur de langue -->
-            <div class="dropdown">
-              <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
-                data-bs-toggle="dropdown">
-                <i class="fas fa-globe me-1"></i><span id="currentLang">FR</span>
+            <div class="dropdown ms-2">
+              <button class="btn btn-outline-light dropdown-toggle" type="button" id="languageDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-globe"></i>
+                <span id="currentLang">FR</span>
               </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')"><i
-                      class="fas fa-flag me-2"></i>Français</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')"><i
-                      class="fas fa-flag me-2"></i>العربية</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')"><i
-                      class="fas fa-flag me-2"></i>English</a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')">
+                  <i class="fas fa-flag me-2"></i>Français</a>
+                </li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">
+                  <i class="fas fa-flag me-2"></i>العربية</a>
+                </li>
+                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">
+                  <i class="fas fa-flag me-2"></i>English</a>
+                </li>
               </ul>
             </div>
-
-            <!-- Toggle mode sombre -->
-            <button class="btn btn-outline-light btn-sm" id="themeToggle">
-              <i class="fas fa-moon" id="themeIcon"></i>
-            </button>
-            <button class="btn btn-light btn-sm" id="refresh-btn" data-focus-default>
-              <i class="fas fa-sync-alt me-2"></i>Actualiser
-            </button>
-            <button class="btn btn-outline-light btn-sm" id="exportBtn">
-              <i class="fas fa-download me-2"></i>Exporter
-            </button>
           </div>
+        </div>
+        
+        <!-- Ligne du bas avec la barre de recherche -->
+        <div class="row mt-3 mb-2">
+          <div class="col-12">
+            <div class="search-container">
+              <div class="input-group">
+                <input type="text" 
+                       class="form-control border-0 py-2 px-3" 
+                       id="globalSearch" 
+                       placeholder="Rechercher dans tous les actes..."
+                       style="font-size: 0.95rem;">
+                <button class="btn btn-primary px-4" type="button" id="searchBtn">
+                  <i class="fas fa-search me-1"></i> Rechercher
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Badge de mise à jour -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span id="lastUpdatedBadge" class="last-updated-text" title="Dernière mise à jour des statistiques">
+            <i class="fas fa-sync-alt me-1"></i> Dernière mise à jour: <span id="lastUpdatedTime">—</span>
+          </span>
+          <span id="currentDate" class="text-white-50"></span>
         </div>
       </div>
     </div>
@@ -396,9 +555,6 @@
           </div>
           <div class="stat-number" id="births-count">0</div>
           <div class="stat-label">Naissances</div>
-          <div class="progress-custom">
-            <div class="progress-bar-custom" id="births-progress" style="width: 0%"></div>
-          </div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
@@ -408,9 +564,6 @@
           </div>
           <div class="stat-number" id="marriages-count">0</div>
           <div class="stat-label">Mariages</div>
-          <div class="progress-custom">
-            <div class="progress-bar-custom" id="marriages-progress" style="width: 0%"></div>
-          </div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
@@ -420,9 +573,6 @@
           </div>
           <div class="stat-number" id="deaths-count">0</div>
           <div class="stat-label">Décès</div>
-          <div class="progress-custom">
-            <div class="progress-bar-custom" id="deaths-progress" style="width: 0%"></div>
-          </div>
         </div>
       </div>
 
@@ -433,9 +583,6 @@
           </div>
           <div class="stat-number" id="documents-count">0</div>
           <div class="stat-label">Documents</div>
-          <div class="progress-custom">
-            <div class="progress-bar-custom" id="documents-progress" style="width: 0%"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -509,8 +656,6 @@
         mariages: 'Mariages',
         deces: 'Décès',
         documents: 'Documents',
-        refresh: 'Actualiser',
-        export: 'Exporter',
         search: 'Rechercher dans tous les actes...'
       },
       ar: {
@@ -558,14 +703,7 @@
         if (decesLabel) decesLabel.textContent = t.deces;
         if (documentsLabel) documentsLabel.textContent = t.documents;
 
-        // Mettre à jour les boutons
-        const refreshBtn = document.querySelector('button[onclick="refreshDashboard(event)"]');
-        const exportBtn = document.querySelector('button[onclick="exportDashboard()"]');
-
-        if (refreshBtn) refreshBtn.innerHTML = `<i class="fas fa-sync-alt me-2"></i>${t.refresh}`;
-        if (exportBtn) exportBtn.innerHTML = `<i class="fas fa-download me-2"></i>${t.export}`;
-
-        // Remettre la date
+        // Mettre à jour la date
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
           weekday: 'long',
           year: 'numeric',
@@ -655,60 +793,11 @@
         return false;
       };
       
-      // Ajout des écouteurs
+      // Initialisation des événements
       addEvent('themeToggle', 'click', toggleTheme);
-      addEvent('exportBtn', 'click', exportDashboard);
       addEvent('searchBtn', 'click', performSearch);
-      
-      // Style et débogage du bouton d'actualisation
-      const refreshBtn = document.getElementById('refreshBtn');
-      if (refreshBtn) {
-        // Style visuel pour le bouton de rafraîchissement
         
-        // Initialisation du tableau de bord
-        
-        // Définir la fonction de rafraîchissement
-        window.refreshDashboard = async function(event) {
-          if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-          }
-          
-          const refreshBtn = document.getElementById('refresh-btn');
-          if (!refreshBtn) {
-            console.error('Bouton de rafraîchissement non trouvé');
-            return;
-          }
-          
-          // Désactiver le bouton pendant le chargement
-          refreshBtn.disabled = true;
-          const icon = refreshBtn.querySelector('i');
-          if (icon) icon.classList.add('fa-spin');
-          
-          try {
-            // Recharger les données
-            const dashboard = window.dashboardInstance;
-            if (dashboard && typeof dashboard.loadData === 'function') {
-              await dashboard.loadData();
-            } else {
-              // Fallback: recharger la page
-              window.location.reload();
-            }
-          } catch (error) {
-            console.error('Erreur lors du rafraîchissement:', error);
-          } finally {
-            // Réactiver le bouton
-            if (refreshBtn) {
-              refreshBtn.disabled = false;
-              if (icon) icon.classList.remove('fa-spin');
-            }
-          }
-        };
-        
-        // Fonction de rafraîchissement initialisée
-      } else {
-        // Le bouton de rafraîchissement utilise l'ID refresh-btn
-      }
+      // Initialisation du tableau de bord
         
         // Gestionnaire d'événement pour la recherche
       const searchInput = document.getElementById('globalSearch');
@@ -925,9 +1014,6 @@
                 <button type="button" class="btn btn-secondary edit-acte" data-id="${acteId}">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button type="button" class="btn btn-outline-success download-pdf" data-id="${acteId}" data-numero="${acte.numeroActe || ''}" data-type="${acte.type}" title="Télécharger le PDF">
-                  <i class="fas fa-file-pdf"></i>
-                </button>
                 <button type="button" class="btn btn-danger delete-acte" data-id="${acteId}" data-numero="${acte.numeroActe || ''}">
                   <i class="fas fa-trash"></i>
                 </button>
@@ -978,38 +1064,199 @@
       });
     }
 
+    // Afficher l'indicateur de chargement
+    function showLoadingIndicator() {
+      const loadingOverlay = document.createElement('div');
+      loadingOverlay.id = 'pdfLoadingOverlay';
+      loadingOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
+      `;
+      
+      loadingOverlay.innerHTML = `
+        <div class="spinner-border text-white" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="text-white mt-3 fs-5">Génération du PDF en cours...</p>
+        <p class="text-light small">Veuillez patienter, cette opération peut prendre quelques instants</p>
+      `;
+      
+      document.body.appendChild(loadingOverlay);
+      document.body.style.overflow = 'hidden';
+      
+      return loadingOverlay;
+    }
+    
+    // Masquer l'indicateur de chargement
+    function hideLoadingIndicator() {
+      const overlay = document.getElementById('pdfLoadingOverlay');
+      if (overlay) {
+        document.body.removeChild(overlay);
+        document.body.style.overflow = '';
+      }
+    }
+    
+    // Afficher une notification
+    function showNotification(message, type = 'success') {
+      const toastContainer = document.getElementById('toastContainer') || (() => {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1100;';
+        document.body.appendChild(container);
+        return container;
+      })();
+      
+      const toast = document.createElement('div');
+      toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+      toast.role = 'alert';
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+      
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            ${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      // Fermeture automatique après 5 secondes
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 150);
+      }, 5000);
+      
+      // Fermeture au clic
+      toast.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 150);
+      });
+    }
+
     // Télécharger le PDF d'un acte (tous types, y compris divorce)
     async function downloadActePdf(id, numeroActe = 'sans-numero', type = '') {
+      let loadingOverlay;
+      let downloadBtn;
+      let originalText;
+      
       try {
         const token = localStorage.getItem('token');
-        // Choisir l'endpoint selon le type
-        const endpoint = (type === 'divorce') ? `/api/divorces/${id}/pdf` : `/api/actes/${id}/pdf`;
-        const res = await fetch(endpoint, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || `Erreur ${res.status}`);
+        if (!token) {
+          showNotification('Veuillez vous reconnecter', 'danger');
+          return;
+        }
+        
+        // Afficher l'indicateur de chargement
+        loadingOverlay = showLoadingIndicator();
+        
+        // Désactiver le bouton pendant le chargement
+        downloadBtn = document.querySelector(`[data-id="${id}"]`);
+        if (downloadBtn) {
+          originalText = downloadBtn.innerHTML;
+          downloadBtn.disabled = true;
+          downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Génération...';
         }
 
-        // Nom de fichier depuis Content-Disposition si présent
-        const cd = res.headers.get('Content-Disposition') || '';
-        const match = cd.match(/filename="?([^";]+)"?/i);
-        const suggested = match ? match[1] : `acte-${type || 'document'}-${numeroActe}.pdf`;
+        // Choisir l'endpoint selon le type
+        const endpoint = type === 'divorce' ? `/api/divorces/${id}/pdf` : `/api/actes/${id}/pdf`;
+        const timestamp = new Date().getTime();
+        const url = `${endpoint}?_=${timestamp}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          credentials: 'include'
+        });
 
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = suggested;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        showSuccess('PDF téléchargé');
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({
+            message: 'Erreur lors de la génération du PDF',
+            status: response.status
+          }));
+          
+          let errorMessage = errorData.message || 'Erreur inconnue';
+          
+          // Messages d'erreur plus conviviaux
+          if (response.status === 401) {
+            errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+            // Rediriger vers la page de connexion après un délai
+            setTimeout(() => window.location.href = '/login', 2000);
+          } else if (response.status === 404) {
+            errorMessage = 'Acte introuvable. Veuillez réessayer.';
+          } else if (response.status >= 500) {
+            errorMessage = 'Erreur du serveur. Veuillez réessayer plus tard.';
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        // Récupérer le blob du PDF
+        const blob = await response.blob();
+        
+        // Vérifier que le blob n'est pas vide
+        if (blob.size === 0) {
+          throw new Error('Le fichier PDF généré est vide');
+        }
+        
+        // Créer un blob URL pour le téléchargement
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Créer un lien de téléchargement
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        
+        // Définir le nom du fichier
+        const contentDisposition = response.headers.get('Content-Disposition') || '';
+        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        const fileName = fileNameMatch && fileNameMatch[1] 
+          ? fileNameMatch[1].replace(/['"]/g, '') 
+          : `acte-${type || 'document'}-${numeroActe || id}.pdf`;
+        
+        downloadLink.download = fileName;
+        
+        // Déclencher le téléchargement
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        
+        // Nettoyage
+        setTimeout(() => {
+          document.body.removeChild(downloadLink);
+          window.URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        showNotification('Téléchargement du PDF démarré', 'success');
+        
       } catch (error) {
-        console.error('Erreur téléchargement PDF:', error);
-        showError('Impossible de télécharger le PDF');
+        console.error('Erreur lors de la génération du PDF:', error);
+        showNotification(`Erreur: ${error.message || 'Impossible de générer le PDF'}`, 'danger');
+      } finally {
+        // Réactiver le bouton et restaurer le texte
+        if (downloadBtn) {
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = originalText;
+        }
+        
+        // Masquer l'indicateur de chargement
+        if (loadingOverlay) {
+          hideLoadingIndicator();
+        }
       }
     }
 
@@ -1348,11 +1595,12 @@
     async function downloadActePdf(id) {
       try {
         console.log('Tentative de téléchargement du PDF pour l\'acte:', id);
-        const token = checkAuth();
+        const token = localStorage.getItem('token');
         if (!token) {
           const errorMsg = 'Erreur d\'authentification: Veuillez vous reconnecter';
           console.error(errorMsg);
           showError(errorMsg);
+          window.location.href = '/login';
           return;
         }
 
@@ -1627,268 +1875,21 @@
       } catch (error) {
         console.error('Erreur lors de la recherche:', error);
         showError(error.message || 'Erreur lors de la recherche. Veuillez réessayer.');
-      } finally {
-        hideLoadingState();
       }
     }
     
-    // Fonction pour rafraîchir le tableau de bord (version globale)
-    window.refreshDashboard = async function(event) {
-      console.log('=== DÉBUT refreshDashboard ===');
-      console.log('Événement reçu:', event);
-      console.trace('Stack trace de l\'appel');
-      console.log('refreshDashboard appelée avec event:', event);
-      // Empêcher le comportement par défaut si c'est un événement
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      
+    // Fonction de rafraîchissement du tableau de bord (simplifiée)
+    window.refreshDashboard = function() {
       console.log('Rafraîchissement du tableau de bord...');
-      
-      // Trouver le bouton et l'icône de manière robuste
-      let btn, icon;
-      
-      if (event && event.currentTarget) {
-        // Si l'événement vient d'un addEventListener
-        btn = event.currentTarget;
-        icon = btn.querySelector('i');
-      } else if (event && event.target) {
-        // Si l'événement vient d'un onclick
-        btn = event.target.closest('button');
-        icon = btn ? btn.querySelector('i') : null;
-      } else {
-        // Si appelé directement
-        btn = document.getElementById('refreshBtn');
-        icon = btn ? btn.querySelector('i') : null;
-      }
-      
-      // Activer l'état de chargement
-      if (btn) {
-        btn.disabled = true;
-        if (icon) {
-          icon.classList.add('fa-spin');
-        }
-      }
-      
-      try {
-        // Afficher l'état de chargement
-        showLoadingState();
-        
-        // Exécuter les requêtes en parallèle
-        const [statsResult, actesResult] = await Promise.allSettled([
-          loadStatistics(),
-          loadRecentActes()
-        ]);
-        
-        // Vérifier les résultats
-        const errors = [];
-        
-        if (statsResult.status === 'rejected') {
-          console.error('Erreur lors du chargement des statistiques:', statsResult.reason);
-          errors.push('Impossible de charger les statistiques');
-        }
-        
-        if (actesResult.status === 'rejected') {
-          console.error('Erreur lors du chargement des actes récents:', actesResult.reason);
-          errors.push('Impossible de charger les actes récents');
-        }
-        
-        // Effacer le champ de recherche
-        const searchInput = document.getElementById('globalSearch');
-        if (searchInput) {
-          searchInput.value = '';
-        }
-        
-        // Afficher un message de succès ou d'erreur
-        if (errors.length > 0) {
-          showError(errors.join(' | '));
-        } else {
-          showSuccess('Tableau de bord actualisé avec succès');
-        }
-        
-      } catch (error) {
-        console.error('Erreur inattendue lors du rafraîchissement:', error);
-        showError('Une erreur inattendue est survenue lors du rafraîchissement');
-      } finally {
-        // Désactiver l'état de chargement
-        hideLoadingState();
-        
-        // Réinitialiser l'état du bouton
-        if (btn) {
-          btn.disabled = false;
-          if (icon) {
-            icon.classList.remove('fa-spin');
-          }
-        }
-      }
-      
-      // Empêcher la propagation de l'événement
-      return false;
+      window.location.reload();
     };
-
-    function exportDashboard() {
-      const menu = document.createElement('div');
-      menu.className = 'dropdown-menu show position-fixed';
-      menu.style.cssText = 'top: 60px; right: 20px; z-index: 9999; min-width: 200px;';
-
-      menu.innerHTML = `
-        <button class="dropdown-item" onclick="exportToPDF(); this.parentElement.remove();">
-          <i class="fas fa-file-pdf me-2"></i>Exporter en PDF
-        </button>
-        <button class="dropdown-item" onclick="exportToExcel(); this.parentElement.remove();">
-          <i class="fas fa-file-excel me-2"></i>Exporter en Excel
-        </button>
-        <button class="dropdown-item" onclick="exportToCSV(); this.parentElement.remove();">
-          <i class="fas fa-file-csv me-2"></i>Exporter en CSV
-        </button>
-      `;
-
-      document.body.appendChild(menu);
-
-      // Fermer le menu en cliquant ailleurs
-      setTimeout(() => {
-        document.addEventListener('click', (e) => {
-          if (!menu.contains(e.target)) {
-            menu.remove();
-          }
-        }, { once: true });
-      }, 100);
-    }
-
-    async function exportToPDF() {
-      try {
-        showSuccess('Génération du PDF en cours...');
-
-        // Collecter les données du dashboard
-        const stats = dashboardData.stats;
-        const currentDate = new Date().toLocaleDateString('fr-FR');
-
-        // Créer le contenu PDF
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // En-tête
-        doc.setFontSize(20);
-        doc.text('Rapport du Tableau de Bord', 20, 20);
-        doc.setFontSize(12);
-        doc.text(`État Civil d'Abéché - ${currentDate}`, 20, 30);
-
-        // Statistiques
-        doc.setFontSize(16);
-        doc.text('Statistiques', 20, 50);
-        doc.setFontSize(12);
-        doc.text(`Naissances: ${stats.naissances || 0}`, 20, 65);
-        doc.text(`Mariages: ${stats.mariages || 0}`, 20, 75);
-        doc.text(`Décès: ${stats.deces || 0}`, 20, 85);
-        doc.text(`Documents: ${stats.total || 0}`, 20, 95);
-
-        // Télécharger
-        doc.save(`rapport-dashboard-${currentDate.replace(/\//g, '-')}.pdf`);
-        showSuccess('PDF exporté avec succès');
-
-      } catch (error) {
-        console.error('Error exporting PDF:', error);
-        showError('Erreur lors de l\'export PDF. Veuillez réessayer.');
-      }
-    }
-
-    async function exportToExcel() {
-      try {
-        showSuccess('Génération du fichier Excel en cours...');
-
-        // Préparer les données
-        const stats = dashboardData.stats;
-        const currentDate = new Date().toLocaleDateString('fr-FR');
-
-        // Créer les données pour Excel
-        const data = [
-          ['Rapport du Tableau de Bord'],
-          [`État Civil d'Abéché - ${currentDate}`],
-          [''],
-          ['Type', 'Nombre'],
-          ['Naissances', stats.naissances || 0],
-          ['Mariages', stats.mariages || 0],
-          ['Décès', stats.deces || 0],
-          ['Documents', stats.total || 0]
-        ];
-
-        // Créer le CSV (format compatible Excel)
-        const csvContent = data.map(row => row.join(',')).join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-        // Télécharger
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `rapport-dashboard-${currentDate.replace(/\//g, '-')}.csv`;
-        link.click();
-
-        showSuccess('Fichier Excel exporté avec succès');
-
-      } catch (error) {
-        console.error('Error exporting Excel:', error);
-        showError('Erreur lors de l\'export Excel. Veuillez réessayer.');
-      }
-    }
-
-    async function exportToCSV() {
-      try {
-        showSuccess('Génération du fichier CSV en cours...');
-
-        // Récupérer les actes depuis le tableau
-        const tableRows = document.querySelectorAll('#actesTable tbody tr');
-        const csvData = [];
-
-        // En-têtes
-        csvData.push(['Numéro', 'Type', 'Nom', 'Date']);
-
-        // Données des actes
-        tableRows.forEach(row => {
-          const cells = row.querySelectorAll('td');
-          if (cells.length >= 4) {
-            csvData.push([
-              cells[0].textContent.trim(),
-              cells[1].textContent.trim().replace(/\s+/g, ' '),
-              cells[2].textContent.trim(),
-              cells[3].textContent.trim()
-            ]);
-          }
-        });
-
-        // Créer le CSV
-        const csvContent = csvData.map(row =>
-          row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
-        ).join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-        // Télécharger
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `actes-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`;
-        link.click();
-
-        showSuccess('Fichier CSV exporté avec succès');
-
-      } catch (error) {
-        console.error('Error exporting CSV:', error);
-        showError('Erreur lors de l\'export CSV. Veuillez réessayer.');
-      }
-    }
-
     // Utility functions
     function showLoadingState() {
-      document.querySelectorAll('.stat-number').forEach(el => {
-        el.classList.add('loading-skeleton');
-        el.style.height = '40px';
-      });
+      // Désactivé pour les nombres de cartes
     }
 
     function hideLoadingState() {
-      document.querySelectorAll('.stat-number').forEach(el => {
-        el.classList.remove('loading-skeleton');
-        el.style.height = 'auto';
-      });
+      // Désactivé pour les nombres de cartes
     }
 
     function showSuccess(message) {

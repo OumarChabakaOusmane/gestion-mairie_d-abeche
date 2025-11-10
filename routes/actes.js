@@ -4,14 +4,13 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const Acte = require('../models/Acte');
 const { check, validationResult } = require('express-validator');
-const { generatePdf } = require('../services/pdfService');
+const { generatePdf, PdfGenerationError } = require('../services/pdfService');
 const PDFDocument = require('pdfkit');
 const { authenticate } = require('../middleware/auth');
 const decesController = require('../controllers/decesController');
 const logger = require('../config/logger');
 const naissanceController = require('../controllers/naissanceController');
 const mariageController = require('../controllers/mariageController');
-const pdfService = require('../services/pdfService');
 
 // Validation des actes
 const validateActe = (type, details) => {
@@ -364,25 +363,25 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
       switch (acte.type) {
         case 'naissance':
           log('Génération PDF de naissance...');
-          pdfBuffer = await pdfService.generatePdf('naissance', acte);
+          pdfBuffer = await generatePdf('naissance', acte);
           fileName = `acte-naissance-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
         case 'mariage':
           log('Génération PDF de mariage...');
-          pdfBuffer = await pdfService.generatePdf('mariage', acte);
+          pdfBuffer = await generatePdf('mariage', acte);
           fileName = `acte-mariage-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
         case 'deces':
           log('Génération PDF de décès...');
-          pdfBuffer = await pdfService.generatePdf('deces', acte);
+          pdfBuffer = await generatePdf('deces', acte);
           fileName = `acte-deces-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
         case 'divorce':
           log('Génération PDF de divorce...');
-          pdfBuffer = await pdfService.generatePdf('divorce', acte);
+          pdfBuffer = await generatePdf('divorce', acte);
           fileName = `acte-divorce-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
@@ -397,19 +396,36 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
           });
       }
       
+      // Vérifier que le buffer n'est pas vide
+      if (!pdfBuffer || !(pdfBuffer instanceof Buffer) || pdfBuffer.length === 0) {
+        const errorMsg = 'Le contenu du PDF est vide ou invalide';
+        log(errorMsg, { 
+          bufferType: typeof pdfBuffer,
+          isBuffer: Buffer.isBuffer(pdfBuffer),
+          bufferLength: pdfBuffer?.length
+        });
+        return res.status(500).json({
+          success: false,
+          error: errorMsg,
+          requestId
+        });
+      }
+
       // Configurer les en-têtes de réponse
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('X-PDF-Generator', 'pdfService');
       
-      log('PDF généré avec succès', { 
+      log('Envoi du PDF généré', { 
         fileName,
         size: pdfBuffer.length,
         type: acte.type
       });
       
-      res.send(pdfBuffer);
+      // Envoyer les données binaires directement
+      res.write(pdfBuffer, 'binary');
+      res.end(null, 'binary');
       
     } catch (controllerError) {
       log('Erreur dans la génération PDF', { 

@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['agent', 'admin', 'officier_etat_civil'],
+    enum: ['agent', 'admin', 'officier_etat_civil', 'gestionnaire'],
     default: 'agent'
   },
   avatar: {
@@ -27,6 +27,38 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     select: false
+  },
+  settings: {
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'light'
+    },
+    language: {
+      type: String,
+      default: 'fr'
+    },
+    notifications: {
+      email: {
+        type: Boolean,
+        default: true
+      },
+      inApp: {
+        type: Boolean,
+        default: true
+      },
+      sound: {
+        type: Boolean,
+        default: true
+      }
+    },
+    itemsPerPage: {
+      type: Number,
+      default: 10,
+      min: 5,
+      max: 100
+    },
+    lastBackup: Date
   },
   isEmailConfirmed: {
     type: Boolean,
