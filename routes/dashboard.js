@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const Divorce = require('../models/Divorce');
 const Acte = require('../models/Acte');
 const logger = require('../config/logger');
 const { authenticate } = require('../middleware/auth');
@@ -35,12 +34,10 @@ router.get('/stats', async (req, res) => {
   try {
     // Utiliser Promise.all pour exécuter les requêtes en parallèle
     const [
-      divorcesCount,
       naissancesCount,
       mariagesCount,
       decesCount
     ] = await Promise.all([
-      Divorce.countDocuments(),
       Acte.countDocuments({ type: 'naissance' }),
       Acte.countDocuments({ type: 'mariage' }),
       Acte.countDocuments({ type: 'deces' })
@@ -48,11 +45,10 @@ router.get('/stats', async (req, res) => {
 
     // Formater les statistiques
     const stats = {
-      divorces: divorcesCount,
       naissances: naissancesCount,
       mariages: mariagesCount,
       deces: decesCount,
-      total: divorcesCount + naissancesCount + mariagesCount + decesCount,
+      total: naissancesCount + mariagesCount + decesCount,
       lastUpdated: new Date()
     };
 
@@ -83,42 +79,20 @@ router.get('/recent-actes', async (req, res) => {
   try {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
 
-    // Charger en parallèle
-    const [actes, divorces] = await Promise.all([
-      Acte.find()
-        .sort({ dateEnregistrement: -1 })
-        .limit(limit)
-        .select('type numeroActe details dateEnregistrement createdAt')
-        .lean(),
-      Divorce.find()
-        .sort({ dateEtablissement: -1 })
-        .limit(limit)
-        .select('numeroActe dateEtablissement epoux epouse createdAt')
-        .lean()
-    ]);
+    // Charger les actes
+    const actes = await Acte.find()
+      .sort({ dateEnregistrement: -1 })
+      .limit(limit)
+      .select('type numeroActe details dateEnregistrement createdAt')
+      .lean();
 
-    // Normaliser les objets au même format que la table attend
-    const normalizedActes = [
-      // Actes (naissance/mariage/deces)
-      ...actes.map(a => ({
-        _id: a._id,
-        type: a.type,
-        numeroActe: a.numeroActe,
-        dateEnregistrement: a.dateEnregistrement || a.createdAt,
-        details: a.details || {}
-      })),
-      // Divorces
-      ...divorces.map(d => ({
-        _id: d._id,
-        type: 'divorce',
-        numeroActe: d.numeroActe,
-        dateEnregistrement: d.dateEtablissement || d.createdAt,
-        details: {
-          epoux: d.epoux ? `${d.epoux.prenoms || ''} ${d.epoux.nom || ''}`.trim() : '',
-          epouse: d.epouse ? `${d.epouse.prenoms || ''} ${d.epouse.nom || ''}`.trim() : ''
-        }
-      }))
-    ];
+    const normalizedActes = actes.map(a => ({
+      _id: a._id,
+      type: a.type,
+      numeroActe: a.numeroActe,
+      dateEnregistrement: a.dateEnregistrement || a.createdAt,
+      details: a.details || {}
+    }));
 
     // Trier par date décroissante et limiter
     const merged = normalizedActes
@@ -135,49 +109,15 @@ router.get('/recent-actes', async (req, res) => {
 // Endpoint pour obtenir les activités récentes
 router.get('/activities', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
-    
-    // Récupérer les activités récentes en parallèle
-    const [recentDivorces] = await Promise.all([
-      Divorce.find()
-        .sort({ dateEtablissement: -1 })
-        .limit(limit)
-        .select('dateEtablissement numeroActe')
-        .lean()
-    ]);
-
-    // Formater les activités
-    const formatActivity = (item, type) => ({
-      id: item._id,
-      type,
-      numeroActe: item.numeroActe,
-      date: item.dateEtablissement,
-      timeAgo: formatTimeAgo(item.dateEtablissement),
-      icon: type === 'divorce' ? 'fa-gavel' : 'fa-handshake',
-      color: type === 'divorce' ? 'danger' : 'success'
-    });
-
-    const activities = [
-      ...recentDivorces.map(item => formatActivity(item, 'divorce'))
-    ].sort((a, b) => new Date(b.date) - new Date(a.date))
-     .slice(0, limit);
-
-    res.json({
-      success: true,
-      data: activities
-    });
+    // Aucune activité récente à afficher
+    return res.json({ success: true, data: [] });
   } catch (error) {
     logger.error('Erreur lors de la récupération des activités récentes', {
       error: error.message,
       stack: error.stack,
       userId: req.user?.id
     });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Impossible de récupérer les activités récentes',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return res.status(500).json({ success: false, error: 'Impossible de récupérer les activités récentes' });
   }
 });
 

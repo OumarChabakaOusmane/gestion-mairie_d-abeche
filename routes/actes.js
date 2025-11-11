@@ -379,11 +379,6 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
           fileName = `acte-deces-${(acte.numeroActe || 'sans-numero')}.pdf`;
           break;
           
-        case 'divorce':
-          log('Génération PDF de divorce...');
-          pdfBuffer = await generatePdf('divorce', acte);
-          fileName = `acte-divorce-${(acte.numeroActe || 'sans-numero')}.pdf`;
-          break;
           
         default:
           const error = new Error(`Type d'acte '${acte.type}' non pris en charge`);
@@ -392,7 +387,7 @@ router.get('/:id/pdf', authenticate, async (req, res) => {
             success: false,
             error: error.message,
             requestId,
-            supportedTypes: ['naissance', 'mariage', 'deces', 'divorce']
+            supportedTypes: ['naissance', 'mariage', 'deces']
           });
       }
       

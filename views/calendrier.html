@@ -251,7 +251,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-  <script src="/js/sidebar-template.js"></script>
+  <script src="/js/sidebar-template.js?v=2"></script>
   <script>
     let calendar;
     let currentFilter = 'all';
@@ -266,6 +266,10 @@
       
       await initializeCalendar();
       await loadEvents();
+      // Charger aussi les statistiques globales du dashboard pour affichage en temps réel
+      await loadDashboardStats();
+      // Polling léger pour garder les compteurs à jour (tous les 30s)
+      setInterval(() => loadDashboardStats(), 30000);
       setupEventListeners();
     });
     
@@ -294,6 +298,11 @@
           // Optionnel: créer un nouvel événement à cette date
           console.log('Date cliquée:', info.dateStr);
         },
+        // Quand la plage de dates affichée change (navigation mois/semaine/etc.)
+        datesSet: async function(info) {
+          // Recharger les événements correspondant à la nouvelle plage
+          await loadEvents();
+        },
         eventDidMount: function(info) {
           // Ajouter des classes CSS selon le type d'événement
           const eventType = info.event.extendedProps.type;
@@ -306,49 +315,98 @@
     
     async function loadEvents() {
       try {
-        const result = await apiRequest('/api/calendrier');
-        
+        // Essayer d'utiliser la plage de dates actuelle affichée par FullCalendar
+        let startParam = null;
+        let endParam = null;
+        try {
+          const view = calendar.view;
+          if (view && view.activeStart && view.activeEnd) {
+            startParam = view.activeStart.toISOString();
+            endParam = view.activeEnd.toISOString();
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        const url = startParam && endParam
+          ? `/api/calendrier?start=${encodeURIComponent(startParam)}&end=${encodeURIComponent(endParam)}`
+          : '/api/calendrier';
+
+        const result = await apiRequest(url);
+
         if (!result) {
-          throw new Error('Aucune réponse du serveur');
-        }
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erreur lors du chargement des événements');
-        }
-        
-        if (!Array.isArray(result.data)) {
-          console.warn('Les données reçues ne sont pas un tableau:', result);
+          // apiRequest a déjà affiché un message utilisateur (showError), on évite le message redondant
           allEvents = [];
-        } else {
-          allEvents = result.data
-            .filter(event => event && event.title && event.start) // Filtrer les événements invalides
-            .map(event => ({
-              id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
-              title: event.title || 'Sans titre',
-              start: event.start,
-              backgroundColor: event.color || getTypeColor(getEventType(event.title)),
-              borderColor: event.color || getTypeColor(getEventType(event.title)),
-              extendedProps: {
-                type: getEventType(event.title),
-                numeroActe: event.extendedProps?.numeroActe || 'N/A',
-                details: event.extendedProps?.details || {}
-              }
-            }));
+          updateCalendarEvents();
+          updateStats();
+          return;
         }
-        
-        updateCalendarEvents();
-        updateStats();
-        
+
+        // Le serveur peut renvoyer soit un tableau d'événements (implémentation actuelle),
+        // soit un objet { success: true, data: [...] } (autre format attendu). On gère les deux.
+        let eventsData = null;
+        if (Array.isArray(result)) {
+          eventsData = result;
+        } else if (result.success && Array.isArray(result.data)) {
+          eventsData = result.data;
+        } else {
+          console.warn('Format de réponse inattendu pour /api/calendrier :', result);
+          eventsData = [];
+        }
+
+        allEvents = eventsData
+          .filter(event => event && event.title && event.start)
+          .map(event => ({
+            id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
+            title: event.title || 'Sans titre',
+            start: event.start,
+            backgroundColor: event.color || getTypeColor(getEventType(event.title)),
+            borderColor: event.color || getTypeColor(getEventType(event.title)),
+            extendedProps: {
+              type: event.extendedProps?.type || getEventType(event.title),
+              numeroActe: event.extendedProps?.numeroActe || 'N/A',
+              details: event.extendedProps?.details || {}
+            }
+          }));
+
+  updateCalendarEvents();
+  updateStats();
+  // (garantit que les compteurs affichés reflètent la source de vérité)
+  loadDashboardStats().catch(err => console.warn('Erreur loadDashboardStats:', err));
+
       } catch (error) {
         console.error('Erreur lors du chargement des événements:', error);
         showNotification(
-          'Impossible de charger les événements. Veuillez réessayer plus tard.', 
+          'Impossible de charger les événements. Veuillez réessayer plus tard.',
           'error'
         );
-        
-        // Données de démonstration en cas d'échec
+
+        // En cas d'erreur imprévue, vider la liste et mettre à jour l'affichage
         allEvents = [];
         updateCalendarEvents();
+        updateStats();
+      }
+    }
+
+    // Récupérer les statistiques globales utilisées par le dashboard
+    async function loadDashboardStats() {
+      try {
+        const result = await apiRequest('/api/dashboard/stats');
+        if (!result) return; // apiRequest gère l'affichage d'erreur
+
+        const data = result.success ? result.data : (result.data || null);
+        if (!data) return;
+
+        // Mettre à jour les éléments du calendrier (ids conservés pour compatibilité)
+        const naissanceEl = document.getElementById('naissanceCount');
+        const mariageEl = document.getElementById('mariageCount');
+        const decesEl = document.getElementById('decesCount');
+
+        if (naissanceEl) naissanceEl.textContent = data.naissances ?? data.naissance ?? naissanceEl.textContent;
+        if (mariageEl) mariageEl.textContent = data.mariages ?? data.mariage ?? mariageEl.textContent;
+        if (decesEl) decesEl.textContent = data.deces ?? data.decesCount ?? decesEl.textContent;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des statistiques dashboard:', error);
       }
     }
     
@@ -403,6 +461,8 @@
           
           currentFilter = e.target.dataset.filter;
           updateCalendarEvents();
+          // Mettre à jour les compteurs après changement de filtre/affichage
+          updateStats();
         });
       });
     }

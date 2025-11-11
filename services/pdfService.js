@@ -730,264 +730,6 @@ const generateDecesPdf = (data) => {
   });
 };
 
-// Fonction pour générer un PDF d'acte de divorce
-const generateDivorcePdf = (data) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({
-        size: 'A4',
-        margins: {
-          top: 40,
-          bottom: 40,
-          left: 50,
-          right: 50
-        },
-        bufferPages: true
-      });
-      
-      const buffers = [];
-      
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => {
-        const pdfData = Buffer.concat(buffers);
-        resolve(pdfData);
-      });
-
-      // Configuration des polices
-      doc.font('Times-Roman');
-      const smallFontSize = 9;
-      const normalFontSize = 10;
-      const titleFontSize = 12;
-      const headerFontSize = 14;
-
-      // Configuration des marges et espacements
-      const margin = { top: 60, right: 50, bottom: 50, left: 40 };
-      const lineHeight = 20;
-      const labelWidth = 150;
-      let y = margin.top;
-      
-      // En-tête centré
-      doc.font('Times-Bold').fontSize(12).text('RÉPUBLIQUE DU TCHAD', { 
-        align: 'center', 
-        y: y
-      });
-      y += 15;
-      
-      doc.font('Times-Roman').fontSize(10).text('Unité - Travail - Progrès', { 
-        align: 'center', 
-        y: y
-      });
-      y += 15;
-      
-      doc.font('Times-Bold').fontSize(12).text('TRIBUNAL DE PREMIÈRE INSTANCE D\'ABÉCHÉ', { 
-        align: 'center', 
-        y: y
-      });
-      y += 25;
-      
-      // Ligne de séparation fine
-      doc.lineWidth(0.3);
-      doc.moveTo(margin.left, y).lineTo(doc.page.width - margin.right, y).stroke();
-      y += 20;
-      
-      // Titre du document centré
-      doc.font('Times-Bold').fontSize(12).text('EXTRAIT DE JUGEMENT DE DIVORCE', { 
-        align: 'center',
-        y: y
-      });
-      
-      // Numéro d'acte aligné à droite
-      doc.font('Times-Roman').fontSize(10).text(
-        `N° ${data.numeroActe || '.../TPI-ABE/...'}`, 
-        { 
-          align: 'right',
-          y: y - 15,
-          width: doc.page.width - margin.right * 2
-        }
-      );
-      y += 30;
-      
-      // Fonction pour écrire une ligne avec label et valeur
-      const writeLine = (label, value, yPos) => {
-        // Position Y par défaut si non spécifiée
-        const currentY = yPos || y;
-        
-        // Écrire le label en gras
-        doc.font('Times-Bold').fontSize(10).text(label, margin.left, currentY);
-        
-        // Si pas de valeur, écrire juste le label
-        if (!value) {
-          return currentY + lineHeight;
-        }
-        
-        // Écrire la valeur en police normale
-        doc.font('Times-Roman').fontSize(10).text(value, margin.left + labelWidth, currentY);
-        
-        // Retourner la prochaine position Y
-        return currentY + lineHeight;
-      };
-      
-      // Récupérer les détails du divorce
-      const divorce = data.details || data;
-      const epoux = divorce.epoux || {};
-      const epouse = divorce.epouse || {};
-      
-      // Section Informations sur le mariage
-      y = writeLine('Date du mariage :', divorce.dateMariage ? formatDate(divorce.dateMariage) : '');
-      y = writeLine('Lieu du mariage :', divorce.lieuMariage || '');
-      y = writeLine('Régime matrimonial :', divorce.regimeMatrimonial || '');
-      y = writeLine('Date du jugement :', divorce.dateDivorce ? formatDate(divorce.dateDivorce) : '');
-      y = writeLine('Numéro du jugement :', divorce.numeroJugement || '');
-      
-      // Section Demandeur (époux)
-      y += 10;
-      doc.font('Times-Bold').fontSize(11).text('DEMANDEUR', { 
-        x: margin.left, 
-        y: y,
-        width: doc.page.width - margin.left - margin.right,
-        align: 'center'
-      });
-      y += lineHeight - 5;
-      
-      y = writeLine('NOM :', epoux.nom?.toUpperCase() || '');
-      y = writeLine('Prénoms :', epoux.prenoms || '');
-      y = writeLine('Né(e) le :', epoux.dateNaissance ? formatDate(epoux.dateNaissance) : '');
-      y = writeLine('À :', epoux.lieuNaissance || '');
-      y = writeLine('Profession :', epoux.profession || '');
-      y = writeLine('Domicile :', epoux.adresse || '');
-      y = writeLine('Nationalité :', epoux.nationalite || '');
-      
-      // Section Défendeur (épouse)
-      y += 10;
-      doc.font('Times-Bold').fontSize(11).text('DÉFENDEUR', { 
-        x: margin.left, 
-        y: y,
-        width: doc.page.width - margin.left - margin.right,
-        align: 'center'
-      });
-      y += lineHeight - 5;
-      
-      y = writeLine('NOM :', epouse.nom?.toUpperCase() || '');
-      y = writeLine('Prénoms :', epouse.prenoms || '');
-      y = writeLine('Né(e) le :', epouse.dateNaissance ? formatDate(epouse.dateNaissance) : '');
-      y = writeLine('À :', epouse.lieuNaissance || '');
-      y = writeLine('Profession :', epouse.profession || '');
-      y = writeLine('Domicile :', epouse.adresse || '');
-      y = writeLine('Nationalité :', epouse.nationalite || '');
-      
-      // Section Enfants
-      if (divorce.enfants && divorce.enfants.length > 0) {
-        y += 10;
-        doc.font('Times-Bold').fontSize(11).text('ENFANTS ISSUS DU MARIAGE', { 
-          x: margin.left, 
-          y: y,
-          width: doc.page.width - margin.left - margin.right,
-          align: 'center'
-        });
-        y += lineHeight - 5;
-        
-        divorce.enfants.forEach((enfant, index) => {
-          y = writeLine(`Enfant ${index + 1} :`, 
-            `${enfant.prenom || ''} ${enfant.nom || ''} (${enfant.dateNaissance ? formatDate(enfant.dateNaissance) : ''})`
-          );
-        });
-      }
-      
-      // Section Décision
-      y += 10;
-      doc.font('Times-Bold').fontSize(11).text('DÉCISION', { 
-        x: margin.left, 
-        y: y,
-        width: doc.page.width - margin.left - margin.right,
-        align: 'center'
-      });
-      y += lineHeight - 5;
-      
-      // Motifs du divorce
-      if (divorce.motifs) {
-        y = writeLine('Motifs :', '');
-        doc.font('Times-Roman').fontSize(10).text(divorce.motifs, {
-          x: margin.left + 20,
-          y: y,
-          width: doc.page.width - margin.left - margin.right - 20,
-          align: 'left',
-          lineGap: 5
-        });
-        y += 40; // Ajuster selon la taille du texte
-      }
-      
-      // Garde des enfants
-      if (divorce.gardeEnfants) {
-        y = writeLine('Garde des enfants :', divorce.gardeEnfants);
-      }
-      
-      // Pension alimentaire
-      if (divorce.pensionAlimentaire) {
-        y = writeLine('Pension alimentaire :', divorce.pensionAlimentaire);
-      }
-      
-      // Autres décisions
-      if (divorce.autresDecisions) {
-        y = writeLine('Autres décisions :', '');
-        doc.font('Times-Roman').fontSize(10).text(divorce.autresDecisions, {
-          x: margin.left + 20,
-          y: y,
-          width: doc.page.width - margin.left - margin.right - 20,
-          align: 'left',
-          lineGap: 5
-        });
-        y += 30; // Ajuster selon la taille du texte
-      }
-      
-      // Pied de page avec signature et cachet
-      const signatureY = Math.max(y + 40, 650);
-      
-      // Date alignée à droite
-      const dateText = `Fait à Abéché, le ${data.dateEtablissement ? formatDate(data.dateEtablissement) : formatDate(new Date())}`;
-      doc.font('Times-Roman').fontSize(9).text(dateText, { 
-        align: 'right',
-        y: signatureY,
-        width: doc.page.width - margin.right * 2
-      });
-      
-      // Ligne de signature centrée
-      const lineY = signatureY + 20;
-      doc.lineWidth(0.3);
-      doc.moveTo(doc.page.width / 2 - 80, lineY).lineTo(doc.page.width / 2 + 80, lineY).stroke();
-      
-      // Texte sous la ligne de signature
-      doc.font('Times-Roman').fontSize(9).text('Le Président du Tribunal', { 
-        align: 'center',
-        y: lineY + 2,
-        width: doc.page.width - margin.right * 2
-      });
-      
-      // Cadre pour le cachet en haut à droite de la signature
-      const cachetSize = 65;
-      const cachetX = doc.page.width - margin.right - cachetSize - 10;
-      const cachetY = lineY - 10;
-      
-      // Dessiner le cadre du cachet
-      doc.rect(cachetX, cachetY, cachetSize, cachetSize).stroke();
-      
-      // Texte à l'intérieur du cachet
-      doc.font('Times-Roman').fontSize(8).text('CACHET ET', cachetX, cachetY + 18, { 
-        align: 'center',
-        width: cachetSize
-      });
-      doc.font('Times-Roman').fontSize(8).text('SIGNATURE', cachetX, cachetY + 30, { 
-        align: 'center',
-        width: cachetSize
-      });
-      
-      doc.end();
-      
-    } catch (error) {
-      console.error('Erreur dans generateDivorcePdf:', error);
-      reject(new Error(`Erreur lors de la génération du PDF de divorce: ${error.message}`));
-    }
-  });
-};
 
 // Fonction principale de génération de PDF
 const generatePdf = async (type, data) => {
@@ -996,14 +738,12 @@ const generatePdf = async (type, data) => {
     console.log('Type de document:', type);
     console.log('Données reçues:', JSON.stringify(data, null, 2));
     
-    let result;
-    
     switch (type) {
       case 'naissance':
         // Vérifier si les données sont déjà dans le format attendu (cas où on appelle directement generateNaissancePdf)
         if (data.nom || data.prenoms) {
           console.log('Données déjà formatées pour la naissance');
-          result = await generateNaissancePdf(data);
+          return await generateNaissancePdf(data);
         } 
         // Sinon, formater les données depuis la structure details
         else {
@@ -1023,55 +763,62 @@ const generatePdf = async (type, data) => {
             // Informations des parents
             pere: {
               nom: data.details?.pere || data.pere?.nom || data.nomPere || '',
-              prenoms: data.details?.prenomPere || data.pere?.prenoms || data.prenomPere || ''
+              prenom: data.details?.prenomPere || data.pere?.prenom || data.prenomPere || '',
+              dateNaissance: data.details?.dateNaissancePere || data.pere?.dateNaissance || '',
+              lieuNaissance: data.details?.lieuNaissancePere || data.pere?.lieuNaissance || '',
+              profession: data.details?.professionPere || data.pere?.profession || '',
+              adresse: data.details?.adressePere || data.pere?.adresse || ''
             },
-            
             mere: {
               nom: data.details?.mere || data.mere?.nom || data.nomMere || '',
-              prenoms: data.details?.prenomMere || data.mere?.prenoms || data.prenomMere || ''
+              prenom: data.details?.prenomMere || data.mere?.prenom || data.prenomMere || '',
+              dateNaissance: data.details?.dateNaissanceMere || data.mere?.dateNaissance || '',
+              lieuNaissance: data.details?.lieuNaissanceMere || data.mere?.lieuNaissance || '',
+              profession: data.details?.professionMere || data.mere?.profession || '',
+              adresse: data.details?.adresseMere || data.mere?.adresse || ''
             },
             
-            // Adresse
-            adresse: data.details?.adresse || data.adresse || data.adresseDeclarant || ''
+            // Informations de déclaration
+            dateDeclaration: data.details?.dateDeclaration || data.dateDeclaration || new Date().toISOString(),
+            heureDeclaration: data.details?.heureDeclaration || data.heureDeclaration || '',
+            
+            // Informations du déclarant (si différent des parents)
+            declarant: data.details?.declarant || data.declarant || {},
+            
+            // Informations complémentaires
+            mentionsMarginales: data.details?.mentionsMarginales || data.mentionsMarginales || []
           };
           
           console.log('Données formatées pour la naissance:', JSON.stringify(naissanceData, null, 2));
-          result = await generateNaissancePdf(naissanceData);
+          return await generateNaissancePdf(naissanceData);
         }
-        break;
         
       case 'mariage':
-        result = await generateMariagePdf(data);
-        break;
+        return await generateMariagePdf(data);
         
       case 'deces':
-        result = await generateDecesPdf(data);
-        break;
-        
-      case 'divorce':
-        result = await generateDivorcePdf(data);
-        break;
+        return await generateDecesPdf(data);
         
       default:
-        throw new PdfGenerationError('Type de document non pris en charge', 'UNSUPPORTED_DOCUMENT_TYPE');
+        throw new PdfGenerationError(`Type de document non pris en charge: ${type}`, 'INVALID_TYPE');
     }
-    
-    console.log('=== FIN GÉNÉRATION PDF ===');
-    return result;
-    
   } catch (error) {
-    console.error('Erreur dans generatePdf:', {
-      message: error.message,
-      stack: error.stack,
+    console.error('Erreur lors de la génération du PDF:', {
       type,
+      error: error.message,
+      stack: error.stack,
       data: JSON.stringify(data, null, 2)
     });
     
-    if (error instanceof PdfGenerationError) throw error;
+    if (error instanceof PdfGenerationError) {
+      throw error;
+    }
+    
+    // Envelopper les erreurs inattendues dans une erreur PdfGenerationError
     throw new PdfGenerationError(
-      'Erreur lors de la génération du PDF', 
-      'GENERATION_ERROR', 
-      { error: error.message }
+      `Erreur lors de la génération du PDF: ${error.message}`,
+      'GENERATION_ERROR',
+      { originalError: error.message }
     );
   }
 };

@@ -9,17 +9,20 @@ const Deces = require('../models/Deces');
 // Récupérer les événements du calendrier
 router.get('/', async (req, res, next) => {  
   try {
-    const { start, end } = req.query;
-    
+    let { start, end } = req.query;
+
+    // Si start/end manquent, on utilise le mois courant comme plage par défaut
     if (!start || !end) {
-      return res.status(400).json({
-        success: false,
-        message: 'Les paramètres de date de début et de fin sont requis'
-      });
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      start = start || firstDay.toISOString();
+      end = end || lastDay.toISOString();
+      logger.info('Paramètres start/end manquants — utilisation du mois courant par défaut');
     }
-    
+
     logger.info(`Récupération des événements du ${start} au ${end}`);
-    
+
     // Convertir les dates en objets Date
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -111,8 +114,17 @@ router.get('/', async (req, res, next) => {
     ];
     
     logger.info(`Retour de ${events.length} événements`);
-    
-    res.json(events);
+
+    // S'assurer que les dates sont sérialisables proprement (ISO strings)
+    const serialized = events.map(ev => ({
+      id: ev.id,
+      title: ev.title,
+      start: (ev.start instanceof Date) ? ev.start.toISOString() : ev.start,
+      color: ev.color,
+      extendedProps: ev.extendedProps || {}
+    }));
+
+    res.json({ success: true, data: serialized });
     
   } catch (error) {
     logger.error('Erreur lors de la récupération des événements:', {

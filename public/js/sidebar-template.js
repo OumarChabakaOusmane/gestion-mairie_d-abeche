@@ -1,4 +1,4 @@
-// Template de sidebar réutilisable pour toutes les pages
+// Template de sidebar réutilisable pour toutes les pages - v2
 window.createSidebar = function(activePage = '') {
   return `
     <div class="sidebar">
@@ -23,11 +23,6 @@ window.createSidebar = function(activePage = '') {
         <li class="nav-item">
           <a class="nav-link ${activePage === 'mariage' ? 'active' : ''}" href="/mariage">
             <i class="fas fa-ring me-2"></i> Actes de Mariage
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link ${activePage === 'divorce' ? 'active' : ''}" href="/divorce">
-            <i class="fas fa-heart-broken me-2"></i> Actes de Divorce
           </a>
         </li>
         <li class="nav-item">

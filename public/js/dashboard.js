@@ -102,7 +102,6 @@ class Dashboard {
       'naissances': 'births-count',
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
-      'divorces': 'divorces-count',
       'documents': 'documents-count'
     };
 
@@ -153,8 +152,7 @@ class Dashboard {
     const types = {
       'naissance': 'bg-primary',
       'mariage': 'bg-success',
-      'deces': 'bg-dark',
-      'divorce': 'bg-danger'
+      'deces': 'bg-dark'
     };
     return types[type] || 'bg-secondary';
   }
@@ -163,8 +161,7 @@ class Dashboard {
     const labels = {
       'naissance': 'Naissance',
       'mariage': 'Mariage',
-      'deces': 'Décès',
-      'divorce': 'Divorce'
+      'deces': 'Décès'
     };
     return labels[type] || type;
   }
@@ -195,7 +192,6 @@ class Dashboard {
       'naissances': 'births-count',
       'mariages': 'marriages-count',
       'deces': 'deaths-count',
-      'divorces': 'divorces-count',
       'documents': 'documents-count'
     };
     Object.entries(statsElements).forEach(([key, elementId]) => {
@@ -495,7 +491,6 @@ class Dashboard {
       { key: 'naissances', id: 'births-progress' },
       { key: 'mariages', id: 'marriages-progress' },
       { key: 'deces', id: 'deaths-progress' },
-      { key: 'divorces', id: 'divorces-progress' },
       { key: 'total', id: 'documents-progress' }
     ];
     map.forEach(({ key, id }) => {

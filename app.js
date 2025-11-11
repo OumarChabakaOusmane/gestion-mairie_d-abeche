@@ -169,8 +169,6 @@ console.log('3. Route actes chargée');
 const documentRoutes = require('./routes/documents');
 console.log('4. Route documents chargée');
 
-const divorceRoutes = require('./routes/divorces');
-console.log('5. Route divorces chargée');
 
 
 const mariageRoutes = require('./routes/mariages');
@@ -290,8 +288,6 @@ console.log('Route /api/actes configurée');
 app.use('/api/documents', documentRoutes);
 console.log('Route /api/documents configurée');
 
-app.use('/api/divorces', divorceRoutes);
-console.log('Route /api/divorces configurée');
 
 app.use('/api/mariages', mariageRoutes);
 console.log('Route /api/mariages configurée');
@@ -345,56 +341,11 @@ app.get('/', (req, res) => {
 
 // Routes pour les pages HTML
 const htmlPages = [
-  'dashboard', 'naissance', 'mariage', 'deces', 'divorces',
+  'dashboard', 'naissance', 'mariage', 'deces',
   'calendrier', 'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
   'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];
 
-// Route pour le formulaire de divorce avec authentification et CSRF
-app.get('/divorce', csrfProtection, (req, res) => {
-  // Vérifier si l'utilisateur est authentifié
-  const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
-  
-  if (!token) {
-    return res.redirect('/login?redirect=/divorce');
-  }
-  
-  // Vérifier la validité du token
-  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-    if (err) {
-      // Si le token est invalide, rediriger vers la page de connexion
-      return res.redirect('/login?redirect=/divorce');
-    }
-    
-    try {
-      // Vérifier si l'utilisateur existe
-      const user = await User.findById(decoded.id);
-      if (!user) {
-        return res.redirect('/login?redirect=/divorce');
-      }
-      
-      // Rendre la page avec le token CSRF
-      res.render('divorce', { 
-        title: 'Nouvel acte de divorce',
-        csrfToken: req.csrfToken()
-      });
-    } catch (error) {
-      console.error('Erreur lors de la vérification de l\'utilisateur:', error);
-      res.status(500).send('Erreur interne du serveur');
-    }
-  });
-});
-
-// Alias pratique: /divorce/:id -> redirige vers le formulaire en mode édition
-app.get('/divorce/:id', (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.redirect('/divorce');
-  }
-  // Conserve la query string existante en ajoutant edit
-  const qs = new URLSearchParams({ ...req.query, edit: id }).toString();
-  res.redirect(`/divorce?${qs}`);
-});
 
 htmlPages.forEach(page => {
   app.get(`/${page}`, (req, res) => {
@@ -578,6 +529,6 @@ server.listen(PORT, () => {
   console.log('Structure chargée:');
   console.log('- Middleware: auth.js');
   console.log('- Models: Acte, Conversation, Document, Message, PendingUser, User');
-  console.log('- Routes: auth, users, actes, documents, divorces, mariages, dashboard, calendrier, conversations, naissances, messagerie, rapports, settings');
+  console.log('- Routes: auth, users, actes, documents, mariages, dashboard, calendrier, conversations, naissances, messagerie, rapports, settings');
   console.log('- Views:  pages HTML');
 });

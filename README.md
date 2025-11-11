@@ -7,7 +7,6 @@ Application de gestion municipale pour la mairie d'Abéché, développée avec N
 - **Gestion des Actes d'État Civil**
   - Actes de naissance
   - Actes de mariage
-  - Actes de divorce
   - Actes de décès
   - Génération automatique de documents PDF
 
@@ -109,7 +108,7 @@ L'application sera accessible sur `http://localhost:3000`
 
 - **Fichier de génération PDF**
   - `services/pdfService.js` est le service utilisé par la route `/api/actes/:id/pdf`.
-  - Le service prend en charge les types d'actes suivants : naissance, mariage, décès et divorce.
+  - Le service prend en charge les types d'actes suivants : naissance, mariage et décès.
 
 - **Où ajuster le rendu arabe**
   - La génération de PDF utilise maintenant le service unifié `pdfService`.

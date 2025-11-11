@@ -1,6 +1,6 @@
 /**
  * Fonction utilitaire pour télécharger un PDF
- * @param {string} type - Type d'acte (naissance, mariage, deces, divorce)
+ * @param {string} type - Type d'acte (naissance, mariage, deces)
  * @param {string} id - ID de l'acte
  * @param {string} [buttonId] - ID du bouton de téléchargement (optionnel)
  * @returns {Promise<void>}
