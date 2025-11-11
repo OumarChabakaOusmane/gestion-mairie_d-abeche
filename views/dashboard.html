@@ -7,7 +7,19 @@
   <title>Tableau de bord - État Civil Abéché</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style id="common-styles"></style>
+  <style id="common-styles">
+    /* Styles de base */
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+    
+    /* Style spécifique pour le header du tableau de bord */
+    .dashboard-header {
+      background: #0d6efd;
+      transition: background-color 0.3s ease;
+    }
+  </style>
   <style>
     .dashboard-header {
       background: #0d6efd;
@@ -443,15 +455,10 @@
     }
 
     /* Ajustements pour les petits écrans */
-    @media (max-width: 992px) {
+    @media (max-width: 768px) {
       .stat-card {
-        height: auto;
-        min-height: 120px;
-      }
-
-      .dashboard-header h1 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+        height: 160px;
+        padding: 1.25rem;
       }
 
       .stat-card .stat-number {
@@ -459,15 +466,101 @@
         color: white;
       }
       
-      .stat-card {
-        height: 160px;
-        padding: 1.25rem;
-      }
-      
       .stat-label {
         font-size: 1rem;
         margin-bottom: 1rem;
       }
+      
+      /* Ajustements pour la table sur mobile */
+      .table-responsive {
+        border: none;
+      }
+      
+      .table thead {
+        display: none;
+      }
+      
+      .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+      }
+      
+      .table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+      }
+      
+      .table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid #dee2e6;
+      }
+      
+      .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: 45%;
+        text-align: left;
+        font-weight: bold;
+      }
+    }
+    
+    /* Styles pour la section Gestion d'actes */
+    .table {
+      margin-bottom: 0;
+      --bs-table-bg: #ffffff;
+      --bs-table-striped-bg: #f8f9fa;
+      --bs-table-hover-bg: #f1f1f1;
+      color: #212529;
+    }
+    
+    .table thead th {
+      background-color: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+    }
+    
+    .table tbody tr {
+      transition: background-color 0.15s ease-in-out;
+    }
+    
+    .table tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    /* Style pour les boutons d'action */
+    .btn-action {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      margin: 0 0.125rem;
+      border-radius: 0.25rem;
+    }
+    
+    /* Style pour les badges de type d'acte */
+    .badge-type {
+      font-size: 0.8em;
+      padding: 0.35em 0.65em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge-naissance {
+      background-color: #198754;
+      color: white;
+    }
+    
+    .badge-mariage {
+      background-color: #0d6efd;
+      color: white;
+    }
+    
+    .badge-deces {
+      background-color: #dc3545;
+      color: white;
     }
   </style>
 </head>
@@ -486,10 +579,10 @@
           </div>
           
           <div class="header-controls">
-            <!-- Bouton de mode sombre -->
-            <button class="btn btn-outline-light" id="themeToggle" title="Changer de thème">
-              <i class="fas fa-moon" id="themeIcon"></i>
-              <span id="themeText">Mode sombre</span>
+            <!-- Bouton de recherche -->
+            <button class="btn btn-outline-light" id="searchBtn" title="Rechercher">
+              <i class="fas fa-search" id="searchIcon"></i>
+              <span id="searchText">Rechercher</span>
             </button>
             
             <!-- Sélecteur de langue -->
@@ -524,9 +617,6 @@
                        id="globalSearch" 
                        placeholder="Rechercher dans tous les actes..."
                        style="font-size: 0.95rem;">
-                <button class="btn btn-primary px-4" type="button" id="searchBtn">
-                  <i class="fas fa-search me-1"></i> Rechercher
-                </button>
               </div>
             </div>
           </div>
@@ -707,46 +797,83 @@
       showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
     }
 
-    // Fonctions pour le toggle de thème
-    function toggleTheme() {
-      const currentTheme = document.body.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-      document.body.setAttribute('data-theme', newTheme);
-      localStorage.setItem('selectedTheme', newTheme);
-
-      const themeIcon = document.getElementById('themeIcon');
-      if (themeIcon) {
-        if (newTheme === 'dark') {
-          themeIcon.className = 'fas fa-sun';
-        } else {
-          themeIcon.className = 'fas fa-moon';
-        }
-      }
-
-      showSuccess(`Mode ${newTheme === 'dark' ? 'sombre' : 'clair'} activé`);
-    }
-
     // Initialiser les préférences
     function initializePreferences() {
-      // Charger le thème sauvegardé
-      const savedTheme = localStorage.getItem('selectedTheme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
-      const themeIcon = document.getElementById('themeIcon');
-      if (themeIcon) {
-        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-      }
+      try {
+        // Appliquer le thème clair par défaut
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+        
+        // Mettre à jour l'icône du thème
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) {
+          themeIcon.className = 'fas fa-moon';
+        }
+        
+        // Gestion de la langue
+        const defaultLang = 'fr';
+        const savedLang = localStorage.getItem('selectedLanguage') || defaultLang;
+        if (savedLang !== defaultLang && typeof changeLanguage === 'function') {
+          changeLanguage(savedLang);
+        }
 
-      // Charger la langue sauvegardée
-      const savedLang = localStorage.getItem('selectedLanguage') || 'fr';
-      if (savedLang !== 'fr') {
-        changeLanguage(savedLang);
+        // Gestion du chargement
+        const handleContentVisibility = () => {
+          try {
+            if (document.readyState === 'complete') {
+              document.body.style.visibility = 'visible';
+              document.body.style.opacity = '1';
+              document.body.style.transition = 'opacity 0.3s ease-in-out';
+            } else {
+              window.addEventListener('load', () => {
+                document.body.style.visibility = 'visible';
+                document.body.style.opacity = '1';
+                document.body.style.transition = 'opacity 0.3s ease-in-out';
+              });
+            }
+          } catch (e) {
+            console.error('Erreur lors de la gestion de la visibilité:', e);
+            document.body.style.visibility = 'visible';
+          }
+        };
+
+        // Démarrer la gestion de la visibilité
+        setTimeout(handleContentVisibility, 50);
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation des préférences:', error);
+        document.body.style.visibility = 'visible';
       }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const token = checkAuth();
-      if (!token) return;
+      try {
+        // Masquer le contenu pendant l'initialisation
+        document.body.style.visibility = 'hidden';
+        document.body.style.opacity = '0';
+        
+        // Vérifier l'authentification
+        const token = checkAuth();
+        if (!token) {
+          window.location.href = '/login';
+          return;
+        }
+
+        // Initialiser les préférences (y compris le thème)
+        initializePreferences();
+        
+        // Gestion des erreurs globales
+        window.addEventListener('error', (event) => {
+          console.error('Erreur JavaScript non gérée:', event.error || event.message, event);
+          // S'assurer que le contenu reste visible même en cas d'erreur
+          document.body.style.visibility = 'visible';
+          document.body.style.opacity = '1';
+        });
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation du document:', error);
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+      }
 
       document.getElementById('common-styles').textContent = commonCSS;
       document.getElementById('sidebar-container').innerHTML = createSidebar('dashboard');

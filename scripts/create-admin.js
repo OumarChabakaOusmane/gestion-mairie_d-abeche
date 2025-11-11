@@ -8,10 +8,8 @@ const User = require('../models/User');
 async function createAdmin() {
   try {
     // Connexion à la base de données
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    // Mongoose v6+ no longer requires useNewUrlParser/useUnifiedTopology options.
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('Connecté à la base de données');
 
     // Vérifier si l'administrateur existe déjà

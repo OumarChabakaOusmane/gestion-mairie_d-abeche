@@ -6,7 +6,50 @@
   <title id="pageTitle">Actes de Mariage - État Civil Tchad</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style id="common-styles"></style>
+  <style id="common-styles">
+    /* Styles de base */
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+    
+    /* Style spécifique pour le conteneur principal */
+    .main-content {
+      padding: 2rem 0;
+    }
+    
+    /* Styles pour les cartes en mode clair */
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      padding: 2rem;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-header {
+      border-bottom: 2px solid #e74c3c;
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .form-text,
+    .text-muted {
+      color: #6c757d !important;
+    }
+    
+    .step {
+      background-color: #f8f9fa;
+      color: #212529;
+    }
+    
+    .step.active {
+      background-color: #e74c3c;
+      color: white;
+    }
+  </style>
   <style>
     .form-container {
       background: white;

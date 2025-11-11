@@ -100,16 +100,17 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression HTTP pour réduire la taille des réponses
 app.use(compression());
 
-// Configuration du moteur de vue EJS
-app.set('view engine', 'ejs');
+// Configuration du moteur de vue HTML
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middleware pour les fichiers statiques
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1y',
-  etag: true,
-  lastModified: true
-}));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/fonts', express.static(path.join(__dirname, 'public/fonts')));
 
 // Middleware pour ajouter le token CSRF aux réponses
 app.use((req, res, next) => {

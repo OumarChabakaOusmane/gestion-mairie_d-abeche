@@ -4,56 +4,8 @@ const { body, validationResult } = require('express-validator');
 
 // Protection contre les attaques courantes
 exports.securityHeaders = helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: [
-        "'self'",
-        "http://localhost:3000",
-        "https://api.example.com",
-        "wss://your-socket-server.com",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.socket.io",
-        "https://code.jquery.com",
-        "https://unpkg.com"
-      ],
-      scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'",
-        "'unsafe-eval'",
-        "'unsafe-hashes'",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.socket.io",
-        "https://code.jquery.com",
-        "https://unpkg.com"
-      ],
-      scriptSrcAttr: [
-        "'self'",
-        "'unsafe-inline'"
-      ],
-      styleSrc: [
-        "'self'", 
-        "'unsafe-inline'",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com"
-      ],
-      imgSrc: [
-        "'self'", 
-        "data:",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com",
-        "data:"
-      ]
-    }
-  },
-  hsts: true,
+  contentSecurityPolicy: false, // Désactiver temporairement CSP pour le débogage
+  hsts: false, // Désactiver HSTS temporairement
   frameguard: { action: 'deny' },
   noSniff: true,
   // xssFilter a été retiré de helmet v4+; ne pas l'utiliser

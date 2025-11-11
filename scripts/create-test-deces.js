@@ -5,10 +5,8 @@ const Acte = require('../models/Acte');
 async function createTestDeces() {
   try {
     // Connexion à la base de données
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wenaklabs', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Mongoose v6+ no longer needs useNewUrlParser/useUnifiedTopology options.
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wenaklabs');
 
     console.log('Connecté à la base de données');
 

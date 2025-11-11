@@ -117,7 +117,9 @@ const naissanceSchema = new mongoose.Schema({
 });
 
 // Index pour les recherches fréquentes
-naissanceSchema.index({ numeroActe: 1 });
+// `numeroActe` is marked `unique: true` in the schema which creates
+// a unique index automatically. Removing the explicit index avoids
+// duplicate-index warnings from Mongoose.
 naissanceSchema.index({ nomEnfant: 1, prenomsEnfant: 1 });
 naissanceSchema.index({ 'dateNaissance': 1 });
 naissanceSchema.index({ nomPere: 1, prenomsPere: 1 });
