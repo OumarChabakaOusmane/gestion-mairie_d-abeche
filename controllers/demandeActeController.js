@@ -31,7 +31,8 @@ exports.createDemande = async (req, res) => {
       });
     }
 
-        const nouvelleDemande = new DemandeActe({
+        // Préparation des données de la demande
+    const demandeData = {
       demandeur: userId,
       nom: req.body.nom || user.nom,
       prenom: req.body.prenom || user.prenom,
@@ -40,12 +41,67 @@ exports.createDemande = async (req, res) => {
       adresse: req.body.adresse || user.adresse,
       typeActe: req.body.typeActe,
       typeDocument: req.body.typeDocument,
-      detailsActe: req.body.detailsActe,
       piecesJointes: piecesJointes,
-      statut: 'en-attente'
-    });
+      statut: 'en-attente',
+      detailsActe: {
+        ...req.body.detailsActe
+      }
+    };
 
-    const demandeSauvegardee = await nouvelleDemande.save();
+    // Gestion spécifique pour les actes de décès
+    if (req.body.typeActe === 'deces') {
+      demandeData.detailsActe.deces = {
+        dateDeces: req.body.dateDeces,
+        heureDeces: req.body.heureDeces,
+        typeLieuDeces: req.body.typeLieuDeces,
+        lieuDeces: req.body.lieuDeces,
+        communeDeces: req.body.communeDeces,
+        typeCauseDeces: req.body.typeCauseDeces,
+        ...(req.body.typeLieuDeces === 'domicile' && { 
+          adresseDeces: req.body.adresseDeces 
+        }),
+        ...(req.body.typeLieuDeces === 'hopital' && { 
+          hopitalDeces: req.body.hopitalDeces 
+        }),
+        ...(req.body.typeLieuDeces === 'autre' && { 
+          detailsAutreLieu: req.body.detailsAutreLieu 
+        })
+      };
+    }
+
+    const nouvelleDemande = new DemandeActe(demandeData);
+
+    // Validation manuelle supplémentaire pour s'assurer que tous les champs requis sont présents
+    const validationError = nouvelleDemande.validateSync();
+    if (validationError) {
+      // Supprimer les fichiers uploadés en cas d'erreur
+      await Promise.all(piecesJointes.map(file => 
+        unlinkAsync(file.cheminFichier).catch(console.error)
+      ));
+      
+      // Formater les erreurs de validation pour un affichage plus clair
+      const errors = [];
+      for (const field in validationError.errors) {
+        errors.push(validationError.errors[field].message);
+      }
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Erreur de validation',
+        errors: errors
+      });
+    }
+
+    let demandeSauvegardee;
+    try {
+      demandeSauvegardee = await nouvelleDemande.save();
+    } catch (saveError) {
+      // En cas d'erreur lors de la sauvegarde, supprimer les fichiers uploadés
+      await Promise.all(piecesJointes.map(file => 
+        unlinkAsync(file.cheminFichier).catch(console.error)
+      ));
+      throw saveError;
+    }
 
     // Envoyer un email de confirmation
     try {

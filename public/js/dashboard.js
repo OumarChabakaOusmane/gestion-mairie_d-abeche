@@ -392,11 +392,11 @@ class Dashboard {
     // Nettoyer les anciens listeners
     this.cleanup();
     
-    // Style et débogage du bouton d'actualisation
-    const refreshBtn = document.getElementById('refresh-btn');
+    // Gestion du bouton de rafraîchissement
+    const refreshBtn = document.getElementById('refreshButton');
     if (refreshBtn) {
-      // Style visuel pour le débogage
-      refreshBtn.style.border = '2px solid #dc3545';
+      // Ajouter une animation de rotation au clic
+      refreshBtn.style.transition = 'transform 0.5s ease';
       refreshBtn.style.padding = '5px';
       
       // Lier le gestionnaire d'événements avec le bon contexte

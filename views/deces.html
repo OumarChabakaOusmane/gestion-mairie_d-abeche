@@ -962,204 +962,310 @@
       );
     }
     
-    // Fonction pour valider une étape du formulaire
-    // Fonction pour valider une étape du formulaire
-    function validateStep(step) {
-      console.log('Début de la validation de l\'étape', step);
-      let isValid = true;
-      let errorMessage = '';
+    // Mise à jour du champ âge
+    if (age >= 0) {
+      document.querySelector('input[name="ageDeces"]').value = age;
+    }
+  }
+  
+  // Fonction pour afficher les erreurs de formulaire
+  function showError(message) {
+    // Vérifier si une alerte est déjà affichée
+    if (document.querySelector('.swal2-container')) {
+      return; // Ne pas afficher une nouvelle alerte si une est déjà présente
+    }
+    
+    console.log('Affichage du message d\'erreur:', message);
+    
+    // Utiliser SweetAlert2 pour afficher l'erreur
+    Swal.fire({
+      icon: 'error',
+      title: 'Erreur',
+      text: message,
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#0d6efd',
+      customClass: {
+        confirmButton: 'btn btn-primary'
+      },
+      buttonsStyling: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+    
+    // Faire défiler vers le haut pour voir le message
+    $('html, body').animate({
+      scrollTop: $('.page-container').offset().top - 20
+    }, 500);
+  }
+  
+  // Fonction pour afficher un message de succès
+  function showSuccess(message) {
+    // Vérifier si une alerte est déjà affichée
+    if (document.querySelector('.swal2-container')) {
+      return; // Ne pas afficher une nouvelle alerte si une est déjà présente
+    }
+    
+    // Utiliser SweetAlert2 pour afficher un toast de succès
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+    
+    Toast.fire({
+      icon: 'success',
+      title: message
+    });
+  }
+  
+  // Fonction pour afficher une alerte
+  function showAlert(message, type = 'info') {
+    return Swal.fire({
+      icon: type,
+      title: 'Information',
+      text: message,
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#0d6efd'
+    });
+  }
+  
+  // Gestion des champs conditionnels
+  function toggleConditionalFields() {
+    // Afficher/masquer les détails de mort violente
+    if ($('input[name="mortViolente"]').is(':checked')) {
+      $('#detailsMortViolente').slideDown(300);
+      $('input[name="lieuFaits"], input[name="dateHeureFaits"], textarea[name="circonstancesViolentes"]').prop('required', true);
+    } else {
+      $('#detailsMortViolente').slideUp(300);
+      $('input[name="lieuFaits"], input[name="dateHeureFaits"], textarea[name="circonstancesViolentes"]').prop('required', false);
+    }
+    
+    // Gestion des champs du conjoint
+    const situationMatrimoniale = $('select[name="situationMatrimoniale"]').val();
+    if (situationMatrimoniale === 'Marié(e)') {
+      $('#conjointField').slideDown(300);
+      $('input[name="nomConjoint"]').prop('required', true);
+    } else {
+      $('#conjointField').slideUp(300);
+      $('input[name="nomConjoint"]').prop('required', false);
+    }
+    
+    // Gestion du type de pièce d'identité
+    const typePiece = $('select[name="typePiece"]').val();
+    $('input[name="numeroPiece"]').attr('placeholder', 
+      typePiece === 'CNI' ? 'Numéro de CNI (12 chiffres)' : 
+      typePiece === 'Passeport' ? 'Numéro de passeport' : 'Numéro de la pièce'
+    );
+  }
+  
+  // Fonction pour valider une étape du formulaire
+  function validateStep(step) {
+    console.log('Début de la validation de l\'étape', step);
+    const currentSection = $(`#section-${step}`);
+    console.log('Validation de la section:', currentSection.attr('id'));
+    
+    // Masquer les messages d'erreur précédents
+    $('.alert-danger').remove();
+    currentSection.find('.is-invalid').removeClass('is-invalid');
+    currentSection.find('.parsley-error').removeClass('parsley-error');
+    currentSection.find('.parsley-errors-list').remove();
+    currentSection.find('.invalid-feedback').remove();
+    
+    // Récupérer l'instance Parsley
+    const parsleyForm = $('#formDeces').parsley();
+    
+    // Valider uniquement les champs visibles et requis de l'étape actuelle
+    let isValid = true;
+    const requiredFields = currentSection.find('[required]:visible');
+    
+    // Vérifier d'abord les champs requis
+    requiredFields.each(function() {
+      const field = $(this);
+      const value = field.val();
       
-      // Ne valider que l'étape actuelle, pas les suivantes
-      const currentSection = $(`#section-${step}`);
-      console.log('Validation de la section:', currentSection.attr('id'));
-      
-      // Trouver uniquement les champs requis visibles dans l'étape actuelle
-      const requiredFields = currentSection.find('[required]:visible');
-      console.log('Champs requis trouvés dans l\'étape', step, ':', requiredFields.length);
-      
-      // Réinitialiser les états d'erreur
-      requiredFields.removeClass('is-invalid');
-      
-      // Validation des champs requis de l'étape en cours
-      requiredFields.each(function() {
-        const $field = $(this);
-        const value = $field.val();
-        const fieldName = $field.attr('name') || 'ce champ';
+      // Vérifier si le champ est vide
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        field.addClass('is-invalid');
+        isValid = false;
         
-        // Vérifier si le champ est vide ou contient uniquement des espaces
-        if (!value || (typeof value === 'string' && value.trim() === '')) {
-          errorMessage += `Le champ ${fieldName} est obligatoire.\n`;
-          $field.addClass('is-invalid');
-          isValid = false;
-        } else {
-          // Validation spécifique pour les champs de date
-          if ($field.attr('type') === 'date') {
-            const dateValue = new Date(value);
-            if (isNaN(dateValue.getTime())) {
-              errorMessage += `Le format de date pour ${fieldName} est invalide.\n`;
-              $field.addClass('is-invalid');
-              isValid = false;
-            } else if (fieldName === 'dateNaissance') {
-              const aujourdHui = new Date();
-              if (dateValue > aujourdHui) {
-                errorMessage += 'La date de naissance ne peut pas être dans le futur.\n';
-                $field.addClass('is-invalid');
-                isValid = false;
-              } else if (moment().diff(dateValue, 'years') > 120) {
-                errorMessage += 'La date de naissance semble incorrecte (plus de 120 ans).\n';
-                $field.addClass('is-invalid');
-                isValid = false;
-              }
+        // Ajouter un message d'erreur personnalisé
+        const fieldLabel = field.closest('.mb-3').find('label').text().replace('*', '').trim();
+        const errorMessage = fieldLabel ? `Le champ "${fieldLabel}" est obligatoire` : 'Ce champ est obligatoire';
+        
+        // Afficher le message d'erreur sous le champ
+        if (field.next('.invalid-feedback').length === 0) {
+          field.after(`<div class="invalid-feedback">${errorMessage}</div>`);
+        }
+      }
+    });
+    
+    // Si les champs requis sont valides, valider les autres contraintes
+    if (isValid) {
+      // Valider uniquement les champs visibles de l'étape courante
+      const fieldsToValidate = currentSection.find('[data-parsley-pattern], [data-parsley-type], [data-parsley-minlength], [data-parsley-maxlength], [data-parsley-min], [data-parsley-max]');
+      
+      fieldsToValidate.each(function() {
+        const field = $(this);
+        if (field.is(':visible')) {
+          const fieldInstance = field.parsley();
+          if (fieldInstance && !fieldInstance.isValid()) {
+            field.addClass('is-invalid');
+            isValid = false;
+            
+            // Afficher les messages d'erreur de Parsley
+            const errors = fieldInstance.getErrorsMessages();
+            if (errors.length > 0 && field.next('.invalid-feedback').length === 0) {
+              field.after(`<div class="invalid-feedback">${errors[0]}</div>`);
             }
           }
         }
       });
-      
-      if (!isValid) {
-        console.log('Erreurs de validation pour l\'étape', step, ':', errorMessage);
-        showError(errorMessage);
+    }
+    
+    // Afficher les erreurs si nécessaire
+    if (!isValid) {
+      const firstError = currentSection.find('.is-invalid, .parsley-error').first();
+      if (firstError.length) {
+        $('html, body').animate({
+          scrollTop: firstError.offset().top - 100
+        }, 500);
         
-        // Faire défiler jusqu'au premier champ en erreur
-        if (currentSection.find('.is-invalid').length > 0) {
-          $('html, body').animate({
-            scrollTop: currentSection.find('.is-invalid').first().offset().top - 100
-          }, 500);
+        // Afficher un message d'erreur général seulement s'il n'y a pas déjà de message spécifique
+        if (currentSection.find('.invalid-feedback:visible').length === 0) {
+          showError('Veuillez corriger les erreurs dans le formulaire');
         }
-      } else {
-        console.log('Aucune erreur de validation détectée pour l\'étape', step);
       }
-      
-      return isValid;
     }
     
-    // Fonction pour afficher une étape spécifique
-    function showStep(step) {
-      console.log('showStep appelée avec step =', step);
-      
-      // Vérifier si l'étape demandée est valide
-      const $targetSection = $(`#section-${step}`);
-      if (!$targetSection.length) {
-        console.error('Impossible de trouver la section', step);
-        return false;
-      }
-      
-      // Désactiver toutes les sections
-      $('.form-section').removeClass('active');
-      
-      // Activer la section demandée
-      $targetSection.addClass('active');
-      console.log('Section activée:', $targetSection.attr('id'));
-      
-      // Mettre à jour la barre de progression
-      $('.step').removeClass('active');
-      $(`.step[data-step="${step}"]`).addClass('active');
-      
-      // Faire défiler vers le haut de la section
-      $('html, body').animate({
-        scrollTop: $targetSection.offset().top - 20
-      }, 500);
-      
-      return true;
+    return isValid;
+  }
+  
+  // Fonction pour afficher une étape spécifique
+  function showStep(step) {
+    console.log('showStep appelée avec step =', step);
+    
+    // Vérifier si l'étape demandée est valide
+    const $targetSection = $(`#section-${step}`);
+    if (!$targetSection.length) {
+      console.error('Impossible de trouver la section', step);
+      return false;
     }
     
-    // Fonction pour initialiser les boutons de navigation
-    function initNavigationButtons() {
-      console.log('Initialisation des boutons de navigation');
-      
-      // Supprimer tous les gestionnaires d\'événements existants
-      $(document).off('click', '.btn-next');
-      $(document).off('click', '.btn-previous');
-      
-      // Gestionnaire pour le bouton Suivant
-      $(document).on('click', '.btn-next', function(e) {
-        e.preventDefault();
-        
-        const $button = $(this);
-        const $activeSection = $('.form-section.active');
-        
-        if (!$activeSection.length) {
-          console.error('Aucune section active trouvée');
-          return;
-        }
-        
-        const currentStep = parseInt($activeSection.attr('id').split('-')[1]);
-        const nextStep = parseInt($button.data('next'));
-        
-        console.log('Navigation - De:', currentStep, 'À:', nextStep);
-        
-        // Désactiver temporairement le bouton pour éviter les clics multiples
-        $button.prop('disabled', true);
-        
-        // Valider l'étape actuelle avant de passer à la suivante
-        if (validateStep(currentStep)) {
-          console.log('Validation réussie, passage à l\'étape', nextStep);
-          
-          // Ajouter un délai pour permettre l'animation
-          setTimeout(() => {
-            if (showStep(nextStep)) {
-              // Réactiver le bouton après la transition
-              $button.prop('disabled', false);
-            } else {
-              // En cas d'erreur, réactiver le bouton
-              $button.prop('disabled', false);
-            }
-          }, 300);
-        } else {
-          // En cas d'échec de validation, réactiver le bouton
-          $button.prop('disabled', false);
-        }
-      });
-      
-      // Gestionnaire pour le bouton Précédent
-      $(document).on('click', '.btn-previous', function(e) {
-        e.preventDefault();
-        
-        const $button = $(this);
-        const previousStep = parseInt($button.data('previous'));
-        console.log('Retour à l\'étape', previousStep);
-        
-        // Désactiver temporairement le bouton
-        $button.prop('disabled', true);
-        
-        // Pas de validation pour le retour
-        showStep(previousStep);
-        
-        // Réactiver le bouton après un court délai
-        setTimeout(() => {
-          $button.prop('disabled', false);
-        }, 300);
-      });
-      
-      console.log('Boutons de navigation initialisés');
+    // Masquer tous les messages d'erreur
+    $('.alert-danger').remove();
+    
+    // Masquer toutes les sections
+    $('.form-section').removeClass('active');
+    
+    // Afficher la section demandée
+    $targetSection.addClass('active');
+    console.log('Section activée:', $targetSection.attr('id'));
+    
+    // Mettre à jour les indicateurs d'étape
+    $('.step').removeClass('active');
+    $(`.step[data-step="${step}"]`).addClass('active');
+    
+    // Réinitialiser les erreurs de validation pour tous les champs
+    $('.is-invalid').removeClass('is-invalid');
+    $('.parsley-error').removeClass('parsley-error');
+    $('.parsley-errors-list').remove();
+    $('.invalid-feedback').remove();
+    
+    // Désactiver temporairement la validation automatique
+    const parsleyForm = $('#formDeces').parsley();
+    if (parsleyForm) {
+      parsleyForm.reset();
+      parsleyForm.options.trigger = 'none';
+      parsleyForm.options.triggerAfterFailure = 'none';
+      parsleyForm.options.uiEnabled = false;
     }
     
-    // Initialisation de l'application
-    $(document).ready(function() {
-      console.log('Document prêt, initialisation...');
-      
-      // Initialiser les boutons de navigation
-      initNavigationButtons();
-      
-      // Initialiser Parsley
-      $('#formDeces').parsley({
-        errorClass: 'is-invalid',
-        successClass: 'is-valid',
-        errorsWrapper: '<div class="invalid-feedback"></div>',
-        errorTemplate: '<span></span>',
-        trigger: 'change',
-        focus: 'first',
-        errorsContainer: function(ParsleyField) {
-          return ParsleyField.$element.closest('.mb-3');
-        },
-        classHandler: function(ParsleyField) {
-          return ParsleyField.$element.closest('.mb-3');
-        }
-      });
-      
-      // Activer/désactiver le champ autreQualiteDeclarant
-      $('select[name="qualiteDeclarant"]').on('change', function() {
-        const autreField = $('input[name="autreQualiteDeclarant"]');
-        if ($(this).val() === 'Autre') {
+    // Faire défiler vers le haut de la section en douceur
+    $('html, body').animate({
+      scrollTop: $targetSection.offset().top - 20
+    }, 300);
+    
+    // Mettre à jour l'URL avec l'étape actuelle
+    if (history.pushState) {
+      const newUrl = window.location.pathname + '?etape=' + step;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+    
+    return true;
+  }
+  
+  // Initialisation de l'application
+  $(document).ready(function() {
+    console.log('Document prêt, initialisation...');
+    
+    // Désactiver la validation HTML5 native
+    document.getElementById('formDeces').setAttribute('novalidate', '');
+    
+    // Initialiser les boutons de navigation
+    initNavigationButtons();
+    
+    // Configuration de Parsley
+    window.ParsleyConfig = {
+      errorsWrapper: '<div class="invalid-feedback"></div>',
+      errorTemplate: '<div></div>',
+      errorClass: 'is-invalid',
+      successClass: '',
+      classHandler: function(ParsleyField) {
+        return ParsleyField.$element.closest('.mb-3');
+      },
+      errorsContainer: function(ParsleyField) {
+        return ParsleyField.$element.closest('.mb-3');
+      },
+      trigger: 'none',
+      triggerAfterFailure: 'none',
+      uiEnabled: false
+    };
+    
+    // Initialiser Parsley avec la configuration
+    const parsleyForm = $('#formDeces').parsley({
+      // Désactiver la validation automatique
+      trigger: 'none',
+      triggerAfterFailure: 'none',
+      uiEnabled: false,
+      // Désactiver la validation des champs cachés
+      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
+      // Personnaliser les messages d'erreur
+      messages: {
+        required: 'Ce champ est obligatoire',
+        email: 'Veuillez entrer une adresse email valide',
+        number: 'Veuillez entrer un nombre valide',
+        integer: 'Veuillez entrer un nombre entier',
+        digits: 'Veuillez entrer uniquement des chiffres',
+        alphanum: 'Veuillez entrer uniquement des lettres et des chiffres'
+      },
+      // Désactiver la validation sur les champs désactivés ou en lecture seule
+      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
+      // Désactiver la validation sur les champs non visibles
+      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
+      // Désactiver la validation sur les champs désactivés
+      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden'
+    });
+    
+    // Désactiver la validation automatique sur tous les champs
+    $('input, select, textarea').each(function() {
+      $(this).attr('data-parsley-validate-if-empty', 'false');
+      $(this).attr('data-parsley-validate-if-unchecked', 'false');
+      $(this).attr('data-parsley-validate-if-empty', 'false');
+    });
+    
+    // Réinitialiser l'état de validation
+    parsleyForm.reset();
+    
+    // Activer/désactiver le champ autreQualiteDeclarant
+    $('select[name="qualiteDeclarant"]').on('change', function() {
+      const autreField = $('input[name="autreQualiteDeclarant"]');
+      if ($(this).val() === 'Autre') {
           autreField.prop('disabled', false).prop('required', true);
         } else {
           autreField.prop('disabled', true).prop('required', false).val('');
@@ -1170,6 +1276,29 @@
       $('select[name="qualiteDeclarant"]').trigger('change');
       
       // Initialiser les champs conditionnels
+  toggleConditionalFields();
+  
+  // Écouter les changements sur les champs qui affectent les champs conditionnels
+  $('input[name="mortViolente"]').on('change', toggleConditionalFields);
+  $('select[name="situationMatrimoniale"]').on('change', toggleConditionalFields);
+  $('select[name="typePiece"]').on('change', toggleConditionalFields);
+  
+  // Initialiser le sélecteur de date
+  $('.datepicker').datepicker({
+    format: 'dd/mm/yyyy',
+    autoclose: true,
+    todayHighlight: true,
+    language: 'fr',
+    orientation: 'bottom auto'
+  });
+  
+  // Initialiser le sélecteur d'heure
+  $('.timepicker').timepicker({
+    showMeridian: false,
+    minuteStep: 5
+  });
+  
+  console.log('Initialisation terminée');
       toggleConditionalFields();
       
       // Écouteurs d'événements pour les champs conditionnels
@@ -1630,40 +1759,50 @@
             type: 'deces',
             details: {
               // Informations du défunt
-              nom: data.nom,
-              prenom: data.prenom,
+              nom: data.nom.trim(),
+              prenom: data.prenom.trim(),
               dateNaissance: data.dateNaissance,
-              lieuNaissance: data.lieuNaissance,
+              lieuNaissance: data.lieuNaissance.trim(),
               sexe: data.sexe,
               nationalite: data.nationalite || 'Tchadienne',
-              profession: data.profession,
-              adresse: data.adresse,
+              profession: data.profession ? data.profession.trim() : '',
+              adresse: data.adresse ? data.adresse.trim() : '',
               
               // Informations du décès
               dateDeces: data.dateDeces,
               heureDeces: data.heureDeces,
-              lieuDeces: data.lieuDeces,
-              cause: data.cause,
+              typeLieuDeces: data.typeLieuDeces,
+              lieuDeces: data.lieuDeces.trim(),
+              communeDeces: data.communeDeces,
+              typeCauseDeces: data.typeCauseDeces,
+              
+              // Champs conditionnels selon le type de lieu
+              ...(data.typeLieuDeces === 'domicile' && { adresseDeces: data.adresseDeces }),
+              ...(data.typeLieuDeces === 'hopital' && { hopitalDeces: data.hopitalDeces }),
+              ...(data.typeLieuDeces === 'autre' && { detailsAutreLieu: data.detailsAutreLieu }),
+              
+              // Cause du décès (si disponible)
+              ...(data.cause && { cause: data.cause }),
               
               // Informations familiales
-              nomPere: data.nomPere,
-              nomMere: data.nomMere,
-              situationMatrimoniale: data.situationMatrimoniale,
-              nomConjoint: data.nomConjoint,
+              ...(data.nomPere && { nomPere: data.nomPere.trim() }),
+              ...(data.nomMere && { nomMere: data.nomMere.trim() }),
+              ...(data.situationMatrimoniale && { situationMatrimoniale: data.situationMatrimoniale }),
+              ...(data.nomConjoint && { nomConjoint: data.nomConjoint.trim() }),
               
               // Informations du déclarant
-              nomDeclarant: data.nomDeclarant,
-              prenomDeclarant: data.prenomDeclarant,
+              nomDeclarant: data.nomDeclarant.trim(),
+              prenomDeclarant: data.prenomDeclarant.trim(),
               lienDeclarant: data.lienDeclarant,
-              telephoneDeclarant: data.telephoneDeclarant,
+              telephoneDeclarant: data.telephoneDeclarant ? data.telephoneDeclarant.trim() : '',
               
               // Informations administratives
               dateEnregistrement: data.dateEnregistrement || new Date().toISOString().split('T')[0],
-              numeroCertificat: data.numeroCertificat,
-              medecinCertificateur: data.medecinCertificateur,
-              observations: data.observations
+              ...(data.numeroCertificat && { numeroCertificat: data.numeroCertificat }),
+              ...(data.medecinCertificateur && { medecinCertificateur: data.medecinCertificateur }),
+              ...(data.observations && { observations: data.observations })
             },
-            mairie: data.mairie
+            mairie: data.mairie.trim()
           };
           
           console.log('Données envoyées au serveur :', apiData);
@@ -1692,11 +1831,24 @@
             try {
               const errorData = await response.json();
               console.error('Erreur du serveur :', errorData);
-              errorMessage = errorData.message || JSON.stringify(errorData);
+              
+              // Formater les erreurs de validation du serveur
+              if (errorData.errors) {
+                errorMessage = Object.values(errorData.errors)
+                  .map(err => typeof err === 'object' ? err.message || err.msg || JSON.stringify(err) : err)
+                  .join('\n');
+              } else if (errorData.message) {
+                errorMessage = errorData.message;
+              } else {
+                errorMessage = JSON.stringify(errorData);
+              }
             } catch (e) {
               console.error('Erreur lors de la lecture de la réponse d\'erreur :', e);
               errorMessage = `Erreur ${response.status}: ${response.statusText}`;
             }
+            
+            // Afficher les erreurs de manière plus visible
+            showError(errorMessage);
             throw new Error(errorMessage);
           }
           
@@ -1753,20 +1905,41 @@
     }
     
     function validateDecesForm(data) {
-      const required = ['nom', 'prenom', 'sexe', 'dateDeces', 'lieuDeces', 
-                       'nomDeclarant', 'prenomDeclarant', 'lienDeclarant', 'mairie'];
+      const errors = [];
       
-      // Vérifier les champs requis
-      const missingFields = [];
-      for (const field of required) {
-        if (!data[field] || data[field].trim() === '') {
-          missingFields.push(field);
+      // Champs obligatoires
+      const requiredFields = {
+        'nom': 'le nom du défunt',
+        'prenom': 'le prénom du défunt',
+        'sexe': 'le sexe du défunt',
+        'dateNaissance': 'la date de naissance',
+        'lieuNaissance': 'le lieu de naissance',
+        'dateDeces': 'la date du décès',
+        'heureDeces': "l'heure du décès",
+        'typeLieuDeces': 'le type de lieu du décès',
+        'lieuDeces': 'le lieu du décès',
+        'communeDeces': 'la commune du décès',
+        'typeCauseDeces': 'le type de cause du décès',
+        'nomDeclarant': 'le nom du déclarant',
+        'prenomDeclarant': 'le prénom du déclarant',
+        'lienDeclarant': 'le lien avec le défunt',
+        'mairie': 'la mairie d\'enregistrement'
+      };
+      
+      // Vérification des champs obligatoires
+      for (const [field, label] of Object.entries(requiredFields)) {
+        if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
+          errors.push(`Le champ "${label}" est obligatoire`);
         }
       }
       
-      if (missingFields.length > 0) {
-        console.error('Champs manquants :', missingFields);
-        throw new Error(`Les champs suivants sont requis : ${missingFields.join(', ')}`);
+      // Validation conditionnelle selon le type de lieu de décès
+      if (data.typeLieuDeces === 'domicile' && !data.adresseDeces) {
+        errors.push("L'adresse du domicile est requise");
+      } else if (data.typeLieuDeces === 'hopital' && !data.hopitalDeces) {
+        errors.push("Le nom de l'hôpital est requis");
+      } else if (data.typeLieuDeces === 'autre' && !data.detailsAutreLieu) {
+        errors.push("Veuillez préciser le lieu du décès");
       }
       
       // Validation des dates
@@ -1774,7 +1947,7 @@
         const dateDeces = new Date(data.dateDeces);
         const today = new Date();
         if (dateDeces > today) {
-          return false; // Date de décès ne peut pas être dans le futur
+          errors.push("La date de décès ne peut pas être dans le futur");
         }
       }
       
@@ -1782,8 +1955,19 @@
         const dateNaissance = new Date(data.dateNaissance);
         const dateDeces = new Date(data.dateDeces);
         if (dateNaissance > dateDeces) {
-          return false; // Date de naissance ne peut pas être après le décès
+          errors.push("La date de naissance ne peut pas être postérieure à la date de décès");
         }
+      }
+      
+      // Validation du format de l'heure
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (data.heureDeces && !timeRegex.test(data.heureDeces)) {
+        errors.push("Format d'heure invalide (utilisez le format HH:MM)");
+      }
+      
+      if (errors.length > 0) {
+        console.error('Erreurs de validation :', errors);
+        throw new Error(errors.join('\n'));
       }
       
       return true;
@@ -1819,6 +2003,167 @@
   
   <!-- Initialisation des tooltips -->
   <script>
+    // Fonction pour initialiser les boutons de navigation
+    function initNavigationButtons() {
+      console.log('Initialisation des boutons de navigation...');
+      
+      // Gestion du bouton Suivant
+      $('.btn-next').off('click').on('click', function(e) {
+        e.preventDefault();
+        console.log('Clic sur le bouton Suivant');
+        
+        const currentStep = parseInt($('.form-section.active').attr('id').split('-')[1]);
+        console.log('Étape actuelle:', currentStep);
+        
+        // Nettoyer les erreurs précédentes
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+        $('.alert-danger').remove();
+        
+        // Valider uniquement l'étape actuelle
+        if (validateStep(currentStep)) {
+          console.log('Validation réussie, passage à l\'étape', currentStep + 1);
+          showStep(currentStep + 1);
+        } else {
+          console.log('Échec de la validation de l\'étape', currentStep);
+        }
+      });
+
+      // Gestion du bouton Précédent
+      $('.btn-previous').off('click').on('click', function(e) {
+        e.preventDefault();
+        console.log('Clic sur le bouton Précédent');
+        
+        const currentStep = parseInt($('.form-section.active').attr('id').split('-')[1]);
+        showStep(currentStep - 1);
+      });
+      
+      // Mise à jour initiale de l'état des boutons
+      updateNavigationButtons(1);
+    }
+
+    // Fonction pour mettre à jour l'état des boutons de navigation
+    function updateNavigationButtons(currentStep) {
+      // Désactiver le bouton Précédent sur la première étape
+      if (currentStep === 1) {
+        $('.btn-previous').prop('disabled', true);
+      } else {
+        $('.btn-previous').prop('disabled', false);
+      }
+      
+      // Désactiver le bouton Suivant sur la dernière étape
+      if (currentStep === 3) { // Remplacez 3 par le nombre total d'étapes
+        $('.btn-next').html('Soumettre <i class="fas fa-paper-plane ms-2"></i>');
+      } else {
+        $('.btn-next').html('Suivant <i class="fas fa-arrow-right ms-2"></i>');
+      }
+    }
+
+    // Fonction pour valider une étape du formulaire
+    function validateStep(step) {
+      console.log('Validation de l\'étape', step);
+      const currentSection = $(`#section-${step}`);
+      
+      // Si ce n'est pas l'étape active, on ne valide pas
+      if (!currentSection.hasClass('active')) {
+        console.log('Étape non active, pas de validation');
+        return true;
+      }
+      
+      let isValid = true;
+      let hasValidated = false;
+
+      // Masquer les erreurs précédentes
+      currentSection.find('.is-invalid').removeClass('is-invalid');
+      currentSection.find('.invalid-feedback').remove();
+      $('.alert-danger').remove();
+
+      // Valider uniquement les champs visibles et requis
+      currentSection.find('[required]:visible').each(function() {
+        const field = $(this);
+        // Ne pas valider les champs désactivés
+        if (field.prop('disabled')) {
+          return true; // continue
+        }
+        
+        hasValidated = true;
+        const value = field.val();
+        
+        if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
+          field.addClass('is-invalid');
+          const fieldLabel = field.attr('data-label') || field.attr('name') || 'ce champ';
+          field.after(`<div class="invalid-feedback">Le champ "${fieldLabel}" est obligatoire</div>`);
+          isValid = false;
+        }
+      });
+
+      // Si des validations ont été effectuées et qu'il y a des erreurs
+      if (hasValidated && !isValid) {
+        const firstError = currentSection.find('.is-invalid').first();
+        if (firstError.length) {
+          $('html, body').animate({
+            scrollTop: firstError.offset().top - 100
+          }, 500);
+          showError('Veuillez remplir correctement tous les champs obligatoires marqués d\'un astérisque (*)');
+        }
+      }
+
+      return hasValidated ? isValid : true;
+    }
+
+    // Fonction pour afficher une étape spécifique
+    function showStep(step) {
+      console.log('Affichage de l\'étape', step);
+      
+      // Masquer tous les messages d'erreur
+      $('.alert-danger').remove();
+      $('.is-invalid').removeClass('is-invalid');
+      $('.invalid-feedback').remove();
+      
+      // Masquer toutes les sections
+      $('.form-section').removeClass('active');
+      
+      // Afficher la section demandée
+      const targetSection = $(`#section-${step}`);
+      targetSection.addClass('active');
+      
+      // Mettre à jour les indicateurs d'étape
+      $('.step').removeClass('active');
+      $(`.step[data-step="${step}"]`).addClass('active');
+      
+      // Mettre à jour les boutons de navigation
+      updateNavigationButtons(step);
+      
+      // Faire défiler vers le haut
+      $('html, body').animate({
+        scrollTop: targetSection.offset().top - 20
+      }, 300);
+      
+      console.log('Affichage de l\'étape terminé');
+    }
+
+    // Fonction pour afficher les erreurs
+    function showError(message) {
+      // Supprimer les messages d'erreur existants
+      $('.alert-danger').remove();
+      
+      // Créer et afficher le nouveau message d'erreur
+      const alertDiv = $(`
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+      `);
+      
+      // Ajouter le message en haut du formulaire
+      $('#formDeces').prepend(alertDiv);
+      
+      // Faire défiler jusqu'au message d'erreur
+      $('html, body').animate({
+        scrollTop: 0
+      }, 500);
+    }
+
     // Initialisation des tooltips Bootstrap
     document.addEventListener('DOMContentLoaded', function() {
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

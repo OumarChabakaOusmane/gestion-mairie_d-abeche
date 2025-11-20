@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
 
-          const response = await fetchWithTimeout('/api/actes', {
+          const response = await fetchWithTimeout('/api/demandes-actes', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

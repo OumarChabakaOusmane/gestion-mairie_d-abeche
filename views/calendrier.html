@@ -140,8 +140,21 @@
     <div class="calendar-container">
       <div class="calendar-header">
         <i class="fas fa-calendar-alt calendar-icon"></i>
-        <h2 class="mb-0">Calendrier des Événements d'État Civil</h2>
-        <p class="text-muted mt-2">Vue d'ensemble des naissances, mariages et décès</p>
+        <h2>Calendrier des Événements</h2>
+        <p class="text-muted">Gérez les événements de l'état civil</p>
+        
+        <!-- Boutons d'action -->
+        <div class="d-flex justify-content-center gap-2 mb-4">
+          <button id="ajouterEvenement" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Ajouter un événement
+          </button>
+          <button id="modifierEvenement" class="btn btn-warning" disabled>
+            <i class="fas fa-edit me-2"></i>Modifier
+          </button>
+          <button id="supprimerEvenement" class="btn btn-danger" disabled>
+            <i class="fas fa-trash me-2"></i>Supprimer
+          </button>
+        </div>
       </div>
       
       <!-- Statistiques rapides -->
@@ -230,39 +243,301 @@
     </div>
   </div>
   
-  <!-- Modal pour ajouter/modifier un événement -->
-  <div class="modal" id="eventModal" tabindex="-1" aria-modal="true" style="display: none; background-color: rgba(0,0,0,0.5);">
+  <!-- Modal pour le formulaire d'événement -->
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="eventModalLabel">Détails de l'événement</h5>
+          <h5 class="modal-title" id="eventModalLabel">Nouvel Événement</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
-          <div id="eventDetails"></div>
+          <form id="eventForm" class="needs-validation" novalidate>
+            <input type="hidden" id="eventId">
+            <div class="mb-3">
+              <label for="eventTitle" class="form-label">Titre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="eventTitle" required>
+              <div class="invalid-feedback">Veuillez saisir un titre pour l'événement</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="startDate" class="form-label">Date de début <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control" id="startDate" required>
+                <div class="invalid-feedback">Veuillez sélectionner une date de début</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="endDate" class="form-label">Date de fin</label>
+                <input type="datetime-local" class="form-control" id="endDate">
+                <div class="invalid-feedback">La date de fin doit être postérieure à la date de début</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="eventDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="eventType" class="form-label">Type d'événement <span class="text-danger">*</span></label>
+              <select class="form-select" id="eventType" required>
+                <option value="">Sélectionnez un type</option>
+                <option value="naissance">Naissance</option>
+                <option value="mariage">Mariage</option>
+                <option value="deces">Décès</option>
+                <option value="autre">Autre</option>
+              </select>
+              <div class="invalid-feedback">Veuillez sélectionner un type d'événement</div>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-          <button type="button" class="btn btn-primary" id="editEventBtn" style="display: none;">Modifier</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-primary" id="saveEvent">Enregistrer</button>
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/sidebar-template.js?v=2"></script>
   <script>
     let calendar;
     let currentFilter = 'all';
     let allEvents = [];
+    let selectedEvent = null;
+    let eventModal = null;
     
+    // Initialiser le modal d'événement
+    // Fonction pour ouvrir le modal d'ajout/modification d'événement
+    function openEventModal(event = null) {
+      const form = document.getElementById('eventForm');
+      const modalTitle = document.getElementById('eventModalLabel');
+      
+      // Vérifier que les éléments existent avant de les utiliser
+      if (!form || !modalTitle) {
+        console.error('Erreur: Éléments du formulaire non trouvés');
+        return;
+      }
+
+      try {
+        if (event) {
+          // Mode édition
+          modalTitle.textContent = 'Modifier l\'événement';
+          
+          // Remplir le formulaire avec les données de l'événement
+          const eventIdEl = document.getElementById('eventId');
+          const eventTitleEl = document.getElementById('eventTitle');
+          const eventDescEl = document.getElementById('eventDescription');
+          const eventTypeEl = document.getElementById('eventType');
+          const startDateEl = document.getElementById('startDate');
+          const endDateEl = document.getElementById('endDate');
+          
+          if (eventIdEl) eventIdEl.value = event.id || '';
+          if (eventTitleEl) eventTitleEl.value = event.title || '';
+          if (eventDescEl) eventDescEl.value = event.extendedProps?.description || '';
+          if (eventTypeEl) eventTypeEl.value = event.extendedProps?.type || 'autre';
+          
+          // Formater les dates pour l'input datetime-local
+          const startDate = event.start ? new Date(event.start) : new Date();
+          const endDate = event.end ? new Date(event.end) : new Date(startDate.getTime() + 3600000); // +1 heure par défaut
+          
+          if (startDateEl) startDateEl.value = startDate.toISOString().slice(0, 16);
+          if (endDateEl) endDateEl.value = endDate.toISOString().slice(0, 16);
+        } else {
+          // Mode création
+          modalTitle.textContent = 'Nouvel Événement';
+          form.reset();
+          
+          // Définir la date de début à maintenant et la fin à +1h
+          const now = new Date();
+          const endTime = new Date(now.getTime() + 3600000); // +1 heure
+          
+          const startDateEl = document.getElementById('startDate');
+          const endDateEl = document.getElementById('endDate');
+          
+          if (startDateEl) startDateEl.value = now.toISOString().slice(0, 16);
+          if (endDateEl) endDateEl.value = endTime.toISOString().slice(0, 16);
+        }
+        
+        // Vérifier que le modal est initialisé avant de l'afficher
+        if (!eventModal) {
+          eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+        }
+        eventModal.show();
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'ouverture du modal:', error);
+        showNotification('Une erreur est survenue lors de l\'ouverture du formulaire', 'error');
+      }
+    }
+    
+    // Fonction pour sauvegarder un événement
+    async function saveEvent() {
+      const form = document.getElementById('eventForm');
+      if (!form) {
+        console.error('Erreur: Formulaire non trouvé');
+        return;
+      }
+      
+      // Valider le formulaire
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+      
+      // Récupérer les éléments du formulaire
+      const eventIdEl = document.getElementById('eventId');
+      const eventTitleEl = document.getElementById('eventTitle');
+      const startDateEl = document.getElementById('startDate');
+      const endDateEl = document.getElementById('endDate');
+      const eventDescEl = document.getElementById('eventDescription');
+      const eventTypeEl = document.getElementById('eventType');
+      
+      // Vérifier que tous les champs obligatoires sont présents
+      if (!eventTitleEl || !startDateEl || !eventTypeEl) {
+        showNotification('Erreur: Certains champs obligatoires sont manquants', 'error');
+        return;
+      }
+      
+      // Préparer les données de l'événement
+      const eventData = {
+        title: eventTitleEl.value,
+        start: startDateEl.value,
+        end: endDateEl ? endDateEl.value : undefined,
+        description: eventDescEl ? eventDescEl.value : '',
+        type: eventTypeEl.value
+      };
+      
+      // Valider les dates
+      if (eventData.end && new Date(eventData.end) <= new Date(eventData.start)) {
+        showNotification('La date de fin doit être postérieure à la date de début', 'error');
+        return;
+      }
+      
+      // Si c'est une mise à jour, ajouter l'ID
+      if (eventIdEl && eventIdEl.value) {
+        eventData.id = eventIdEl.value;
+      }
+      
+      try {
+        const method = 'POST'; // Toujours utiliser POST car l'API gère la création et la mise à jour avec POST
+        const url = '/api/calendrier';
+        
+        // Afficher les données qui seront envoyées pour le débogage
+        console.log('Envoi des données:', {
+          url,
+          method,
+          data: eventData
+        });
+        
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(eventData)
+        });
+        
+        // Vérifier si la réponse est valide
+        if (!response.ok) {
+          let errorMessage = 'Erreur lors de la sauvegarde';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+            console.error('Détails de l\'erreur:', errorData);
+          } catch (e) {
+            console.error('Erreur lors de la lecture de la réponse:', e);
+          }
+          throw new Error(errorMessage);
+        }
+        
+        const result = await response.json();
+        console.log('Réponse du serveur:', result);
+        
+        if (result.success) {
+          showNotification('Événement enregistré avec succès!', 'success');
+          if (eventModal) eventModal.hide();
+          await loadEvents(); // Recharger les événements
+        } else {
+          throw new Error(result.message || 'Erreur lors de la sauvegarde');
+        }
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur: ' + error.message, 'error');
+      }
+    }
+    
+    // Fonction pour supprimer un événement
+    async function deleteEvent(eventId) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/calendrier/${eventId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Erreur lors de la suppression');
+        }
+        
+        // Mettre à jour l'interface
+        const eventToRemove = calendar.getEventById(eventId);
+        if (eventToRemove) {
+          eventToRemove.remove();
+        }
+        
+        showNotification('Événement supprimé avec succès', 'success');
+        
+        // Désélectionner l'événement
+        selectedEvent = null;
+        document.getElementById('modifierEvenement').disabled = true;
+        document.getElementById('supprimerEvenement').disabled = true;
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur: ' + error.message, 'error');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const token = checkAuth();
       if (!token) return;
       
       document.getElementById('common-styles').textContent = commonCSS;
       document.getElementById('sidebar-container').innerHTML = createSidebar('calendrier');
+      
+      // Initialiser le modal
+      eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+      
+      // Gestionnaire pour le bouton d'ajout
+      document.getElementById('ajouterEvenement').addEventListener('click', () => {
+        openEventModal();
+      });
+      
+      // Gestionnaire pour le bouton de modification
+      document.getElementById('modifierEvenement').addEventListener('click', () => {
+        if (selectedEvent) {
+          openEventModal(selectedEvent);
+        }
+      });
+      
+      // Gestionnaire pour le bouton de suppression
+      document.getElementById('supprimerEvenement').addEventListener('click', () => {
+        if (selectedEvent) {
+          deleteEvent(selectedEvent.id);
+        }
+      });
+      
+      // Gestionnaire pour le bouton d'enregistrement
+      document.getElementById('saveEvent').addEventListener('click', saveEvent);
       
       await initializeCalendar();
       await loadEvents();
@@ -292,7 +567,17 @@
         },
         height: 'auto',
         eventClick: function(info) {
+          selectedEvent = info.event;
+          document.getElementById('modifierEvenement').disabled = false;
+          document.getElementById('supprimerEvenement').disabled = false;
           showEventDetails(info.event);
+        },
+        
+        // Désélectionner l'événement quand on clique ailleurs
+        dateClick: function() {
+          selectedEvent = null;
+          document.getElementById('modifierEvenement').disabled = true;
+          document.getElementById('supprimerEvenement').disabled = true;
         },
         dateClick: function(info) {
           // Optionnel: créer un nouvel événement à cette date
@@ -369,10 +654,10 @@
             }
           }));
 
-  updateCalendarEvents();
-  updateStats();
-  // (garantit que les compteurs affichés reflètent la source de vérité)
-  loadDashboardStats().catch(err => console.warn('Erreur loadDashboardStats:', err));
+        updateCalendarEvents();
+        updateStats();
+        // (garantit que les compteurs affichés reflètent la source de vérité)
+        loadDashboardStats().catch(err => console.warn('Erreur loadDashboardStats:', err));
 
       } catch (error) {
         console.error('Erreur lors du chargement des événements:', error);

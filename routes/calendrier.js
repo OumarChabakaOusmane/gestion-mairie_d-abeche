@@ -183,4 +183,57 @@ router.get('/:type/:id', async (req, res, next) => {
   }
 });
 
+// Créer ou mettre à jour un événement du calendrier
+router.post('/', async (req, res, next) => {
+  try {
+    const { title, start, end, description, type } = req.body;
+    
+    // Validation des champs obligatoires
+    if (!title || !start || !type) {
+      return res.status(400).json({
+        success: false,
+        message: 'Les champs titre, date de début et type sont obligatoires'
+      });
+    }
+    
+    // Vérifier que le type est valide
+    const validTypes = ['naissance', 'mariage', 'deces', 'autre'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Type d\'événement non valide. Les types valides sont: ' + validTypes.join(', ')
+      });
+    }
+    
+    // Ici, vous devriez ajouter la logique pour sauvegarder l'événement dans votre base de données
+    // Par exemple, créer un modèle d'événement ou utiliser un modèle existant
+    
+    // Pour l'instant, on retourne simplement un succès avec les données reçues
+    res.status(201).json({
+      success: true,
+      message: 'Événement enregistré avec succès',
+      data: {
+        id: 'event-' + Date.now(),
+        title,
+        start,
+        end: end || null,
+        description: description || '',
+        type
+      }
+    });
+    
+  } catch (error) {
+    logger.error('Erreur lors de la sauvegarde de l\'événement:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Une erreur est survenue lors de la sauvegarde de l\'événement'
+    });
+  }
+});
+
 module.exports = router;

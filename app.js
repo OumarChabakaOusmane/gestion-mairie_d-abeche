@@ -189,6 +189,7 @@ const messagerieRoutes = require('./routes/messagerie');
 const rapportsRoutes = require('./routes/rapports');
 const settingsRoutes = require('./routes/settings');
 const demandeActeRoutes = require('./routes/demandeActeRoutes');
+const apiActesRoutes = require('./routes/api/actes');
 try {
   console.log('Tentative de chargement de la route des conversations...');
   conversationRoutes = require('./routes/conversations');
@@ -273,26 +274,33 @@ process.on('uncaughtException', (error) => {
 });
 
 
-
-// Limitation du taux de requêtes pour l'API (avant le montage des routes)
 console.log('=== CONFIGURATION DES ROUTES API ===');
 
+// Routes d'authentification
 app.use('/api/auth', authLimiter, authRoutes);
 console.log('Route /api/auth configurée');
 
+// Routes utilisateurs
 app.use('/api/users', userRoutes);
 console.log('Route /api/users configurée');
 
-app.use('/api/actes', acteRoutes);
-console.log('Route /api/actes configurée');
+// Routes pour les demandes d'actes (nouvelle API)
+app.use('/api/demandes-actes', apiActesRoutes);
+console.log('Route /api/demandes-actes configurée');
 
+// Anciennes routes d'actes (à supprimer progressivement)
+app.use('/api/actes', acteRoutes);
+console.log('Route /api/actes configurée (ancienne version)');
+
+// Routes pour les documents
 app.use('/api/documents', documentRoutes);
 console.log('Route /api/documents configurée');
 
-
+// Routes pour les mariages
 app.use('/api/mariages', mariageRoutes);
 console.log('Route /api/mariages configurée');
 
+// Routes pour le tableau de bord
 app.use('/api/dashboard', dashboardRoutes);
 console.log('Route /api/dashboard configurée');
 

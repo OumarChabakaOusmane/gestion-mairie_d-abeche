@@ -72,7 +72,56 @@ const demandeActeSchema = new mongoose.Schema({
       epoux: String,
       epouse: String
     },
-    dateMariage: Date
+    dateMariage: Date,
+    
+    // Pour les actes de décès
+    deces: {
+      dateDeces: {
+        type: Date,
+        required: function() { return this.typeActe === 'deces'; }
+      },
+      heureDeces: {
+        type: String,
+        required: function() { return this.typeActe === 'deces'; },
+        match: [/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:MM)']
+      },
+      typeLieuDeces: {
+        type: String,
+        enum: ['domicile', 'hopital', 'autre'],
+        required: function() { return this.typeActe === 'deces'; }
+      },
+      lieuDeces: {
+        type: String,
+        required: function() { return this.typeActe === 'deces'; }
+      },
+      communeDeces: {
+        type: String,
+        required: function() { return this.typeActe === 'deces'; }
+      },
+      typeCauseDeces: {
+        type: String,
+        enum: ['naturelle', 'accident', 'meurtre', 'autre'],
+        required: function() { return this.typeActe === 'deces'; }
+      },
+      adresseDeces: {
+        type: String,
+        required: function() { 
+          return this.typeActe === 'deces' && this.detailsActe?.deces?.typeLieuDeces === 'domicile'; 
+        }
+      },
+      hopitalDeces: {
+        type: String,
+        required: function() { 
+          return this.typeActe === 'deces' && this.detailsActe?.deces?.typeLieuDeces === 'hopital'; 
+        }
+      },
+      detailsAutreLieu: {
+        type: String,
+        required: function() { 
+          return this.typeActe === 'deces' && this.detailsActe?.deces?.typeLieuDeces === 'autre'; 
+        }
+      }
+    }
   },
   
   // Justificatifs
