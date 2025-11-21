@@ -597,6 +597,50 @@ function formatTimeAgo(date) {
 }
 
 // Mettre à jour un acte
+// Récupérer un acte par son ID
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const acte = await Acte.findById(req.params.id).lean();
+    
+    if (!acte) {
+      return res.status(404).json({
+        success: false,
+        message: 'Acte non trouvé'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: acte
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'acte:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération de l\'acte',
+      error: error.message
+    });
+  }
+});
+
+// Afficher le formulaire d'édition d'un acte
+router.get('/edit/:id', authenticate, async (req, res) => {
+  try {
+    const acte = await Acte.findById(req.params.id).lean();
+    
+    if (!acte) {
+      return res.status(404).send('Acte non trouvé');
+    }
+
+    // Rediriger vers la page d'édition appropriée en fonction du type d'acte
+    res.redirect(`/${acte.type}s/edit/${req.params.id}`);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'acte pour édition:', error);
+    res.status(500).send('Erreur lors du chargement du formulaire d\'édition');
+  }
+});
+
+// Mettre à jour un acte
 router.put('/:id', validateActeInput, authenticate, async (req, res) => {
   try {
     const { type, details, mairie } = req.body;

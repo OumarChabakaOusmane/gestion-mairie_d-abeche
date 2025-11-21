@@ -110,26 +110,31 @@ naissanceController.generateNaissancePdf = async (req, res) => {
         numeroActe: pdfDataFromActe.numeroActe || '.../MAT-SG/DGAT/DLP/...',
         dateEtablissement: pdfDataFromActe.dateEtablissement || new Date().toISOString(),
         
-        // Détails de l'acte (format attendu par le service PDF)
-        details: {
-          // Informations de l'enfant
-          nom: pdfDataFromActe.nomEnfant || '',
-          prenom: pdfDataFromActe.prenomsEnfant || '',
-          dateNaissance: pdfDataFromActe.dateNaissance || '',
-          lieuNaissance: pdfDataFromActe.lieuNaissance || '',
-          sexe: pdfDataFromActe.sexe || '',
-          
-          // Informations du père
-          pere: pdfDataFromActe.nomPere || '',
-          prenomPere: pdfDataFromActe.prenomsPere || '',
-          
-          // Informations de la mère
-          mere: pdfDataFromActe.nomMere || '',
-          prenomMere: pdfDataFromActe.prenomsMere || '',
-          
-          // Adresse
+        // Informations de l'enfant
+        nom: pdfDataFromActe.nomEnfant || '',
+        prenoms: pdfDataFromActe.prenomsEnfant || '',
+        dateNaissance: pdfDataFromActe.dateNaissance || '',
+        lieuNaissance: pdfDataFromActe.lieuNaissance || '',
+        sexe: pdfDataFromActe.sexe || '',
+        
+        // Informations des parents
+        pere: pdfDataFromActe.nomPere ? 
+          `${pdfDataFromActe.nomPere} ${pdfDataFromActe.prenomsPere || ''}`.trim() : '',
+        mere: pdfDataFromActe.nomMere ? 
+          `${pdfDataFromActe.nomMere} ${pdfDataFromActe.prenomsMere || ''}`.trim() : '',
+        
+        // Informations du déclarant
+        declarant: {
+          nom: pdfDataFromActe.nomDeclarant || '',
+          prenom: pdfDataFromActe.prenomsDeclarant || '',
+          lien: pdfDataFromActe.lienDeclarant || '',
           adresse: pdfDataFromActe.adresseDeclarant || ''
-        }
+        },
+        
+        // Informations supplémentaires
+        mairie: pdfDataFromActe.mairie || 'Mairie non spécifiée',
+        ville: pdfDataFromActe.ville || '',
+        observations: pdfDataFromActe.observations || ''
       };
       
       log('Données formatées pour le PDF:', JSON.stringify(pdfData, null, 2));

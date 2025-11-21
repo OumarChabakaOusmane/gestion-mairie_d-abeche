@@ -350,7 +350,7 @@ app.get('/', (req, res) => {
 
 // Routes pour les pages HTML
 const htmlPages = [
-  'dashboard', 'naissance', 'mariage', 'deces',
+  'dashboard', 'naissance', 'mariage', 'deces', 'edit-acte',
   'calendrier', 'documents', 'rapports', 'messagerie', 'utilisateurs', 'parametres',
   'login', 'register', 'forgot-password', 'verify-otp', 'email-confirmed'
 ];

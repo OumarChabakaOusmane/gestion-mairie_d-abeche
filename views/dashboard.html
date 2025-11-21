@@ -13,11 +13,122 @@
       min-height: 100vh;
       background-color: #f8f9fa;
     }
-    
+
     /* Style spécifique pour le header du tableau de bord */
     .dashboard-header {
       background: #0d6efd;
       transition: background-color 0.3s ease;
+    }
+    
+    /* Styles pour les boutons d'action */
+    .btn-action {
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      margin: 0 2px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background-color: transparent;
+    }
+    
+    .btn-action i {
+      transition: all 0.2s ease;
+      font-size: 16px;
+    }
+    
+    .btn-action:hover {
+      transform: translateY(-2px) scale(1.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    
+    .btn-action:active {
+      transform: translateY(1px) scale(0.98);
+    }
+    
+    .btn-action:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn-action:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%, -50%);
+      transform-origin: 50% 50%;
+    }
+    
+    .btn-action:focus:not(:active)::after {
+      animation: ripple 0.6s ease-out;
+    }
+    
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
+    }
+    
+    /* Animation de chargement */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .fa-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    /* Styles spécifiques pour chaque type de bouton */
+    .btn-view {
+      color: #0d6efd;
+      background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .btn-view:hover {
+      background-color: rgba(13, 110, 253, 0.2);
+    }
+    
+    .btn-edit {
+      color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.1);
+    }
+    
+    .btn-edit:hover {
+      background-color: rgba(255, 193, 7, 0.2);
+    }
+    
+    .btn-delete {
+      color: #dc3545;
+      background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    .btn-delete:hover {
+      background-color: rgba(220, 53, 69, 0.2);
+    }
+    
+    .btn-download {
+      color: #198754;
+      background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    .btn-download:hover {
+      background-color: rgba(25, 135, 84, 0.2);
     }
   </style>
   <style>
@@ -31,30 +142,30 @@
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
     }
-    
+
     .header-content {
       padding: 0 1.5rem;
     }
-    
+
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
     }
-    
+
     .header-title h1 {
       margin: 0;
       font-size: 1.75rem;
       font-weight: 600;
     }
-    
+
     .header-subtitle {
       font-size: 0.9rem;
       opacity: 0.9;
       margin-top: 0.25rem;
     }
-    
+
     /* Style amélioré pour la barre de recherche */
     .search-container {
       position: relative;
@@ -62,7 +173,7 @@
       max-width: 500px;
       margin: 0 auto;
     }
-    
+
     .search-container .input-group {
       border-radius: 30px;
       overflow: hidden;
@@ -70,18 +181,18 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
     }
-    
+
     .search-container .input-group:focus-within {
       box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
     }
-    
+
     .search-container .form-control {
       border: none;
       padding: 0.75rem 1.25rem;
       box-shadow: none;
       background: white !important;
     }
-    
+
     .search-container .btn {
       background: #0d6efd;
       color: white;
@@ -89,11 +200,11 @@
       padding: 0 1.25rem;
       transition: all 0.3s ease;
     }
-    
+
     .search-container .btn:hover {
       background: #0b5ed7;
     }
-    
+
     /* Style amélioré pour les boutons de contrôle */
     .header-controls {
       display: flex;
@@ -102,24 +213,24 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    
+
     @media (max-width: 768px) {
       .header-top {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
       }
-      
+
       .header-controls {
         width: 100%;
         justify-content: flex-start;
       }
-      
+
       .search-container {
         max-width: 100%;
       }
     }
-    
+
     .header-controls .btn {
       border-radius: 30px;
       padding: 0.4rem 1rem;
@@ -130,12 +241,12 @@
       transition: all 0.2s ease;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
+
     .header-controls .btn:hover {
       background: rgba(255, 255, 255, 0.15);
       transform: translateY(-1px);
     }
-    
+
     .header-controls .dropdown-menu {
       border: none;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -143,18 +254,18 @@
       padding: 0.5rem 0;
       margin-top: 8px;
     }
-    
+
     .header-controls .dropdown-item {
       padding: 0.5rem 1.25rem;
       border-radius: 6px;
       margin: 0 0.5rem;
       width: auto;
     }
-    
+
     .header-controls .dropdown-item:hover {
       background: #f8f9fa;
     }
-    
+
     .header-controls .dropdown-divider {
       margin: 0.3rem 0.5rem;
     }
@@ -465,39 +576,42 @@
         font-size: 2rem;
         color: white;
       }
-      
+
       .stat-label {
         font-size: 1rem;
         margin-bottom: 1rem;
       }
-      
+
       /* Ajustements pour la table sur mobile */
       .table-responsive {
         border: none;
       }
-      
+
       .table thead {
         display: none;
       }
-      
-      .table, .table tbody, .table tr, .table td {
+
+      .table,
+      .table tbody,
+      .table tr,
+      .table td {
         display: block;
         width: 100%;
       }
-      
+
       .table tr {
         margin-bottom: 1rem;
         border: 1px solid #dee2e6;
         border-radius: 0.25rem;
       }
-      
+
       .table td {
         text-align: right;
         padding-left: 50%;
         position: relative;
         border-bottom: 1px solid #dee2e6;
       }
-      
+
       .table td::before {
         content: attr(data-label);
         position: absolute;
@@ -507,7 +621,7 @@
         font-weight: bold;
       }
     }
-    
+
     /* Styles pour la section Gestion d'actes */
     .table {
       margin-bottom: 0;
@@ -516,21 +630,21 @@
       --bs-table-hover-bg: #f1f1f1;
       color: #212529;
     }
-    
+
     .table thead th {
       background-color: #f8f9fa;
       border-bottom: 2px solid #dee2e6;
       font-weight: 600;
     }
-    
+
     .table tbody tr {
       transition: background-color 0.15s ease-in-out;
     }
-    
+
     .table tbody tr:hover {
       background-color: rgba(13, 110, 253, 0.05);
     }
-    
+
     /* Style pour les boutons d'action */
     .btn-action {
       padding: 0.25rem 0.5rem;
@@ -538,7 +652,7 @@
       margin: 0 0.125rem;
       border-radius: 0.25rem;
     }
-    
+
     /* Style pour les badges de type d'acte */
     .badge-type {
       font-size: 0.8em;
@@ -547,17 +661,17 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    
+
     .badge-naissance {
       background-color: #198754;
       color: white;
     }
-    
+
     .badge-mariage {
       background-color: #0d6efd;
       color: white;
     }
-    
+
     .badge-deces {
       background-color: #dc3545;
       color: white;
@@ -577,20 +691,20 @@
             <h1 class="title-text">Tableau de Bord d'Abéché</h1>
             <div class="header-subtitle">Vue d'ensemble des activités d'état civil d'Abéché</div>
           </div>
-          
+
           <div class="header-controls">
             <!-- Bouton d'actualisation -->
             <button class="btn btn-outline-light" id="refreshButton" title="Actualiser les données">
               <i class="fas fa-sync-alt" id="refreshIcon"></i>
               <span class="d-none d-md-inline">Actualiser</span>
             </button>
-            
+
             <!-- Bouton de recherche -->
             <button class="btn btn-outline-light" id="searchBtn" title="Rechercher">
               <i class="fas fa-search" id="searchIcon"></i>
               <span id="searchText" class="d-none d-md-inline">Rechercher</span>
             </button>
-            
+
             <!-- Sélecteur de langue -->
             <div class="dropdown ms-2">
               <button class="btn btn-outline-light dropdown-toggle" type="button" id="languageDropdown"
@@ -600,34 +714,31 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')">
-                  <i class="fas fa-flag me-2"></i>Français</a>
+                    <i class="fas fa-flag me-2"></i>Français</a>
                 </li>
                 <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">
-                  <i class="fas fa-flag me-2"></i>العربية</a>
+                    <i class="fas fa-flag me-2"></i>العربية</a>
                 </li>
                 <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">
-                  <i class="fas fa-flag me-2"></i>English</a>
+                    <i class="fas fa-flag me-2"></i>English</a>
                 </li>
               </ul>
             </div>
           </div>
         </div>
-        
+
         <!-- Ligne du bas avec la barre de recherche -->
         <div class="row mt-3 mb-2">
           <div class="col-12">
             <div class="search-container">
               <div class="input-group">
-                <input type="text" 
-                       class="form-control border-0 py-2 px-3" 
-                       id="globalSearch" 
-                       placeholder="Rechercher dans tous les actes..."
-                       style="font-size: 0.95rem;">
+                <input type="text" class="form-control border-0 py-2 px-3" id="globalSearch"
+                  placeholder="Rechercher dans tous les actes..." style="font-size: 0.95rem;">
               </div>
             </div>
           </div>
         </div>
-        
+
         <!-- Badge de mise à jour -->
         <div class="d-flex justify-content-between align-items-center mt-2">
           <span id="lastUpdatedBadge" class="last-updated-text" title="Dernière mise à jour des statistiques">
@@ -711,6 +822,8 @@
             <tbody id="recentActesBody">
             </tbody>
           </table>
+          <!-- Conteneur de pagination -->
+          <div id="pagination" class="mt-3"></div>
         </div>
       </div>
     </div>
@@ -725,31 +838,31 @@
       const html = document.documentElement;
       const currentTheme = html.getAttribute('data-bs-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      
+
       // Mettre à jour l'attribut de thème
       html.setAttribute('data-bs-theme', newTheme);
-      
+
       // Sauvegarder la préférence
       localStorage.setItem('theme', newTheme);
-      
+
       // Mettre à jour l'icône
       const themeIcon = document.getElementById('themeIcon');
       if (themeIcon) {
         themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
       }
     }
-    
+
     // Initialiser le thème au chargement
     document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-bs-theme', savedTheme);
-      
+
       // Mettre à jour l'icône
       const themeIcon = document.getElementById('themeIcon');
       if (themeIcon) {
         themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
       }
-      
+
       // Gestion du bouton d'actualisation
       const refreshButton = document.getElementById('refreshButton');
       if (refreshButton) {
@@ -805,14 +918,33 @@
     };
 
     function changeLanguage(lang) {
-      localStorage.setItem('selectedLanguage', lang);
-      document.getElementById('currentLang').textContent = lang.toUpperCase();
+      try {
+        localStorage.setItem('selectedLanguage', lang);
+        const currentLangElement = document.getElementById('currentLang');
+        if (currentLangElement) {
+          currentLangElement.textContent = lang.toUpperCase();
+        }
 
-      const t = translations[lang];
-      if (t) {
-        document.querySelector('h1').textContent = t.title;
-        document.querySelector('.opacity-75').innerHTML = t.subtitle + ' - <span id="currentDate"></span>';
-        document.getElementById('globalSearch').placeholder = t.search;
+        const t = translations[lang];
+        if (!t) return;
+
+        // Mettre à jour le titre principal
+        const mainTitle = document.querySelector('h1');
+        if (mainTitle) {
+          mainTitle.textContent = t.title;
+        }
+
+        // Mettre à jour le sous-titre avec la date
+        const subtitleElement = document.querySelector('.opacity-75, .header-subtitle');
+        if (subtitleElement) {
+          subtitleElement.innerHTML = t.subtitle + ' - <span id="currentDate"></span>';
+        }
+
+        // Mettre à jour le placeholder de recherche
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput) {
+          searchInput.placeholder = t.search;
+        }
 
         // Mettre à jour les labels des statistiques
         const naissancesLabel = document.querySelector('.births .stat-label');
@@ -826,12 +958,15 @@
         if (documentsLabel) documentsLabel.textContent = t.documents;
 
         // Mettre à jour la date
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
+        const currentDateElement = document.getElementById('currentDate');
+        if (currentDateElement) {
+          currentDateElement.textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
 
         // Appliquer la direction RTL pour l'arabe
         if (lang === 'ar') {
@@ -841,9 +976,12 @@
           document.body.style.direction = 'ltr';
           document.body.style.textAlign = 'left';
         }
+        
+        showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
+      } catch (error) {
+        console.error('Erreur lors du changement de langue :', error);
+        showError('Une erreur est survenue lors du changement de langue');
       }
-
-      showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
     }
 
     // Initialiser les préférences
@@ -851,13 +989,13 @@
       try {
         // Appliquer le thème clair par défaut
         document.documentElement.setAttribute('data-bs-theme', 'light');
-        
+
         // Mettre à jour l'icône du thème
         const themeIcon = document.getElementById('themeIcon');
         if (themeIcon) {
           themeIcon.className = 'fas fa-moon';
         }
-        
+
         // Gestion de la langue
         const defaultLang = 'fr';
         const savedLang = localStorage.getItem('selectedLanguage') || defaultLang;
@@ -887,7 +1025,7 @@
 
         // Démarrer la gestion de la visibilité
         setTimeout(handleContentVisibility, 50);
-        
+
       } catch (error) {
         console.error('Erreur lors de l\'initialisation des préférences:', error);
         document.body.style.visibility = 'visible';
@@ -899,7 +1037,7 @@
         // Masquer le contenu pendant l'initialisation
         document.body.style.visibility = 'hidden';
         document.body.style.opacity = '0';
-        
+
         // Vérifier l'authentification
         const token = checkAuth();
         if (!token) {
@@ -909,7 +1047,7 @@
 
         // Initialiser les préférences (y compris le thème)
         initializePreferences();
-        
+
         // Gestion des erreurs globales
         window.addEventListener('error', (event) => {
           console.error('Erreur JavaScript non gérée:', event.error || event.message, event);
@@ -917,7 +1055,7 @@
           document.body.style.visibility = 'visible';
           document.body.style.opacity = '1';
         });
-        
+
       } catch (error) {
         console.error('Erreur lors de l\'initialisation du document:', error);
         document.body.style.visibility = 'visible';
@@ -944,21 +1082,21 @@
       // Fonction utilitaire pour ajouter des écouteurs d'événements
       const addEvent = (id, event, handler) => {
         const el = document.getElementById(id);
-        
+
         if (el && typeof handler === 'function') {
           el.addEventListener(event, handler);
           return true;
         }
         return false;
       };
-      
+
       // Initialisation des événements
       addEvent('themeToggle', 'click', toggleTheme);
       addEvent('searchBtn', 'click', performSearch);
-        
+
       // Initialisation du tableau de bord
-        
-        // Gestionnaire d'événement pour la recherche
+
+      // Gestionnaire d'événement pour la recherche
       const searchInput = document.getElementById('globalSearch');
       if (searchInput) {
         searchInput.addEventListener('keypress', (e) => {
@@ -1021,14 +1159,14 @@
         deces: 0,
         documents: 0
       };
-      
+
       try {
         const response = await apiRequest('/api/dashboard/stats');
-        
+
         if (!response) {
           throw new Error('Aucune réponse du serveur');
         }
-        
+
         if (response && response.success && response.data) {
           // Mettre à jour les statistiques avec les données reçues
           dashboardData.stats = {
@@ -1037,7 +1175,7 @@
             deces: parseInt(response.data.deces) || 0,
             documents: parseInt(response.data.total) || 0
           };
-          
+
           // Mettre à jour l'interface utilisateur
           updateStatCards();
           return true;
@@ -1045,20 +1183,20 @@
           // Utiliser les données par défaut si la réponse n'est pas valide
           dashboardData.stats = defaultStats;
           updateStatCards();
-          
+
           const errorMsg = response?.error || 'Format de réponse inattendu';
           console.warn('Réponse inattendue du serveur:', response);
           throw new Error(errorMsg);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error);
-        
+
         // Utiliser les données par défaut en cas d'erreur
         if (!dashboardData.stats) {
           dashboardData.stats = defaultStats;
           updateStatCards();
         }
-        
+
         throw error; // Propager l'erreur pour une gestion ultérieure
       }
     }
@@ -1067,10 +1205,10 @@
       const stats = dashboardData.stats || {};
 
       // Mettre à jour les compteurs avec animation
-  if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
-  if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
-  if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
-  if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
+      if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
+      if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
+      if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
+      if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
     }
 
     async function loadRecentActes() {
@@ -1105,9 +1243,9 @@
       });
 
       // Mettre à jour les compteurs
-  if (counts.naissance > 0) animateNumber('births-count', counts.naissance);
-  if (counts.mariage > 0) animateNumber('marriages-count', counts.mariage);
-  if (counts.deces > 0) animateNumber('deaths-count', counts.deces);
+      if (counts.naissance > 0) animateNumber('births-count', counts.naissance);
+      if (counts.mariage > 0) animateNumber('marriages-count', counts.mariage);
+      if (counts.deces > 0) animateNumber('deaths-count', counts.deces);
 
       // Mettre à jour le nombre total de documents
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -1234,7 +1372,7 @@
         z-index: 9999;
         flex-direction: column;
       `;
-      
+
       loadingOverlay.innerHTML = `
         <div class="spinner-border text-white" style="width: 3rem; height: 3rem;" role="status">
           <span class="visually-hidden">Chargement...</span>
@@ -1242,13 +1380,13 @@
         <p class="text-white mt-3 fs-5">Génération du PDF en cours...</p>
         <p class="text-light small">Veuillez patienter, cette opération peut prendre quelques instants</p>
       `;
-      
+
       document.body.appendChild(loadingOverlay);
       document.body.style.overflow = 'hidden';
-      
+
       return loadingOverlay;
     }
-    
+
     // Masquer l'indicateur de chargement
     function hideLoadingIndicator() {
       const overlay = document.getElementById('pdfLoadingOverlay');
@@ -1257,7 +1395,7 @@
         document.body.style.overflow = '';
       }
     }
-    
+
     // Afficher une notification
     function showNotification(message, type = 'success') {
       const toastContainer = document.getElementById('toastContainer') || (() => {
@@ -1267,13 +1405,13 @@
         document.body.appendChild(container);
         return container;
       })();
-      
+
       const toast = document.createElement('div');
       toast.className = `toast show align-items-center text-white bg-${type} border-0`;
       toast.role = 'alert';
       toast.setAttribute('aria-live', 'assertive');
       toast.setAttribute('aria-atomic', 'true');
-      
+
       toast.innerHTML = `
         <div class="d-flex">
           <div class="toast-body">
@@ -1282,15 +1420,15 @@
           <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       `;
-      
+
       toastContainer.appendChild(toast);
-      
+
       // Fermeture automatique après 5 secondes
       setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 150);
       }, 5000);
-      
+
       // Fermeture au clic
       toast.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => {
         toast.classList.remove('show');
@@ -1303,17 +1441,17 @@
       let loadingOverlay;
       let downloadBtn;
       let originalText;
-      
+
       try {
         const token = localStorage.getItem('token');
         if (!token) {
           showNotification('Veuillez vous reconnecter', 'danger');
           return;
         }
-        
+
         // Afficher l'indicateur de chargement
         loadingOverlay = showLoadingIndicator();
-        
+
         // Désactiver le bouton pendant le chargement
         downloadBtn = document.querySelector(`[data-id="${id}"]`);
         if (downloadBtn) {
@@ -1322,10 +1460,10 @@
           downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Génération...';
         }
 
-  const endpoint = `/api/actes/${id}/pdf`;
+        const endpoint = `/api/actes/${id}/pdf`;
         const timestamp = new Date().getTime();
         const url = `${endpoint}?_=${timestamp}`;
-        
+
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -1342,9 +1480,9 @@
             message: 'Erreur lors de la génération du PDF',
             status: response.status
           }));
-          
+
           let errorMessage = errorData.message || 'Erreur inconnue';
-          
+
           // Messages d'erreur plus conviviaux
           if (response.status === 401) {
             errorMessage = 'Session expirée. Veuillez vous reconnecter.';
@@ -1355,46 +1493,46 @@
           } else if (response.status >= 500) {
             errorMessage = 'Erreur du serveur. Veuillez réessayer plus tard.';
           }
-          
+
           throw new Error(errorMessage);
         }
-        
+
         // Récupérer le blob du PDF
         const blob = await response.blob();
-        
+
         // Vérifier que le blob n'est pas vide
         if (blob.size === 0) {
           throw new Error('Le fichier PDF généré est vide');
         }
-        
+
         // Créer un blob URL pour le téléchargement
         const blobUrl = window.URL.createObjectURL(blob);
-        
+
         // Créer un lien de téléchargement
         const downloadLink = document.createElement('a');
         downloadLink.href = blobUrl;
-        
+
         // Définir le nom du fichier
         const contentDisposition = response.headers.get('Content-Disposition') || '';
         const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        const fileName = fileNameMatch && fileNameMatch[1] 
-          ? fileNameMatch[1].replace(/['"]/g, '') 
+        const fileName = fileNameMatch && fileNameMatch[1]
+          ? fileNameMatch[1].replace(/['"]/g, '')
           : `acte-${type || 'document'}-${numeroActe || id}.pdf`;
-        
+
         downloadLink.download = fileName;
-        
+
         // Déclencher le téléchargement
         document.body.appendChild(downloadLink);
         downloadLink.click();
-        
+
         // Nettoyage
         setTimeout(() => {
           document.body.removeChild(downloadLink);
           window.URL.revokeObjectURL(blobUrl);
         }, 100);
-        
+
         showNotification('Téléchargement du PDF démarré', 'success');
-        
+
       } catch (error) {
         console.error('Erreur lors de la génération du PDF:', error);
         showNotification(`Erreur: ${error.message || 'Impossible de générer le PDF'}`, 'danger');
@@ -1404,7 +1542,7 @@
           downloadBtn.disabled = false;
           downloadBtn.innerHTML = originalText;
         }
-        
+
         // Masquer l'indicateur de chargement
         if (loadingOverlay) {
           hideLoadingIndicator();
@@ -1536,7 +1674,7 @@
       const details = acte.details || {};
       const dateEnregistrement = acte.dateEnregistrement ? new Date(acte.dateEnregistrement) : null;
       const dateNaissance = details.dateNaissance ? new Date(details.dateNaissance) : null;
-      
+
       // Fonction pour formater une date
       const formatDate = (date) => date ? date.toLocaleDateString('fr-FR', {
         year: 'numeric',
@@ -1554,18 +1692,18 @@
       modal.setAttribute('role', 'dialog');
       modal.setAttribute('aria-modal', 'true');
       modal.setAttribute('aria-labelledby', `${modalId}Label`);
-      
+
       // Gérer correctement l'accessibilité du modal
       modal.setAttribute('aria-hidden', 'true');
-      
+
       // Ajouter un gestionnaire d'événements pour gérer le focus
-      modal.addEventListener('shown.bs.modal', function() {
+      modal.addEventListener('shown.bs.modal', function () {
         modal.setAttribute('aria-hidden', 'false');
         const focusable = modal.querySelector('button, [href], [tabindex]');
         if (focusable) focusable.focus();
       });
-      
-      modal.addEventListener('hidden.bs.modal', function() {
+
+      modal.addEventListener('hidden.bs.modal', function () {
         modal.setAttribute('aria-hidden', 'true');
       });
 
@@ -1592,46 +1730,46 @@
 
       // Générer le contenu spécifique selon le type d'acte
       let specificContent = '';
-      
+
       if (acte.type === 'naissance') {
         specificContent = `
           ${infoSection('INFORMATIONS DE L\'ENFANT', [
-            { label: 'Prénom(s)', value: details.prenom },
-            { label: 'Nom', value: details.nom },
-            { label: 'Date de naissance', value: dateNaissance ? dateNaissance.toLocaleDateString('fr-FR') : '' },
-            { label: 'Heure de naissance', value: details.heureNaissance || '' },
-            { label: 'Lieu de naissance', value: details.lieuNaissance || '' },
-            { label: 'Sexe', value: details.sexe === 'M' ? 'Masculin' : 'Féminin' },
-            { label: 'Poids', value: details.poids ? `${details.poids} kg` : '' },
-            { label: 'Taille', value: details.taille ? `${details.taille} cm` : '' }
-          ])}
+          { label: 'Prénom(s)', value: details.prenom },
+          { label: 'Nom', value: details.nom },
+          { label: 'Date de naissance', value: dateNaissance ? dateNaissance.toLocaleDateString('fr-FR') : '' },
+          { label: 'Heure de naissance', value: details.heureNaissance || '' },
+          { label: 'Lieu de naissance', value: details.lieuNaissance || '' },
+          { label: 'Sexe', value: details.sexe === 'M' ? 'Masculin' : 'Féminin' },
+          { label: 'Poids', value: details.poids ? `${details.poids} kg` : '' },
+          { label: 'Taille', value: details.taille ? `${details.taille} cm` : '' }
+        ])}
 
           ${infoSection('FILIATION - PÈRE', [
-            { label: 'Prénom(s)', value: details.prenomPere },
-            { label: 'Nom', value: details.nomPere },
-            { label: 'Date de naissance', value: details.dateNaissancePere },
-            { label: 'Lieu de naissance', value: details.lieuNaissancePere },
-            { label: 'Profession', value: details.professionPere },
-            { label: 'Nationalité', value: details.nationalitePere }
-          ])}
+          { label: 'Prénom(s)', value: details.prenomPere },
+          { label: 'Nom', value: details.nomPere },
+          { label: 'Date de naissance', value: details.dateNaissancePere },
+          { label: 'Lieu de naissance', value: details.lieuNaissancePere },
+          { label: 'Profession', value: details.professionPere },
+          { label: 'Nationalité', value: details.nationalitePere }
+        ])}
 
           ${infoSection('FILIATION - MÈRE', [
-            { label: 'Prénom(s)', value: details.prenomMere },
-            { label: 'Nom', value: details.nomMere },
-            { label: 'Date de naissance', value: details.dateNaissanceMere },
-            { label: 'Lieu de naissance', value: details.lieuNaissanceMere },
-            { label: 'Profession', value: details.professionMere },
-            { label: 'Nationalité', value: details.nationaliteMere }
-          ])}
+          { label: 'Prénom(s)', value: details.prenomMere },
+          { label: 'Nom', value: details.nomMere },
+          { label: 'Date de naissance', value: details.dateNaissanceMere },
+          { label: 'Lieu de naissance', value: details.lieuNaissanceMere },
+          { label: 'Profession', value: details.professionMere },
+          { label: 'Nationalité', value: details.nationaliteMere }
+        ])}
 
           ${infoSection('DÉCLARATION', [
-            { label: 'Déclarant', value: details.nomDeclarant },
-            { label: 'Lien avec l\'enfant', value: details.lienDeclarant },
-            { label: 'Date de déclaration', value: formatDate(dateEnregistrement) },
-            { label: 'Numéro de pièce', value: details.numeroPieceDeclarant },
-            { label: 'Délivré le', value: details.dateDelivrancePieceDeclarant },
-            { label: 'Par', value: details.lieuDelivrancePieceDeclarant }
-          ])}
+          { label: 'Déclarant', value: details.nomDeclarant },
+          { label: 'Lien avec l\'enfant', value: details.lienDeclarant },
+          { label: 'Date de déclaration', value: formatDate(dateEnregistrement) },
+          { label: 'Numéro de pièce', value: details.numeroPieceDeclarant },
+          { label: 'Délivré le', value: details.dateDelivrancePieceDeclarant },
+          { label: 'Par', value: details.lieuDelivrancePieceDeclarant }
+        ])}
         `;
       } else {
         // Pour les autres types d'actes (à compléter si nécessaire)
@@ -1720,7 +1858,7 @@
             focusTarget.focus({ preventScroll: true });
           }
         }
-        
+
         // Nettoyer les écouteurs d'événements
         modal.removeEventListener('shown.bs.modal', handleShown);
         modal.removeEventListener('hidden.bs.modal', handleHidden);
@@ -1756,10 +1894,10 @@
 
         showLoadingState();
         console.log('Récupération du token d\'authentification...');
-        
+
         const url = `/api/actes/${id}/pdf`;
         console.log('URL de la requête:', url);
-        
+
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -1778,7 +1916,7 @@
             const errorData = await response.json();
             console.error('Détails de l\'erreur:', errorData);
             errorMsg = errorData.error || errorData.message || errorMsg;
-            
+
             // Vérifier si c'est une erreur de validation
             if (errorData.errors) {
               errorMsg += '\n' + errorData.errors.map(e => e.msg || e.message).join('\n');
@@ -1786,7 +1924,7 @@
           } catch (e) {
             console.error('Impossible de parser la réponse d\'erreur:', e);
           }
-          
+
           throw new Error(errorMsg);
         }
 
@@ -1800,7 +1938,7 @@
 
         const blob = await response.blob();
         console.log('Taille du PDF reçu:', blob.size, 'octets');
-        
+
         if (blob.size === 0) {
           throw new Error('Le PDF reçu est vide');
         }
@@ -1810,18 +1948,18 @@
         link.href = downloadUrl;
         link.download = `acte_${id}_${new Date().toISOString().split('T')[0]}.pdf`;
         link.style.display = 'none';
-        
+
         document.body.appendChild(link);
         console.log('Déclenchement du téléchargement...');
         link.click();
-        
+
         // Nettoyage
         setTimeout(() => {
           window.URL.revokeObjectURL(downloadUrl);
           document.body.removeChild(link);
           console.log('Nettoyage effectué');
         }, 100);
-        
+
       } catch (error) {
         console.error('Erreur lors du téléchargement du PDF:', {
           error: error.message,
@@ -1829,7 +1967,7 @@
           acteId: id,
           timestamp: new Date().toISOString()
         });
-        
+
         // Afficher un message d'erreur plus détaillé
         let errorMessage = 'Erreur lors du téléchargement du PDF';
         if (error.message.includes('Failed to fetch')) {
@@ -1841,7 +1979,7 @@
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         showError(errorMessage);
       } finally {
         hideLoadingState();
@@ -1890,18 +2028,18 @@
       // Mettre à jour les compteurs avec animation
       if (stats.naissances !== undefined) animateNumber('births-count', stats.naissances);
       if (stats.mariages !== undefined) animateNumber('marriages-count', stats.mariages);
-  if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
-  if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
+      if (stats.deces !== undefined) animateNumber('deaths-count', stats.deces);
+      if (stats.documents !== undefined) animateNumber('documents-count', stats.documents);
     }
 
     async function loadRecentActes() {
       try {
         const response = await apiRequest('/api/actes?limit=10&sort=-dateEnregistrement');
-        
+
         if (!response) {
           throw new Error('Aucune réponse du serveur');
         }
-        
+
         if (response && response.success) {
           displayActes(response.data);
           return true;
@@ -1911,7 +2049,7 @@
         }
       } catch (error) {
         console.error('Erreur lors du chargement des actes récents:', error);
-        
+
         // Afficher un message d'erreur dans le tableau
         const tbody = document.querySelector('#actesTable tbody');
         if (tbody) {
@@ -1926,7 +2064,7 @@
             </tr>
           `;
         }
-        
+
         throw error; // Propager l'erreur pour une gestion ultérieure
       }
     }
@@ -1944,33 +2082,33 @@
       }
       showAlert(message, 'info');
     }
-    
+
     // Fonction pour effectuer une recherche
     async function performSearch() {
       const searchTerm = document.getElementById('globalSearch').value.trim();
-      
+
       if (!searchTerm) {
         loadRecentActes();
         return;
       }
-      
+
       try {
         showLoadingState();
-        
+
         // Nettoyer le terme de recherche (retirer les préfixes de champ comme 'MAHAMAT:1')
         const cleanSearchTerm = searchTerm.split(':')[0].trim();
-        
+
         // Vérifier si le terme de recherche est vide après nettoyage
         if (!cleanSearchTerm) {
           showNoResults('Veuillez entrer un terme de recherche valide');
           return;
         }
-        
+
         const searchUrl = `/api/actes/search?q=${encodeURIComponent(cleanSearchTerm)}`;
-        
+
         // Options de la requête avec timeout
         const controller = new AbortController();
-        
+
         // Timeout après 10 secondes
         let timeoutId;
         const timeoutPromise = new Promise((_, reject) => {
@@ -1979,7 +2117,7 @@
             reject(new Error('La recherche a pris trop de temps. Veuillez réessayer.'));
           }, 10000);
         });
-        
+
         try {
           const fetchPromise = fetch(searchUrl, {
             method: 'GET',
@@ -1989,20 +2127,20 @@
             },
             signal: controller.signal
           });
-          
+
           // Attendre soit la réponse, soit le timeout
           const response = await Promise.race([fetchPromise, timeoutPromise]);
           clearTimeout(timeoutId);
-          
+
           // Gérer les réponses non-OK
           if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw new Error(error.message || 'Erreur lors de la recherche');
           }
-          
+
           // Traiter la réponse réussie
           const result = await response.json();
-          
+
           if (result && result.success) {
             if (result.data && result.data.length > 0) {
               displayActes(result.data);
@@ -2026,9 +2164,9 @@
         showError(error.message || 'Erreur lors de la recherche. Veuillez réessayer.');
       }
     }
-    
+
     // Fonction de rafraîchissement du tableau de bord (simplifiée)
-    window.refreshDashboard = function() {
+    window.refreshDashboard = function () {
       console.log('Rafraîchissement du tableau de bord...');
       window.location.reload();
     };
@@ -2065,4 +2203,5 @@
   </script>
   <!-- Suppression de l'initialisation redondante du tableau de bord -->
 </body>
+
 </html>

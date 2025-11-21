@@ -6,14 +6,28 @@ class Dashboard {
     this.abortController = null;
     this.refreshHandler = this.handleRefresh.bind(this);
     this.actes = [];
+    this.currentPage = 1;
+    this.itemsPerPage = 10; // Nombre d'actes par page
+    this.filteredActes = [];
     this.init();
   }
 
   async init() {
     try {
+      // Initialiser la barre latérale
+      const sidebarContainer = document.getElementById('sidebar-container');
+      if (sidebarContainer && typeof createSidebar === 'function') {
+        sidebarContainer.innerHTML = createSidebar('dashboard');
+        // Appliquer les styles de la barre latérale
+        const style = document.createElement('style');
+        style.textContent = window.commonCSS;
+        document.head.appendChild(style);
+      }
+      
       await this.loadData();
       this.setupEventListeners();
     } catch (error) {
+      console.error('Erreur lors de l\'initialisation du tableau de bord:', error);
       this.showError('Erreur lors de l\'initialisation du tableau de bord');
     }
   }
@@ -54,7 +68,7 @@ class Dashboard {
           },
           signal: this.abortController.signal
         }),
-        fetch('/api/dashboard/recent-actes?limit=5', {
+        fetch('/api/actes?limit=100', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -118,15 +132,14 @@ class Dashboard {
   }
 
   updateRecentActivity(actes) {
-    if (!actes || !actes.length) return;
-    
     const tbody = document.getElementById('recentActesBody');
     if (!tbody) return;
 
     // Vider le tableau
     tbody.innerHTML = '';
-    if (recentActes.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte pour ce filtre</td></tr>';
+    
+    if (!actes || actes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
       return;
     }
 
@@ -218,7 +231,7 @@ class Dashboard {
     if (!actes || !Array.isArray(actes)) {
       console.error('Aucun acte reçu ou format invalide:', actes);
       const tbody = document.getElementById('recentActesBody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun acte trouvé</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Aucun acte trouvé</td></tr>';
       return;
     }
     
@@ -245,33 +258,49 @@ class Dashboard {
       
       // Créer les cellules avec les données de l'acte
       const numeroCell = document.createElement('td');
-      numeroCell.textContent = acte.numeroActe || 'N/A';
-      
       const typeCell = document.createElement('td');
-      const typeBadge = document.createElement('span');
-      typeBadge.className = `badge ${this.getTypeBadge(acte.type)}`;
-      typeBadge.textContent = this.getTypeLabel(acte.type);
-      typeCell.appendChild(typeBadge);
-      
       const nomCell = document.createElement('td');
-      nomCell.textContent = this.getActeDescription(acte);
-      
       const dateCell = document.createElement('td');
-      dateCell.textContent = this.formatDate(acte.dateActe || acte.dateEnregistrement);
-      
       const actionsCell = document.createElement('td');
+      
+      // Remplir les cellules
+      numeroCell.textContent = acte.numeroActe || 'N/A';
+      typeCell.innerHTML = `<span class="badge ${this.getTypeBadge(acte.type)}">${this.getTypeLabel(acte.type)}</span>`;
+      nomCell.textContent = this.getActeDescription(acte);
+      dateCell.textContent = this.formatDate(acte.dateActe || acte.dateCreation || acte.dateEnregistrement);
+      
+      // Créer un conteneur pour les boutons d'action
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'd-flex justify-content-end align-items-center gap-1';
+      
+      // Créer les boutons d'action avec des classes personnalisées
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'btn btn-sm btn-action btn-view';
+      viewBtn.setAttribute('data-id', acte._id);
+      viewBtn.setAttribute('title', 'Voir les détails');
+      viewBtn.innerHTML = '<i class="fas fa-eye"></i>';
+      
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-sm btn-action btn-edit';
+      editBtn.setAttribute('data-id', acte._id);
+      editBtn.setAttribute('title', 'Modifier');
+      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-sm btn-action btn-delete';
+      deleteBtn.setAttribute('data-id', acte._id);
+      deleteBtn.setAttribute('data-numero', acte.numeroActe || '');
+      deleteBtn.setAttribute('title', 'Supprimer');
+      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+      
+      // Ajouter les boutons au groupe
+      btnGroup.appendChild(viewBtn);
+      btnGroup.appendChild(editBtn);
+      btnGroup.appendChild(deleteBtn);
+      
+      // Ajouter le groupe de boutons à la cellule
       actionsCell.className = 'text-end';
-      actionsCell.innerHTML = `
-        <button class="btn btn-sm btn-outline-primary view-acte" data-id="${acte._id}">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary edit-acte" data-id="${acte._id}">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-danger delete-acte" data-id="${acte._id}" data-numero="${acte.numeroActe || ''}">
-          <i class="fas fa-trash"></i>
-        </button>
-      `;
+      actionsCell.appendChild(btnGroup);
       
       // Ajouter les cellules à la ligne
       row.appendChild(numeroCell);
@@ -290,29 +319,147 @@ class Dashboard {
 
   // Méthode pour ajouter les gestionnaires d'événements aux boutons d'action
   addActesEventListeners() {
-    // Gestionnaire pour le bouton Voir
-    document.querySelectorAll('.view-acte').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
-        if (id) this.viewActe(id);
-      });
-    });
+    // Délégation d'événements pour gérer les boutons dynamiques
+    document.addEventListener('click', async (e) => {
+      // Gestionnaire pour le bouton Voir
+      const viewBtn = e.target.closest('.btn-view');
+      if (viewBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Ajouter une classe d'animation
+        viewBtn.classList.add('btn-action', 'btn-view');
+        
+        const id = viewBtn.getAttribute('data-id');
+        if (id) {
+          // Sauvegarder le contenu original
+          const originalContent = viewBtn.innerHTML;
+          
+          // Afficher le spinner et désactiver le bouton
+          viewBtn.disabled = true;
+          viewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          
+          try {
+            await this.viewActe(id);
+          } catch (error) {
+            console.error('Erreur lors de la visualisation:', error);
+            // Afficher une notification d'erreur
+            this.showError('Erreur lors du chargement des détails');
+          } finally {
+            // Restaurer le bouton à son état initial
+            if (viewBtn) {
+              viewBtn.disabled = false;
+              viewBtn.innerHTML = originalContent;
+              
+              // Ajouter un effet de retour
+              viewBtn.style.transform = 'scale(0.95)';
+              setTimeout(() => {
+                if (viewBtn) {
+                  viewBtn.style.transform = '';
+                }
+              }, 200);
+            }
+          }
+        }
+        return;
+      }
 
-    // Gestionnaire pour le bouton Modifier
-    document.querySelectorAll('.edit-acte').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
-        if (id) this.editActe(id);
-      });
-    });
+      // Gestionnaire pour le bouton Modifier
+      const editBtn = e.target.closest('.btn-edit');
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Ajouter une classe d'animation
+        editBtn.classList.add('btn-action', 'btn-edit');
+        
+        const id = editBtn.getAttribute('data-id');
+        if (id) {
+          // Sauvegarder le contenu original
+          const originalContent = editBtn.innerHTML;
+          
+          // Afficher le spinner et désactiver le bouton
+          editBtn.disabled = true;
+          editBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          
+          try {
+            await this.editActe(id);
+          } catch (error) {
+            console.error('Erreur lors de la préparation de l\'édition:', error);
+            // Afficher une notification d'erreur
+            this.showError('Erreur lors du chargement du formulaire d\'édition');
+            
+            // Restaurer le bouton après un délai
+            setTimeout(() => {
+              if (editBtn) {
+                editBtn.disabled = false;
+                editBtn.innerHTML = originalContent;
+                
+                // Ajouter un effet de secousse en cas d'erreur
+                editBtn.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                  if (editBtn) editBtn.style.animation = '';
+                }, 500);
+              }
+            }, 1000);
+          }
+        }
+        return;
+      }
 
-    // Gestionnaire pour le bouton Supprimer
-    document.querySelectorAll('.delete-acte').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
-        const numero = e.currentTarget.getAttribute('data-numero');
-        if (id) this.deleteActe(id, numero);
-      });
+      // Gestionnaire pour le bouton Supprimer
+      const deleteBtn = e.target.closest('.btn-delete');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Ajouter une classe d'animation
+        deleteBtn.classList.add('btn-action', 'btn-delete');
+        
+        const id = deleteBtn.getAttribute('data-id');
+        const numero = deleteBtn.getAttribute('data-numero');
+        
+        if (id) {
+          // Demander confirmation avant de supprimer
+          if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numero || ''} ?`)) {
+            // Animation d'annulation
+            deleteBtn.style.transform = 'translateX(10px)';
+            setTimeout(() => {
+              if (deleteBtn) deleteBtn.style.transform = '';
+            }, 200);
+            return;
+          }
+          
+          // Sauvegarder le contenu original
+          const originalContent = deleteBtn.innerHTML;
+          
+          // Afficher le spinner et désactiver le bouton
+          deleteBtn.disabled = true;
+          deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          
+          try {
+            await this.deleteActe(id, numero);
+          } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            // Afficher une notification d'erreur
+            this.showError('Erreur lors de la suppression');
+            
+            // Restaurer le bouton après un délai
+            setTimeout(() => {
+              if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalContent;
+                
+                // Ajouter un effet de secousse en cas d'erreur
+                deleteBtn.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                  if (deleteBtn) deleteBtn.style.animation = '';
+                }, 500);
+              }
+            }, 1000);
+          }
+        }
+      }
     });
   }
 
@@ -320,50 +467,212 @@ class Dashboard {
   async viewActe(id) {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+      
       const response = await fetch(`/api/actes/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      if (!response.ok) throw new Error('Erreur lors de la récupération des détails');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Erreur lors de la récupération des détails');
+      }
       
       const { success, data } = await response.json();
-      if (!success) throw new Error('Données invalides reçues');
+      if (!success || !data) throw new Error('Données invalides reçues du serveur');
       
       // Afficher les détails dans une modal
       this.showActeDetails(data);
+      
+      // Retourner une promesse résolue pour le finally
+      return Promise.resolve();
+      
     } catch (error) {
-      console.error('Erreur:', error);
-      this.showError('Impossible de charger les détails de l\'acte');
+      console.error('Erreur lors de la visualisation:', error);
+      this.showError(error.message || 'Impossible de charger les détails de l\'acte');
+      return Promise.reject(error);
     }
   }
 
-  editActe(id) {
-    // Rediriger vers la page d'édition appropriée
-    window.location.href = `/actes/edit/${id}`;
+  showActeDetails(acte) {
+    // Créer le contenu de la modal en fonction du type d'acte
+    let modalContent = '';
+    
+    switch(acte.type) {
+      case 'naissance':
+        modalContent = `
+          <h5>Acte de Naissance</h5>
+          <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
+          <p><strong>Nom:</strong> ${acte.details?.nom || ''}</p>
+          <p><strong>Prénom:</strong> ${acte.details?.prenom || ''}</p>
+          <p><strong>Date de naissance:</strong> ${this.formatDate(acte.dateActe)}</p>
+          <p><strong>Lieu de naissance:</strong> ${acte.details?.lieuNaissance || 'Non spécifié'}</p>
+        `;
+        break;
+        
+      case 'mariage':
+        modalContent = `
+          <h5>Acte de Mariage</h5>
+          <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
+          <p><strong>Conjoint 1:</strong> ${acte.details?.conjoint1 || 'Non spécifié'}</p>
+          <p><strong>Conjoint 2:</strong> ${acte.details?.conjointe2 || 'Non spécifié'}</p>
+          <p><strong>Date du mariage:</strong> ${this.formatDate(acte.dateActe)}</p>
+        `;
+        break;
+        
+      case 'deces':
+        modalContent = `
+          <h5>Acte de Décès</h5>
+          <p><strong>Numéro:</strong> ${acte.numeroActe || 'N/A'}</p>
+          <p><strong>Défunt(e):</strong> ${acte.details?.prenom || ''} ${acte.details?.nom || ''}</p>
+          <p><strong>Date de décès:</strong> ${this.formatDate(acte.dateActe)}</p>
+          <p><strong>Lieu de décès:</strong> ${acte.details?.lieuDeces || 'Non spécifié'}</p>
+        `;
+        break;
+        
+      default:
+        modalContent = '<p>Détails non disponibles pour ce type d\'acte.</p>';
+    }
+    
+    // Créer et afficher la modal
+    const modalId = 'acteDetailsModal';
+    let modal = document.getElementById(modalId);
+    
+    // Si la modal n'existe pas, la créer
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = modalId;
+      modal.className = 'modal fade';
+      modal.tabIndex = -1;
+      modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Détails de l'acte</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+              ${modalContent}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-primary" id="downloadPdfBtn" data-id="${acte._id}" data-type="${acte.type}">
+                <i class="fas fa-download me-1"></i> Télécharger le PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Ajouter un écouteur d'événement pour le bouton de téléchargement
+      modal.addEventListener('click', (e) => {
+        if (e.target.closest('#downloadPdfBtn')) {
+          const btn = e.target.closest('#downloadPdfBtn');
+          const id = btn.getAttribute('data-id');
+          const type = btn.getAttribute('data-type');
+          this.downloadActePdf(id, type);
+        }
+      });
+    } else {
+      // Mettre à jour le contenu de la modal existante
+      modal.querySelector('.modal-body').innerHTML = modalContent;
+      const downloadBtn = modal.querySelector('#downloadPdfBtn');
+      if (downloadBtn) {
+        downloadBtn.setAttribute('data-id', acte._id);
+        downloadBtn.setAttribute('data-type', acte.type);
+      }
+    }
+    
+    // Afficher la modal
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      const modalInstance = new bootstrap.Modal(modal);
+      modalInstance.show();
+    } else {
+      console.error('Bootstrap Modal non chargé');
+      // Fallback simple si Bootstrap n'est pas disponible
+      modal.style.display = 'block';
+      modal.style.background = 'rgba(0,0,0,0.5)';
+    }
+  }
+
+  async editActe(id) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return Promise.reject('Non authentifié');
+      }
+      
+      // Récupérer les détails de l'acte pour déterminer son type
+      const response = await fetch(`/api/actes/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Impossible de charger les détails de l\'acte');
+      }
+      
+      const { success, data } = await response.json();
+      if (!success || !data) throw new Error('Données invalides reçues du serveur');
+      
+      // Rediriger vers la page d'édition appropriée en fonction du type d'acte
+      const type = data.type || 'actes';
+      
+      // Rediriger vers la page d'édition avec les paramètres
+      window.location.href = `/edit-acte?id=${id}&type=${type}`;
+      
+      // Retourner une promesse qui ne se résout jamais pour éviter les erreurs
+      return new Promise(() => {});
+      
+    } catch (error) {
+      console.error('Erreur lors de la préparation de l\'édition:', error);
+      this.showError(error.message || 'Impossible de charger la page d\'édition');
+      
+      // Propage l'erreur pour le gestionnaire d'événements
+      return Promise.reject(error);
+    }
   }
 
   async deleteActe(id, numero) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'acte ${numero || ''} ?`)) {
-      return;
-    }
-
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return Promise.reject('Non authentifié');
+      }
+      
       const response = await fetch(`/api/actes/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      if (!response.ok) throw new Error('Erreur lors de la suppression');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Erreur lors de la suppression');
+      }
       
-      const { success } = await response.json();
-      if (!success) throw new Error('Erreur lors de la suppression');
+      const { success, message } = await response.json();
+      if (!success) throw new Error(message || 'Erreur lors de la suppression');
       
-      this.showSuccess('Acte supprimé avec succès');
-      this.loadData(); // Recharger les données
+      // Afficher un message de succès
+      this.showSuccess(message || 'Acte supprimé avec succès');
+      
+      // Recharger les données après un court délai pour laisser voir le message
+      setTimeout(() => {
+        this.loadData();
+      }, 1000);
+      
+      return Promise.resolve();
+      
     } catch (error) {
-      console.error('Erreur:', error);
-      this.showError('Impossible de supprimer l\'acte');
+      console.error('Erreur lors de la suppression:', error);
+      this.showError(error.message || 'Impossible de supprimer l\'acte');
+      return Promise.reject(error);
     }
   }
 
@@ -374,6 +683,57 @@ class Dashboard {
       deces: 'Décès'
     };
     return labels[type] || type;
+  }
+
+  async downloadActePdf(id, type) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Afficher un indicateur de chargement
+      const button = document.querySelector(`#downloadPdfBtn[data-id="${id}"]`);
+      const originalText = button ? button.innerHTML : '';
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Génération...';
+      }
+
+      // Appeler l'API pour générer le PDF
+      const response = await fetch(`/api/actes/${id}/pdf`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la génération du PDF');
+      }
+
+      // Télécharger le fichier
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `acte-${type}-${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Nettoyer
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+    } catch (error) {
+      console.error('Erreur lors du téléchargement du PDF:', error);
+      this.showError('Impossible de télécharger le PDF. Veuillez réessayer.');
+    } finally {
+      // Restaurer le bouton
+      const button = document.querySelector(`#downloadPdfBtn[data-id="${id}"]`);
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-download me-1"></i> Télécharger le PDF';
+      }
+    }
   }
 
   showError(error) {
@@ -477,9 +837,57 @@ class Dashboard {
   applyFilterAndRender() {
     const typeFilter = document.getElementById('typeFilter');
     const selected = typeFilter ? typeFilter.value : 'all';
-    const data = this.actes || [];
-    const filtered = selected === 'all' ? data : data.filter(a => a.type === selected);
-    this.updateRecentActivity(filtered);
+    this.filteredActes = selected === 'all' 
+      ? [...this.actes] 
+      : this.actes.filter(a => a.type === selected);
+    
+    this.currentPage = 1; // Réinitialiser à la première page lors d'un nouveau filtre
+    this.updatePagination();
+    this.updateRecentActivity(this.getPaginatedActes());
+  }
+
+  getPaginatedActes() {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredActes.slice(start, end); // Correction: Utiliser start et end pour la pagination
+  }
+
+  updatePagination() {
+    const pagination = document.getElementById('pagination');
+    if (!pagination) return;
+
+    const totalItems = this.filteredActes.length;
+    const totalPages = Math.ceil(totalItems / this.itemsPerPage);
+    const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const endItem = Math.min(this.currentPage * this.itemsPerPage, totalItems);
+    
+    let paginationHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted">
+          Affichage de <b>${startItem}</b> à <b>${endItem}</b> sur <b>${totalItems}</b> actes
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-outline-primary btn-sm" ${this.currentPage === 1 ? 'disabled' : ''} 
+                  onclick="window.dashboardInstance.goToPage(${this.currentPage - 1})">
+            <i class="fas fa-chevron-left"></i> Précédent
+          </button>
+          <button class="btn btn-outline-primary btn-sm" ${this.currentPage >= totalPages ? 'disabled' : ''} 
+                  onclick="window.dashboardInstance.goToPage(${this.currentPage + 1})">
+            Suivant <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+  }
+
+  goToPage(page) {
+    if (page < 1 || page > Math.ceil(this.filteredActes.length / this.itemsPerPage)) return;
+    this.currentPage = page;
+    this.updateRecentActivity(this.getPaginatedActes());
+    this.updatePagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Met à jour les barres de progression sur les cartes
@@ -510,7 +918,8 @@ class Dashboard {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('dashboard-page')) {
-    new Dashboard();
+  const dashboardPage = document.getElementById('dashboard-page');
+  if (dashboardPage) {
+    window.dashboardInstance = new Dashboard();
   }
 });

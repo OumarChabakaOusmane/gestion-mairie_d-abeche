@@ -74,12 +74,25 @@
       }
       
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/login';
+          return;
+        }
+        
         // Charger les données de l'acte
-        const response = await fetch(`/api/actes/${acteId}`);
+        const response = await fetch(`/api/actes/${acteId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
         const result = await response.json();
         
         if (!response.ok) {
-          throw new Error(result.error || 'Acte non trouvé');
+          throw new Error(result.message || 'Acte non trouvé');
+        }
+        
+        if (!result.success || !result.data) {
+          throw new Error('Données invalides reçues du serveur');
         }
         
         renderForm(result.data);
@@ -279,14 +292,31 @@
       document.getElementById('editActeForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData(document.getElementById('editActeForm'));
-        const details = Object.fromEntries(formData);
-        const mairie = formData.get('mairie');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/login';
+          return;
+        }
+        
+        const form = document.getElementById('editActeForm');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        
+        // Désactiver le bouton et afficher un indicateur de chargement
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...';
         
         try {
+          const formData = new FormData(form);
+          const details = Object.fromEntries(formData);
+          const mairie = formData.get('mairie');
+          
           const response = await fetch(`/api/actes/${acteId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ 
               type: acteType,
               details, 
@@ -297,12 +327,23 @@
           const result = await response.json();
           
           if (response.ok) {
-            showResult('success', result.message);
+            showResult('success', result.message || 'Acte mis à jour avec succès');
+            // Rediriger vers le tableau de bord après 2 secondes
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 2000);
           } else {
-            throw new Error(result.error || 'Erreur lors de la mise à jour');
+            throw new Error(result.message || 'Erreur lors de la mise à jour');
           }
         } catch (err) {
-          showResult('danger', err.message);
+          console.error('Erreur lors de la mise à jour de l\'acte:', err);
+          showResult('danger', err.message || 'Une erreur est survenue lors de la mise à jour');
+        } finally {
+          // Réactiver le bouton
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+          }
         }
       });
     }
