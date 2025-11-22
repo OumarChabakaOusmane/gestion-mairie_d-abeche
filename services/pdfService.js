@@ -139,14 +139,26 @@ class PdfBuilder {
 const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
   let y = config.margins.top;
 
-  // Drapeau du Tchad (optionnel)
+  // Drapeau du Tchad (taille augmentée)
   try {
     const flagPath = path.join(__dirname, '../public/images/td.png');
     if (fs.existsSync(flagPath)) {
-      doc.image(flagPath, config.margins.left, 30, { width: 25 });
+      doc.image(flagPath, config.margins.left, 30, { width: 50 }); // Augmenté de 25 à 50
     }
   } catch (err) {
     console.warn('Drapeau non trouvé, continuation sans...');
+  }
+
+  // Logo en haut à droite
+  try {
+    const logoPath = path.join(__dirname, '../public/images/logotchad.png');
+    if (fs.existsSync(logoPath)) {
+      const logoWidth = 50; // Largeur du logo
+      const logoX = doc.page.width - config.margins.right - logoWidth;
+      doc.image(logoPath, logoX, 30, { width: logoWidth });
+    }
+  } catch (err) {
+    console.warn('Logo non trouvé, continuation sans...');
   }
 
   // Titre principal
@@ -158,7 +170,7 @@ const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
        y: y
      });
   
-  y += 18;
+  y += 10; // Réduit de 18 à 10
   
   // Devise
   doc.font(config.fonts.bold)
@@ -169,7 +181,7 @@ const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
        y: y
      });
   
-  y += 20;
+  y += 10; // Réduit de 20 à 10
   
   // Mairie
   doc.font(config.fonts.bold)
@@ -180,22 +192,11 @@ const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
        y: y
      });
   
-  y += 25;
+  y += 15; // Réduit de 25 à 15
 
-  // Numéro d'acte
-  if (numeroActe) {
-    doc.font(config.fonts.bold)
-       .fontSize(9)
-       .fillColor(config.colors.text)
-       .text(`N° ${sanitizeText(numeroActe)}`, {
-         align: 'right',
-         y: y
-       });
-  }
+  // Titre du document - Déplacé avant le numéro d'acte
+  y += 10; // Espace après le titre de la mairie
   
-  y += 15;
-
-  // Titre du document
   doc.font('Times-Bold')
      .fontSize(14)
      .fillColor(config.colors.primary)
@@ -204,7 +205,23 @@ const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
        y: y
      });
   
-  return y + 25;
+  y += 20; // Espace après le titre principal
+  
+  // Numéro d'acte - Positionné à droite, avec un espace réduit
+  if (numeroActe) {
+    doc.font(config.fonts.bold)
+       .fontSize(10)
+       .fillColor(config.colors.text)
+       .text(`N° ${sanitizeText(numeroActe)}`, {
+         align: 'right',
+         y: y + 15,  // Espace réduit pour gagner de la place
+         width: doc.page.width - (config.margins.left + config.margins.right + 10)
+       });
+  }
+
+  // Ajuster le contenu pour qu'il tienne sur une seule page
+  // La date est gérée dans chaque fonction de génération spécifique (generateMariagePdf, etc.)
+  return y + 30; // Espace réduit pour le contenu suivant
 };
 
 // Fonction pour créer le pied de page
@@ -218,18 +235,31 @@ const createFooter = (doc, dateEtablissement, config = PDF_CONFIG) => {
      .strokeColor(config.colors.border)
      .stroke();
   
-  // Date
-  doc.font(config.fonts.normal)
-     .fontSize(9)
-     .fillColor(config.colors.text)
-     .text(`Fait à Abéché, le ${formatDate(dateEtablissement)}`, 
-           config.margins.left, footerY + 10);
+  // Date et signature alignées à droite
+  const dateText = `Fait à Abéché, le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`;
   
-  // Signature
+  // Positionnement de la date
+  doc.font(config.fonts.normal)
+     .fontSize(10)
+     .fillColor(config.colors.text)
+     .text(dateText, {
+       align: 'right',
+       y: footerY - 40,
+       width: doc.page.width - (config.margins.left + config.margins.right)
+     });
+
+  // Ligne de signature alignée à droite
+  doc.moveTo(doc.page.width - 150, footerY + 20)
+     .lineTo(doc.page.width - 50, footerY + 20)
+     .lineWidth(0.5)
+     .strokeColor(config.colors.border)
+     .stroke();
+
+  // Signature alignée à droite
   doc.font(config.fonts.bold)
      .fontSize(9)
      .text('L\'Officier d\'état civil', 
-           doc.page.width - 150, footerY + 30);
+           doc.page.width - 150, footerY + 25);
   
   // Cachet
   const stampSize = 45;
@@ -433,26 +463,40 @@ const generateNaissancePdf = (data) => {
       writeField('Nationalité de la mère :', pdfData.nationaliteMere || '..............', lineHeight * 3);
       writeField('Profession de la mère :', pdfData.professionMere || '..............', lineHeight * 4);
       
-      // Signature et date
+      // Positionnement en bas de page
       y = doc.page.height - 100; // Position fixe en bas de page
-      const signatureX = 70;
-      const signatureY = y + 20;
       
-      // Ligne de signature
+      // Date alignée à droite
+      const dateText = `Fait à Abéché, le ${formatDate(pdfData.dateEtablissement)}`;
+      doc.font('Helvetica')
+         .fontSize(10)
+         .fillColor('#000000')  // Couleur noire explicite
+         .text(dateText, doc.page.width - 200, y - 30, {
+           width: 180,
+           align: 'right'
+         });
+      
+      // Ligne de signature fine à droite
+      const lineY = y - 10;
+      doc.moveTo(doc.page.width - 200, lineY)
+         .lineTo(doc.page.width - 50, lineY)
+         .lineWidth(0.5)
+         .stroke('#000000');
+      
+      // Texte de la signature à gauche
+      const signatureX = 70;
+      const signatureY = y + 10;
+      
+      // Ligne de signature à gauche
       doc.moveTo(signatureX, signatureY)
          .lineTo(signatureX + 150, signatureY)
          .lineWidth(1)
          .stroke('#000000');
       
-      // Texte de la signature
-      doc.font('Helvetica')
-         .fontSize(11)
+      // Texte de la signature à gauche (une seule fois)
+      doc.font('Helvetica-Bold')
+         .fontSize(9)
          .text("L'Officier d'État Civil", signatureX, signatureY + 5);
-      
-      // Date
-      doc.font('Helvetica')
-         .fontSize(11)
-         .text(`Fait à Abéché, le ${formatDate(pdfData.dateEtablissement)}`, signatureX, y);
       
       // Suppression du pied de page
 
@@ -582,21 +626,10 @@ const generateMariagePdf = (data) => {
       // Créer l'en-tête
       let y = createHeader(doc, 'EXTRAIT D\'ACTE DE MARIAGE', data.numeroActe);
       
-      // Ajouter la date d'établissement
-      doc.font('Helvetica')
-         .fontSize(10)
-         .fillColor('#333333')
-         .text(`Fait à Abéché, le ${new Date().toLocaleDateString('fr-FR')}`, 0, y, { 
-           align: 'right', 
-           width: TEXT_WIDTH 
-         });
+      // Section I - Informations sur l'époux (version agrandie) - Pas d'espace supplémentaire
+      y = drawSectionTitle(doc, 'INFORMATIONS SUR L\'ÉPOUX', y);
       
-      y += 30; // Espace après l'en-tête
-
-      // Section I - Informations sur l'époux (version compacte)
-      y = drawSectionTitle(doc, 'I – INFORMATIONS SUR L\'ÉPOUX', y);
-      
-      // Récupérer les données du conjoint 1 (époux) - version optimisée
+      // Récupérer les données du conjoint 1 (époux)
       let conjoint1 = {
         nom: '',
         prenom: '',
@@ -625,38 +658,80 @@ const generateMariagePdf = (data) => {
       } else if (data.conjoint1) {
         conjoint1 = { ...conjoint1, ...data.conjoint1 };
       }
-      // Affichage compact des informations de l'époux
-      y = drawField(doc, 'Nom, Prénoms', 
-        `${(conjoint1.nom || '').toUpperCase() || 'NON RENSEIGNÉ'}, ${conjoint1.prenom || ''}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
       
-      y = drawField(doc, 'Né(e) le/à', 
-        `${formatDateFr(conjoint1.dateNaissance)} à ${conjoint1.lieuNaissance || 'NON RENSEIGNÉ'}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Afficher les informations de l'époux avec plus d'espacement
+      const startY = y;
       
-      y = drawField(doc, 'Fils de', 
-        `${conjoint1.pere || 'NON RENSEIGNÉ'} et de ${conjoint1.mere || 'NON RENSEIGNÉE'}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Nom et prénom sur une ligne plus grande
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Nom, Prénoms :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${(conjoint1.nom || '').toUpperCase() || 'NON RENSEIGNÉ'}, ${conjoint1.prenom || ''}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Profession', 
-        conjoint1.profession || 'NON RENSEIGNÉE', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Date et lieu de naissance
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Né(e) le/à :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${formatDateFr(conjoint1.dateNaissance) || '--/--/----'} à ${conjoint1.lieuNaissance || 'NON RENSEIGNÉ'}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Domicile', 
-        conjoint1.adresse || 'NON RENSEIGNÉ', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Parents
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Fils de :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${conjoint1.pere || 'NON RENSEIGNÉ'} et de ${conjoint1.mere || 'NON RENSEIGNÉE'}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Nationalité', 
-        conjoint1.nationalite || 'TCHADIEN(NE)', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Profession
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Profession :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint1.profession || 'NON RENSEIGNÉE', 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      // Réduire l'espace entre les sections
-      y += 5;
+      // Domicile
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Domicile :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint1.adresse || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      // Section II - Informations sur l'épouse (version compacte)
-      y = drawSectionTitle(doc, 'II – INFORMATIONS SUR L\'ÉPOUSE', y);
+      // Nationalité
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Nationalité :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint1.nationalite || 'TCHADIEN(NE)', 180, y, { width: 350, align: 'left' });
+      y += 30; // Plus d'espace après la section
       
-      // Récupérer les données du conjoint 2 (épouse) - version optimisée
+      // Section II - Informations sur l'épouse (version agrandie)
+      y = drawSectionTitle(doc, 'INFORMATIONS SUR L\'ÉPOUSE', y);
+      
+      // Récupérer les données du conjoint 2 (épouse)
       let conjoint2 = {
         nom: '',
         prenom: '',
@@ -685,46 +760,115 @@ const generateMariagePdf = (data) => {
       } else if (data.conjoint2) {
         conjoint2 = { ...conjoint2, ...data.conjoint2 };
       }
-      // Affichage compact des informations de l'épouse
-      y = drawField(doc, 'Nom, Prénoms', 
-        `${(conjoint2.nom || '').toUpperCase() || 'NON RENSEIGNÉE'}, ${conjoint2.prenom || ''}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
       
-      y = drawField(doc, 'Né(e) le/à', 
-        `${formatDateFr(conjoint2.dateNaissance)} à ${conjoint2.lieuNaissance || 'NON RENSEIGNÉ'}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Afficher les informations de l'épouse avec plus d'espacement
       
-      y = drawField(doc, 'Fille de', 
-        `${conjoint2.pere || 'NON RENSEIGNÉ'} et de ${conjoint2.mere || 'NON RENSEIGNÉE'}`, 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Nom et prénom sur une ligne plus grande
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Nom, Prénoms :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${(conjoint2.nom || '').toUpperCase() || 'NON RENSEIGNÉE'}, ${conjoint2.prenom || ''}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Profession', 
-        conjoint2.profession || 'NON RENSEIGNÉE', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Date et lieu de naissance
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Née le/à :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${formatDateFr(conjoint2.dateNaissance) || '--/--/----'} à ${conjoint2.lieuNaissance || 'NON RENSEIGNÉ'}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Domicile', 
-        conjoint2.adresse || 'NON RENSEIGNÉ', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Parents
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Fille de :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(`${conjoint2.pere || 'NON RENSEIGNÉ'} et de ${conjoint2.mere || 'NON RENSEIGNÉE'}`, 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      y = drawField(doc, 'Nationalité', 
-        conjoint2.nationalite || 'TCHADIEN(NE)', 
-        y, { labelWidth: 120, lineHeight: 10 });
+      // Profession
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Profession :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint2.profession || 'NON RENSEIGNÉE', 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      // Réduire l'espace entre les sections
-      y += 5;
+      // Domicile
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Domicile :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint2.adresse || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+      y += 20;
       
-      // Section III - Informations sur le mariage (version compacte)
-      y = drawSectionTitle(doc, 'III – INFORMATIONS SUR LE MARIAGE', y);
+      // Nationalité
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Nationalité :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(conjoint2.nationalite || 'TCHADIEN(NE)', 180, y, { width: 350, align: 'left' });
+      y += 30; // Plus d'espace après la section
+      
+      // Section III - Informations sur le mariage (version agrandie)
+      y = drawSectionTitle(doc, 'INFORMATIONS SUR LE MARIAGE', y);
       
       // Récupérer les données du mariage
       const mariageDate = formatDateFr(data.details?.dateMariage || data.dateMariage);
       const mariageLieu = (data.details?.lieuMariage || data.lieuMariage || 'NON RENSEIGNÉ').toUpperCase();
       const regime = (data.details?.regimeMatrimonial || data.regimeMatrimonial || 'communauté réduite aux acquêts').toUpperCase();
       
-      // Afficher les informations du mariage sur une seule ligne
-      y = drawField(doc, 'Mariage célébré le', 
-        `Le ${mariageDate} à ${mariageLieu} sous le régime de la ${regime}`, 
-        y, { labelWidth: 150, lineHeight: 10 });
+      // Date du mariage
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Date du mariage :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(mariageDate || '--/--/----', 180, y, { width: 350, align: 'left' });
+      y += 20;
+      
+      // Lieu du mariage
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Lieu du mariage :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(mariageLieu, 180, y, { width: 350, align: 'left' });
+      y += 20;
+      
+      // Régime matrimonial
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('#333333')
+         .text('Régime matrimonial :', 50, y, { width: 120, align: 'left' });
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor('#000000')
+         .text(regime, 180, y, { width: 350, align: 'left' });
+      y += 30; // Plus d'espace après la section
       
       // Ajouter l'heure du mariage si disponible
       if (data.details?.heureMariage) {
@@ -736,38 +880,102 @@ const generateMariagePdf = (data) => {
       // Réduire l'espace entre les sections
       y += 5;
       
-      // Section IV - Témoins (version compacte)
-      y = drawSectionTitle(doc, 'IV – TÉMOINS', y);
+      // Section IV - Témoins (version agrandie)
+      y = drawSectionTitle(doc, 'TÉMOINS', y);
       
       const temoins = data.details?.temoins || data.temoins || [];
+      
       if (temoins.length > 0) {
-        // Afficher les témoins côte à côte
-        const temoin1 = temoins[0] || {};
-        const temoin2 = temoins[1] || {};
+        // Premier témoin
+        if (temoins[0]) {
+          const temoin = temoins[0];
+          
+          // Titre du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('Témoin 1 :', 50, y, { width: 120, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text((temoin.nom || '').toUpperCase() || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+          y += 20;
+          
+          // Profession du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('  Profession :', 70, y, { width: 100, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text(temoin.profession || temoin.metier || 'NON RENSEIGNÉE', 180, y, { width: 350, align: 'left' });
+          y += 20;
+          
+          // Domicile du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('  Domicile :', 70, y, { width: 100, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text(temoin.adresse || temoin.residence || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+          y += 30; // Plus d'espace après le témoin
+        }
         
-        // Ligne 1: Noms des témoins
-        y = drawField(doc, 'Témoins', 
-          `1. ${(temoin1.nom || '').toUpperCase() || 'NON RENSEIGNÉ'}` + 
-          (temoins.length > 1 ? `       2. ${(temoin2.nom || '').toUpperCase() || 'NON RENSEIGNÉ'}` : ''), 
-          y, { labelWidth: 80, lineHeight: 10 });
-        
-        // Ligne 2: Professions
-        y = drawField(doc, 'Professions', 
-          `${temoin1.profession || temoin1.metier || 'NON RENSEIGNÉE'}` + 
-          (temoins.length > 1 ? `       ${temoin2.profession || temoin2.metier || 'NON RENSEIGNÉE'}` : ''), 
-          y, { labelWidth: 80, lineHeight: 10 });
-        
-        // Ligne 3: Domiciles
-        y = drawField(doc, 'Domiciles', 
-          `${temoin1.adresse || temoin1.residence || 'NON RENSEIGNÉ'}` + 
-          (temoins.length > 1 ? `       ${temoin2.adresse || temoin2.residence || 'NON RENSEIGNÉ'}` : ''), 
-          y, { labelWidth: 80, lineHeight: 10 });
+        // Deuxième témoin
+        if (temoins[1]) {
+          const temoin = temoins[1];
+          
+          // Titre du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('Témoin 2 :', 50, y, { width: 120, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text((temoin.nom || '').toUpperCase() || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+          y += 20;
+          
+          // Profession du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('  Profession :', 70, y, { width: 100, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text(temoin.profession || temoin.metier || 'NON RENSEIGNÉE', 180, y, { width: 350, align: 'left' });
+          y += 20;
+          
+          // Domicile du témoin
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('#333333')
+             .text('  Domicile :', 70, y, { width: 100, align: 'left' });
+          doc.font('Helvetica')
+             .fontSize(12)
+             .fillColor('#000000')
+             .text(temoin.adresse || temoin.residence || 'NON RENSEIGNÉ', 180, y, { width: 350, align: 'left' });
+          y += 30; // Plus d'espace après le témoin
+        }
       } else {
-        y = drawField(doc, 'Témoins', 'NON RENSEIGNÉS', y, { labelWidth: 120, lineHeight: 10 });
+        // Aucun témoin
+        doc.font('Helvetica-Bold')
+           .fontSize(12)
+           .fillColor('#333333')
+           .text('Témoins :', 50, y, { width: 120, align: 'left' });
+        doc.font('Helvetica')
+           .fontSize(12)
+           .fillColor('#000000')
+           .text('NON RENSEIGNÉS', 180, y, { width: 350, align: 'left' });
+        y += 30;
       }
       
-      // Section de signature (version compacte)
-      y += 10; // Réduire l'espace avant la signature
+      // Section de signature
+      y += 10; // Espace avant la signature
       
       // Ajuster la position Y si on est trop bas sur la page
       if (y > 700) {
@@ -787,22 +995,34 @@ const generateMariagePdf = (data) => {
       const signatureY = y;
       
       // Texte de la date et lieu
-      doc.font('Helvetica')
-         .fontSize(9)
-         .fillColor('#333333')
-         .text('Fait à Abéché, le ' + dateEtablissement, MARGIN_LEFT, signatureY);
+      // Position Y pour la date et la signature
+      const dateY = signatureY - 40;
+      const lineY = signatureY - 10;
+      const signatureTextY = signatureY - 5;
       
-      // Ligne de signature
-      doc.moveTo(MARGIN_LEFT, signatureY + 15)
-         .lineTo(MARGIN_LEFT + 200, signatureY + 15)
-         .lineWidth(0.8)
+      // Date alignée à droite avec style cohérent et largeur ajustée
+      const dateText = `Fait à Abéché, le ${formatDate(data.dateEnregistrement || new Date())}`;
+      doc.font('Helvetica')
+         .fontSize(10)
+         .fillColor('#000000')
+         .text(dateText, {
+           align: 'right',
+           y: dateY,
+           width: doc.page.width - 50,  // Largeur augmentée
+           lineGap: 5
+         });
+      
+      // Ligne de signature fine
+      doc.moveTo(doc.page.width - 200, lineY)
+         .lineTo(doc.page.width - 50, lineY)
+         .lineWidth(0.5)
          .stroke('#000000');
       
       // Texte de la signature
       doc.font('Helvetica-Bold')
          .fontSize(9)
          .fillColor('#000000')
-         .text("L'Officier d'État Civil", MARGIN_LEFT, signatureY + 20);
+         .text("L'Officier d'État Civil", doc.page.width - 200, signatureTextY);
       
       // Ajout du cachet et de la signature à droite (version plus petite)
       try {

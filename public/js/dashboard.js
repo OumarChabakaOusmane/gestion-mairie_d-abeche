@@ -752,19 +752,7 @@ class Dashboard {
     // Nettoyer les anciens listeners
     this.cleanup();
     
-    // Gestion du bouton de rafraîchissement
-    const refreshBtn = document.getElementById('refreshButton');
-    if (refreshBtn) {
-      // Ajouter une animation de rotation au clic
-      refreshBtn.style.transition = 'transform 0.5s ease';
-      refreshBtn.style.padding = '5px';
-      
-      // Lier le gestionnaire d'événements avec le bon contexte
-      this.refreshHandler = this.handleRefresh.bind(this);
-      refreshBtn.addEventListener('click', this.refreshHandler);
-    } else {
-      console.error('Bouton d\'actualisation non trouvé');
-    }
+    // Bouton d'actualisation - Supprimé car non utilisé
 
     // Filtre par type
     const typeFilter = document.getElementById('typeFilter');

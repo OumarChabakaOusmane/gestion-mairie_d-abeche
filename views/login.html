@@ -16,9 +16,9 @@
         }
         .register-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;  /* Augmentation de la largeur maximale */
             margin: 0 auto;
-            padding: 2rem;
+            padding: 2.5rem;  /* Augmentation du padding */
             border-radius: 1rem;
             background: white;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
@@ -76,7 +76,7 @@
             </div>
             
             <!-- Colonne du formulaire -->
-            <div class="col-md-5 d-flex align-items-center justify-content-center" style="height: calc(100vh - 2rem);">
+            <div class="col-md-5 d-flex align-items-center justify-content-center" style="height: calc(100vh - 2rem); padding: 20px;">
                 <div class="register-container w-100" style="max-width: 400px; padding: 2rem;">
                     <div class="register-header text-center">
                         <img src="/images/td.png" alt="Drapeau du Tchad" style="height: 40px; margin-bottom: 15px;">
@@ -98,10 +98,15 @@
                                     <i class="fas fa-sign-in-alt me-2"></i>Se connecter
                                 </button>
                             </div>
-                            <div class="text-center">
-                                <a href="/forgot-password" class="text-decoration-none me-2">Mot de passe oublié ?</a>
-                                <span class="text-muted">|</span>
-                                <a href="/register" class="text-decoration-none ms-2">Créer un compte</a>
+                            <div class="text-center d-flex flex-column align-items-center">
+                                <div class="mb-2">
+                                    <a href="/forgot-password" class="text-decoration-none">Mot de passe oublié ?</a>
+                                </div>
+                                <div>
+                                    <a href="/register" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-user-plus me-1"></i> Créer un compte
+                                    </a>
+                                </div>
                             </div>
                         </form>
                         <div id="result" class="mt-3 text-center"></div>
