@@ -201,7 +201,7 @@ const generateDecesPdf = async (data) => {
         // Date d'établissement avec valeur par défaut
         dateEtablissement: data.dateEtablissement || new Date().toISOString(),
         // Informations de la mairie
-        mairie: data.mairie || 'Abéché',
+        mairie: data.mairie || 'N\'Djaména',
         // Médecin certificateur
         medecin: details.medecinCertificateur || data.medecinCertificateur || 'NON SPÉCIFIÉ'
       };

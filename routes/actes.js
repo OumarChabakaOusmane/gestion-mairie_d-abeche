@@ -660,10 +660,10 @@ router.put('/:id', validateActeInput, authenticate, async (req, res) => {
     });
     
     // S'assurer que la région est cohérente entre mairie et details.region
-    if (mairie && (!details.region || details.region === 'LA VILLE D\'ABÉCHÉ')) {
+    if (mairie && (!details.region || details.region === 'LE TCHAD')) {
       details.region = mairie;
       console.log(`Mise à jour de details.region avec la valeur de mairie: ${mairie}`);
-    } else if (details.region && (!mairie || mairie === 'LA VILLE D\'ABÉCHÉ')) {
+    } else if (details.region && (!mairie || mairie === 'LE TCHAD')) {
       mairie = details.region;
       console.log(`Mise à jour de mairie avec la valeur de details.region: ${details.region}`);
     }

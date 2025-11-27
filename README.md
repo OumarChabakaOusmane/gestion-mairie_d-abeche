@@ -1,6 +1,6 @@
-# Gestion Mairie d'Abéché
+# Gestion Mairie du Tchad
 
-Application de gestion municipale pour la mairie d'Abéché, développée avec Node.js, Express, MongoDB et Socket.IO.
+Application de gestion municipale pour la mairie du Tchad, développée avec Node.js, Express, MongoDB et Socket.IO.
 
 ## 🚀 Fonctionnalités Principales
 

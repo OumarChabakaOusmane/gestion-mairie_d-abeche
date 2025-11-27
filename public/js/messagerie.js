@@ -435,99 +435,97 @@ class MessageSystem {
       console.error('Erreur lors de la sélection de la conversation:', error);
     }
   }
-}
 
   async loadMessages(conversationId) {
-  if (!conversationId) {
-    console.error('ID de conversation manquant');
-    return [];
-  }
-
-  try {
-    const response = await apiRequest(`/api/conversations/${conversationId}/messages`, 'GET');
-    if (response && response.success) {
-      const messages = response.messages || [];
-      if (messages.length > 0) {
+    if (!conversationId) {
+      console.error('ID de conversation manquant');
+      return [];
+    }
+    try {
+      const response = await fetch(`/api/messages/${conversationId}`);
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des messages');
+      }
+      const messages = await response.json();
+      if (messages && messages.length > 0) {
         this.displayMessages(messages);
       }
       return messages;
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages:', error);
+      this.showAlert('Impossible de charger les messages', 'error');
+      return [];
     }
-    return [];
-  } catch (error) {
-    console.error('Erreur lors du chargement des messages:', error);
-    this.showAlert('Impossible de charger les messages', 'error');
-    return [];
-  }
 }
 
-displayMessages(messages) {
-  try {
-    console.log('=== AFFICHAGE DES MESSAGES ===');
-    console.log('Messages à afficher:', messages);
+  displayMessages(messages) {
+    try {
+      console.log('=== AFFICHAGE DES MESSAGES ===');
+      console.log('Messages à afficher:', messages);
 
-    const messagesList = document.getElementById('messagesList');
-    if (!messagesList) {
-      console.error('ERREUR: Conteneur de messages (messagesList) introuvable dans le DOM');
-      console.log('Éléments avec ID messagesList:', document.querySelectorAll('#messagesList'));
-      return;
-    }
+      const messagesList = document.getElementById('messagesList');
+      if (!messagesList) {
+        console.error('ERREUR: Conteneur de messages (messagesList) introuvable dans le DOM');
+        console.log('Éléments avec ID messagesList:', document.querySelectorAll('#messagesList'));
+        return;
+      }
 
-    // Vider la liste des messages
-    messagesList.innerHTML = '';
+      // Vider la liste des messages
+      messagesList.innerHTML = '';
 
-    if (!messages || messages.length === 0) {
-      messagesList.innerHTML = `
+      if (!messages || messages.length === 0) {
+        messagesList.innerHTML = `
           <div class="empty-state">
             <i class="fas fa-comment"></i>
             <p>Aucun message dans cette conversation</p>
           </div>
-        `;;;
-      return;
+        `;
+        return;
+      }
+
+      // Trier les messages par date (du plus ancien au plus récent)
+      const sortedMessages = [...messages].sort((a, b) =>
+        new Date(a.createdAt) - new Date(b.createdAt)
+      );
+
+      // Afficher chaque message
+      sortedMessages.forEach(message => {
+        this.addMessageToChat(message);
+      });
+
+      // Faire défiler vers le bas
+      this.scrollToBottom();
+
+      console.log('Messages affichés avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'affichage des messages:', error);
     }
-
-    // Trier les messages par date (du plus ancien au plus récent)
-    const sortedMessages = [...messages].sort((a, b) =>
-      new Date(a.createdAt) - new Date(b.createdAt)
-    );
-
-    // Afficher chaque message
-    sortedMessages.forEach(message => {
-      this.addMessageToChat(message);
-    });
-
-    // Faire défiler vers le bas
-    this.scrollToBottom();
-
-    console.log('Messages affichés avec succès');
-  } catch (error) {
-    console.error('Erreur lors de l\'affichage des messages:', error);
-  }
 }
 
-updateConversationHeader(conversation) {
-  try {
-    const header = document.getElementById('conversationHeader');
-    if (!header) {
-      console.error('En-tête de conversation introuvable');
-      return;
-    }
+  updateConversationHeader(conversation) {
+    try {
+      const header = document.getElementById('conversationHeader');
+      if (!header) {
+        console.error('En-tête de conversation introuvable');
+        return;
+      }
 
-    let otherParticipant;
-    if (conversation && conversation.participants && conversation.participants.length > 0) {
-      otherParticipant = conversation.participants.find(p =>
-        p._id !== this.currentUser.id &&
-        p._id.toString() !== this.currentUser.id.toString()
-      );
-    }
+      let otherParticipant;
+      if (conversation && conversation.participants && conversation.participants.length > 0) {
+        otherParticipant = conversation.participants.find(p =>
+          p._id !== this.currentUser.id &&
+          p._id.toString() !== this.currentUser.id.toString()
+        );
+      }
 
-    // Vérifier si un participant a été trouvé
-    if (!otherParticipant && conversation && conversation.participants && conversation.participants.length > 0) {
-      // Prendre le premier participant si l'utilisateur actuel n'est pas trouvé
-      otherParticipant = conversation.participants[0];
-    }
+      // Vérifier si un participant a été trouvé
+      if (!otherParticipant && conversation && conversation.participants && conversation.participants.length > 0) {
+        // Prendre le premier participant si l'utilisateur actuel n'est pas trouvé
+        otherParticipant = conversation.participants[0];
+      }
 
-    // Créer le contenu HTML de l'en-tête
-    const headerContent = `
+      // Créer le contenu HTML de l'en-tête
+      const headerContent = `
         <div class="d-flex align-items-center">
           <div class="user-avatar me-3">
             ${otherParticipant && otherParticipant.name ? otherParticipant.name.charAt(0).toUpperCase() : 'U'}
@@ -539,7 +537,7 @@ updateConversationHeader(conversation) {
             </small>
           </div>
         </div>
-      `;;
+      `;
 
     header.innerHTML = headerContent;
   } catch (error) {
@@ -555,8 +553,7 @@ updateConversationHeader(conversation) {
   }
 
   const messageInput = document.getElementById('messageInput');
-  if (!messageInput) {
-    console.error('Champ de saisie de message introuvable');
+  if (!messageInput || !messageInput.value.trim()) {
     return;
   }
 
@@ -625,7 +622,7 @@ updateConversationHeader(conversation) {
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
-      const data = await response.json();;
+      const data = await response.json();
 
       if (data.success && data.data) {
         // Mettre à jour le message avec la réponse du serveur
@@ -716,12 +713,12 @@ createMessageElement(message) {
     const messageHTML = `
         <div class="message-content">
           ${!isCurrentUser ?
-        `;<div class="message-sender">${this.escapeHtml(senderName)}</div>` : ''}
+        `<div class="message-sender">${this.escapeHtml(senderName)}</div>` : ''}
           <div class="message-text">${this.escapeHtml(message.content || '')}</div>
           <div class="message-time">
             ${messageTime}
             ${isCurrentUser ?
-        `;<span class="message-status ${message.status || 'sending'}">
+        `<span class="message-status ${message.status || 'sending'}">
                 ${message.status === 'sent' ? '✓✓' : message.status === 'error' ? '!' : '↻'}
               </span>` : ''}
           </div>
@@ -819,23 +816,23 @@ addMessageToChat(message) {
     // Créer le contenu du message en toute sécurité
     const messageHTML = `
         ${!isOwn ?
-        `;<div class="user-avatar">${senderName ? senderName.charAt(0).toUpperCase() : '?'}</div>` :
+        `<div class="user-avatar">${senderName ? senderName.charAt(0).toUpperCase() : '?'}</div>` :
         ''}
         <div class="message-content">
           ${!isOwn ?
-        `;<div class="message-sender">${this.escapeHtml(senderName)}</div>` :
+        `<div class="message-sender">${this.escapeHtml(senderName)}</div>` :
         ''}
           <div class="message-text">${this.escapeHtml(message.content || '')}</div>
           <div class="message-time">
             ${messageTime}
             ${isOwn ?
-        `;<span class="message-status ${message.status || 'sending'}">
+        `<span class="message-status ${message.status || 'sending'}">
                 ${message.status === 'sent' ? '✓✓' : message.status === 'error' ? '!' : '↻'}
               </span>` :
         ''}
           </div>
         </div>
-      `;;
+      `;
 
     messageElement.innerHTML = messageHTML;
 
@@ -1092,31 +1089,20 @@ showDesktopNotification(title, body) {
   }
 }
 
-handleNewMessage(message) {
-  try {
-    if (!message) {
-      console.error('Erreur: Message non défini');
-      return;
-    }
+  async handleNewMessage(message) {
+    try {
+      if (!message) {
+        console.error('Erreur: Message non défini');
+        return;
+      }
 
-    console.log('=== NOUVEAU MESSAGE RECU ===');
-    console.log('Message brut reçu:', message);
-
-    // Vérifier si l'utilisateur est défini
-    if (!this.currentUser || !this.currentUser.id) {
-      console.error('Erreur: Utilisateur non connecté');
-      return;
-    }
-
-    // Récupérer l'ID de la conversation du message
-    let messageConversationId = message.conversationId ||
-      (message.conversation &&
-        (message.conversation._id || message.conversation.id));
-
-    if (!messageConversationId) {
-      console.error('Erreur: Impossible de déterminer la conversation du message');
-      return;
-    }
+      const messageConversationId = message.conversationId || 
+        (message.conversation && message.conversation._id);
+      
+      if (!messageConversationId) {
+        console.error('Erreur: Impossible de déterminer la conversation du message');
+        return;
+      }
 
     // Normaliser l'expéditeur
     let senderInfo = {};
@@ -1162,26 +1148,6 @@ handleNewMessage(message) {
     console.log('Conversation actuelle:', this.currentConversation?._id || this.currentConversation?.id);
     console.log('Message pour cette conversation?', isForCurrentConversation);
 
-    // Mettre à jour la liste des conversations de manière asynchrone
-    const updateConversations = async () => {
-      try {
-        console.log('Mise à jour de la liste des conversations...');
-        await this.loadConversations();
-        console.log('Liste des conversations mise à jour');
-
-        // Mettre à jour le badge de notification si nécessaire
-        const conversation = this.conversations.find(c =>
-          c._id === messageConversationId || c.id === messageConversationId
-        );
-
-        if (conversation && conversation.unreadCount > 0) {
-          this.updateUnreadCount(conversation._id || conversation.id, conversation.unreadCount);
-        }
-      } catch (error) {
-        console.error('Erreur lors du rechargement des conversations:', error);
-      }
-    };
-
     // Si c'est pour la conversation actuelle, ajouter le message immédiatement
     if (isForCurrentConversation) {
       console.log('Ajout du message à la conversation actuelle');
@@ -1202,7 +1168,7 @@ handleNewMessage(message) {
     }
 
     // Mettre à jour la liste des conversations en arrière-plan
-    updateConversations();
+    await this.updateConversations();
 
     // Afficher une notification si l'utilisateur n'est pas sur la conversation
     if (!isForCurrentConversation && !isOwnMessage) {
@@ -1241,6 +1207,28 @@ handleNewMessage(message) {
   }
 }
 
+async updateConversations() {
+  try {
+    console.log('Mise à jour de la liste des conversations...');
+    await this.loadConversations();
+    console.log('Liste des conversations mise à jour');
+
+    // Mettre à jour le badge de notification si nécessaire
+    if (this.currentConversation) {
+      const conversation = this.conversations.find(c =>
+        (c._id === this.currentConversation._id) ||
+        (c.id === this.currentConversation.id)
+      );
+
+      if (conversation && conversation.unreadCount > 0) {
+        this.updateUnreadCount(conversation._id || conversation.id, conversation.unreadCount);
+      }
+    }
+  } catch (error) {
+    console.error('Erreur lors du rechargement des conversations:', error);
+  }
+}
+
 handleTyping() {
   if (!this.currentConversation) return;
 
@@ -1269,7 +1257,6 @@ showTypingIndicator(data) {
     document.getElementById('typingIndicator').style.display = 'block';
   }
 }
-
 hideTypingIndicator(data) {
   if (this.currentConversation && data.conversationId === this.currentConversation._id) {
     document.getElementById('typingIndicator').style.display = 'none';
@@ -1288,7 +1275,6 @@ populateUserSelect() {
   // Ajouter l'option par défaut avec un message approprié
   const defaultOption = document.createElement('option');
   defaultOption.value = '';
-
   if (isAdmin) {
     defaultOption.textContent = this.users.length > 0
       ? 'Sélectionner un utilisateur...'
@@ -1318,13 +1304,13 @@ populateUserSelect() {
     const supportOption = document.createElement('option');
     supportOption.value = 'support';
     supportOption.textContent = 'Support technique';
-    supportOption.dataset.email = 'support@mairie-abeche.td';
+    supportOption.dataset.email = 'support@mairie-tchad.td';
     select.appendChild(supportOption);
 
     const adminOption = document.createElement('option');
     adminOption.value = 'admin';
     adminOption.textContent = 'Administration';
-    adminOption.dataset.email = 'admin@mairie-abeche.td';
+    adminOption.dataset.email = 'admin@mairie-tchad.td';
     select.appendChild(adminOption);
   }
 
@@ -1393,7 +1379,7 @@ updateUserStatus(userId, isOnline) {
  * @param {string} userId - L'ID de l'utilisateur à vérifier
  * @returns {boolean} - Vrai si l'utilisateur est en ligne
  */
-isUserOnline(userId){
+isUserOnline(userId) {
   if (!userId) return false;
   const onlineUsers = this.onlineUsers || [];
   return onlineUsers.includes(userId);
@@ -1425,6 +1411,16 @@ isUserOnline(userId){
     // Mettre à jour la conversation courante
     this.currentConversation = this.conversations.find(c => c._id === conversationId);
 
+    // Mettre à jour le contenu de l'en-tête
+    const header = document.getElementById('conversationHeader');
+    if (header) {
+      const otherParticipant = this.currentConversation.participants.find(p => p._id !== this.currentUser.id);
+      const headerContent = otherParticipant ? otherParticipant.name : 'Nouvelle conversation';
+      header.innerHTML = headerContent;
+
+      // Mettre à jour le titre de la page
+      document.title = `Messagerie - ${otherParticipant && otherParticipant.name ? otherParticipant.name : 'Nouvelle conversation'}`;
+    }
   } catch (error) {
     console.error('Erreur lors de la connexion à la conversation:', error);
     this.showAlert('Impossible de se connecter à la conversation', 'error');
@@ -1554,7 +1550,8 @@ normalizeSender(sender) {
     email: sender.email || ''
   };
 }
-}
+
+} // Fermeture de la classe MessageSystem
 
 // Export global de la classe
 if (typeof window !== 'undefined') {

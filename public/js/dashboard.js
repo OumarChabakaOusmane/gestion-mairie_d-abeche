@@ -107,6 +107,14 @@ class Dashboard {
       // Mettre à jour l'interface
       this.updateStats(statsData.data);
       this.actes = Array.isArray(actesData.data) ? actesData.data : [];
+      
+      // Log pour déboguer la structure des données
+      console.log('Données brutes des actes reçues:', actesData);
+      if (this.actes.length > 0) {
+        console.log('Premier acte:', this.actes[0]);
+        console.log('Types d\'actes uniques:', [...new Set(this.actes.map(a => a.type))]);
+      }
+      
       this.applyFilterAndRender();
       
       this.retryCount = 0; // Reset sur succès
@@ -837,14 +845,54 @@ class Dashboard {
   // Applique le filtre sélectionné et rend la table
   applyFilterAndRender() {
     const typeFilter = document.getElementById('typeFilter');
-    const selected = typeFilter ? typeFilter.value : 'all';
-    this.filteredActes = selected === 'all' 
-      ? [...this.actes] 
-      : this.actes.filter(a => a.type === selected);
+    const selected = typeFilter ? typeFilter.value.toLowerCase().trim() : 'all';
     
-    this.currentPage = 1; // Réinitialiser à la première page lors d'un nouveau filtre
+    // Mappage des types d'actes avec leurs variantes possibles
+    const typeMap = {
+      'naissance': ['naissance', 'naiss', 'n', 'birth'],
+      'mariage': ['mariage', 'mariages', 'm', 'marriage'],
+      'deces': ['deces', 'décès', 'd', 'decede', 'mort', 'decedee']
+    };
+
+    // Fonction pour normaliser le type d'acte
+    const normalizeType = (type) => {
+      if (!type) return '';
+      return String(type).toLowerCase().trim()
+        .replace(/é|è|ê|ë/g, 'e')
+        .replace(/à|â|ä/g, 'a')
+        .replace(/î|ï/g, 'i')
+        .replace(/ô|ö/g, 'o')
+        .replace(/ù|û|ü/g, 'u');
+    };
+
+    // Si 'tous' est sélectionné, afficher tous les actes
+    if (selected === 'all') {
+      this.filteredActes = [...this.actes];
+    } else {
+      // Sinon, filtrer les actes selon le type sélectionné
+      this.filteredActes = this.actes.filter(acte => {
+        if (!acte.type) return false;
+        
+        const acteType = normalizeType(acte.type);
+        const validTypes = typeMap[selected] || [selected];
+        
+        // Vérifier si le type de l'acte correspond à l'un des types valides
+        return validTypes.some(validType => 
+          acteType.includes(validType) || validType.includes(acteType)
+        );
+      });
+    }
+    
+    // Mettre à jour l'interface
+    this.currentPage = 1;
     this.updatePagination();
     this.updateRecentActivity(this.getPaginatedActes());
+    
+    // Afficher un message si aucun résultat
+    const noResultsMessage = document.getElementById('noResultsMessage');
+    if (noResultsMessage) {
+      noResultsMessage.style.display = this.filteredActes.length === 0 ? 'block' : 'none';
+    }
   }
 
   getPaginatedActes() {

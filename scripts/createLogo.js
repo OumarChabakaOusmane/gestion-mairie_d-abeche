@@ -23,7 +23,7 @@ ctx.font = 'bold 20px Arial';
 ctx.fillStyle = 'blue';
 ctx.textAlign = 'center';
 ctx.textBaseline = 'middle';
-ctx.fillText("Mairie d'Abéché", width / 2, height / 2);
+ctx.fillText("Mairie du Tchad", width / 2, height / 2);
 
 // Enregistrer le logo
 const out = fs.createWriteStream(path.join(dir, 'logo.png'));

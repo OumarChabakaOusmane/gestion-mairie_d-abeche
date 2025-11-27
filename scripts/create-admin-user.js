@@ -8,7 +8,7 @@ async function createAdminUser() {
     await mongoose.connect(process.env.MONGODB_URI);
     
     // Vérifier si un admin existe déjà
-    const existingAdmin = await User.findOne({ email: 'admin@mairie-abeche.td' });
+    const existingAdmin = await User.findOne({ email: 'admin@mairie-tchad.td' });
     
     if (existingAdmin) {
       console.log('✅ Un compte admin existe déjà avec cet email');
@@ -20,7 +20,7 @@ async function createAdminUser() {
     // Créer un nouvel utilisateur admin
     const adminUser = new User({
       name: 'Administrateur',
-      email: 'admin@mairie-abeche.td',
+      email: 'admin@mairie-tchad.td',
       password: await bcrypt.hash('admin123', 10),
       role: 'admin',
       isEmailConfirmed: true
@@ -29,7 +29,7 @@ async function createAdminUser() {
     await adminUser.save();
     
     console.log('✅ Compte administrateur créé avec succès !');
-    console.log('Email: admin@mairie-abeche.td');
+    console.log('Email: admin@mairie-tchad.td');
     console.log('Mot de passe: admin123');
     console.log('\n⚠️ IMPORTANT: Changez ce mot de passe après votre première connexion !');
     

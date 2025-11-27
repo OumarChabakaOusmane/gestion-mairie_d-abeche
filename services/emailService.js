@@ -22,7 +22,7 @@ const sendEmail = async (options) => {
     }
 
     const info = await transporter.sendMail({
-      from: `"Mairie d'Abéché" <${emailConfig.from}>`,
+      from: `"Mairie du Tchad" <${emailConfig.from}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -59,7 +59,7 @@ Détails de la demande :
 Vous recevrez une notification par email dès que votre demande sera traitée.
 
 Cordialement,
-La Mairie d'Abéché`,
+La Mairie du Tchad`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #2c3e50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
@@ -79,7 +79,7 @@ La Mairie d'Abéché`,
           
           <p>Vous recevrez une notification par email dès que votre demande sera traitée.</p>
           
-          <p>Cordialement,<br>L'équipe de la Mairie d'Abéché</p>
+          <p>Cordialement,<br>L'équipe de la Mairie du Tchad</p>
         </div>
       </div>
     `
@@ -98,7 +98,7 @@ ${data.motifRejet ? `\nMotif : ${data.motifRejet}` : ''}
 Vous pouvez suivre l'avancement de votre demande en vous connectant à votre espace personnel.
 
 Cordialement,
-La Mairie d'Abéché`,
+La Mairie du Tchad`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #2c3e50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
@@ -121,7 +121,7 @@ La Mairie d'Abéché`,
             <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/mes-demandes/${data.numeroDossier}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px; margin: 15px 0;">Voir ma demande</a>
           </div>
           
-          <p>Cordialement,<br>L'équipe de la Mairie d'Abéché</p>
+          <p>Cordialement,<br>L'équipe de la Mairie du Tchad</p>
         </div>
       </div>
     `
@@ -140,7 +140,7 @@ Date d'ajout : ${data.dateAjout}
 Vous pouvez le télécharger en vous connectant à votre espace personnel.
 
 Cordialement,
-La Mairie d'Abéché`,
+La Mairie du Tchad`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #27ae60; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
@@ -166,29 +166,29 @@ La Mairie d'Abéché`,
           <p>Si le bouton ne fonctionne pas, copiez et collez le lien suivant dans votre navigateur :</p>
           <p style="word-break: break-all; font-size: 12px; color: #666;">${process.env.FRONTEND_URL || 'http://localhost:3000'}/mes-demandes/${data.numeroDossier}</p>
           
-          <p>Cordialement,<br>L'équipe de la Mairie d'Abéché</p>
+          <p>Cordialement,<br>L'équipe de la Mairie du Tchad</p>
         </div>
       </div>
     `
   }),
   
   welcome: (user) => ({
-    subject: 'Bienvenue sur la plateforme de la Mairie d\'Abéché',
-    text: `Bonjour ${user.name},\n\nBienvenue sur notre plateforme. Votre compte a été créé avec succès.\n\nCordialement,\nL'équipe de la Mairie d'Abéché`,
+    subject: 'Bienvenue sur la plateforme de la Mairie du Tchad',
+    text: `Bonjour ${user.name},\n\nBienvenue sur notre plateforme. Votre compte a été créé avec succès.\n\nCordialement,\nL'équipe de la Mairie du Tchad`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Bienvenue sur la plateforme de la Mairie d'Abéché</h2>
+        <h2>Bienvenue sur la plateforme de la Mairie du Tchad</h2>
         <p>Bonjour <strong>${user.name}</strong>,</p>
         <p>Votre compte a été créé avec succès sur notre plateforme.</p>
         <p>Vous pouvez maintenant vous connecter en utilisant vos identifiants.</p>
-        <p>Cordialement,<br>L'équipe de la Mairie d'Abéché</p>
+        <p>Cordialement,<br>L'équipe de la Mairie du Tchad</p>
       </div>
     `
   }),
   
   resetPassword: (user, resetUrl) => ({
     subject: 'Réinitialisation de votre mot de passe',
-    text: `Bonjour ${user.name},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour procéder :\n\n${resetUrl}\n\nCe lien expirera dans 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\nCordialement,\nL'équipe de la Mairie d'Abéché`,
+    text: `Bonjour ${user.name},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour procéder :\n\n${resetUrl}\n\nCe lien expirera dans 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\nCordialement,\nL'équipe de la Mairie du Tchad`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Réinitialisation de votre mot de passe</h2>
@@ -202,7 +202,7 @@ La Mairie d'Abéché`,
         <p>Ou copiez ce lien dans votre navigateur :<br>${resetUrl}</p>
         <p><em>Ce lien expirera dans 1 heure.</em></p>
         <p>Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.</p>
-        <p>Cordialement,<br>L'équipe de la Mairie d'Abéché</p>
+        <p>Cordialement,<br>L'équipe de la Mairie du Tchad</p>
       </div>
     `
   })

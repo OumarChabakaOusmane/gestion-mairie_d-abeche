@@ -187,7 +187,7 @@ const createHeader = (doc, title, numeroActe, config = PDF_CONFIG) => {
   doc.font(config.fonts.bold)
      .fontSize(12)
      .fillColor(config.colors.primary)
-     .text('MAIRIE DE LA VILLE D\'ABÉCHÉ', {
+     .text('MAIRIE DU TCHAD', {
        align: 'center',
        y: y
      });
@@ -236,7 +236,7 @@ const createFooter = (doc, dateEtablissement, config = PDF_CONFIG) => {
      .stroke();
   
   // Date et signature alignées à droite
-  const dateText = `Fait à Abéché, le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+  const dateText = `Fait au Tchad, le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`;
   
   // Positionnement de la date
   doc.font(config.fonts.normal)
@@ -386,7 +386,7 @@ const generateNaissancePdf = (data) => {
          .fontSize(12);
          
       // Extraire la région en priorisant différentes sources possibles
-      let region = 'LA VILLE D\'ABÉCHÉ';
+      let region = 'LE TCHAD';
       
       if (pdfData.details?.region) {
         region = pdfData.details.region;
@@ -487,7 +487,7 @@ const generateNaissancePdf = (data) => {
       y = doc.page.height - 100; // Position fixe en bas de page
       
       // Date alignée à droite
-      const dateText = `Fait à Abéché, le ${formatDate(pdfData.dateEtablissement)}`;
+      const dateText = `Fait au Tchad, le ${formatDate(pdfData.dateEtablissement)}`;
       doc.font('Helvetica')
          .fontSize(10)
          .fillColor('#000000')  // Couleur noire explicite
@@ -633,7 +633,7 @@ const generateMariagePdf = (data) => {
       },
       info: {
         Title: `Acte de Mariage ${data.numeroActe || ''}`,
-        Author: 'Mairie d\'Abéché',
+        Author: 'Mairie du Tchad',
         Creator: 'Système de Gestion des Actes d\'État Civil',
         CreationDate: new Date()
       }
@@ -1021,7 +1021,7 @@ const generateMariagePdf = (data) => {
       const signatureTextY = signatureY - 5;
       
       // Date alignée à droite avec style cohérent et largeur ajustée
-      const dateText = `Fait à Abéché, le ${formatDate(data.dateEnregistrement || new Date())}`;
+      const dateText = `Fait au Tchad, le ${formatDate(data.dateEnregistrement || new Date())}`;
       doc.font('Helvetica')
          .fontSize(10)
          .fillColor('#000000')

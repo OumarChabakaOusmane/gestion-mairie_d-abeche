@@ -144,7 +144,7 @@ naissanceController.generateNaissancePdf = async (req, res) => {
         ...pdfData,
         details: {
           ...(pdfData.details || {}),
-          region: pdfData.mairie || 'LA VILLE D\'ABÉCHÉ'
+          region: pdfData.mairie || 'LE TCHAD'
         }
       };
       
@@ -275,7 +275,7 @@ naissanceController.generateNaissancePdf = async (req, res) => {
         ...pdfData,
         details: {
           ...(pdfData.details || {}),
-          region: naissance.details?.region || naissance.mairie || 'LA VILLE D\'ABÉCHÉ'
+region: naissance.details?.region || naissance.mairie || 'LE TCHAD'
         }
       };
       
