@@ -1,52 +1,99 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
 // Créer une nouvelle conversation (avec pièces jointes optionnelles)
 router.post('/', async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  
   try {
+    console.log('Nouvelle requête de message reçue:', req.body);
     const { recipient, subject, content, attachments } = req.body;
     const sender = req.user._id; // L'utilisateur connecté
     
+    if (!recipient) {
+      throw new Error('Destinataire manquant');
+    }
+    
     // Vérifier si une conversation existe déjà
     let conversation = await Conversation.findOne({
-      participants: { $all: [sender, recipient] }
-    });
+      participants: { $all: [sender, recipient], $size: 2 }
+    }).session(session);
+    
+    console.log('Conversation existante trouvée:', conversation ? 'Oui' : 'Non');
     
     // Si non, en créer une nouvelle
     if (!conversation) {
+      console.log('Création d\'une nouvelle conversation');
       conversation = new Conversation({
         participants: [sender, recipient],
-        subject
+        subject: subject || 'Nouvelle conversation'
       });
-      await conversation.save();
+      await conversation.save({ session });
+      console.log('Nouvelle conversation créée:', conversation._id);
     }
     
     // Créer le message
+    console.log('Création du message pour la conversation:', conversation._id);
     const message = new Message({
       conversation: conversation._id,
       sender,
       content,
       attachments: Array.isArray(attachments) ? attachments : []
     });
-    await message.save();
+    
+    console.log('Sauvegarde du message...');
+    await message.save({ session });
+    console.log('Message sauvegardé avec succès:', message._id);
     
     // Mettre à jour la conversation avec le dernier message
+    console.log('Mise à jour de la conversation avec le dernier message...');
     conversation.lastMessage = message._id;
     conversation.updatedAt = new Date();
-    await conversation.save();
+    await conversation.save({ session });
+    
+    // Peupler les données pour la réponse
+    const populatedConversation = await Conversation
+      .findById(conversation._id)
+      .populate('participants', 'name email')
+      .populate('lastMessage')
+      .session(session);
+    
+    await session.commitTransaction();
+    session.endSession();
+    
+    console.log('Transaction terminée avec succès');
+    
+    // Émettre un événement en temps réel
+    if (req.io) {
+      req.io.to(conversation._id.toString()).emit('newMessage', {
+        ...message.toObject(),
+        conversation: populatedConversation
+      });
+    }
     
     res.json({
       success: true,
       message: 'Message envoyé avec succès',
-      data: conversation
+      data: {
+        conversation: populatedConversation,
+        message: message
+      }
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    
+    console.error('Erreur lors de l\'envoi du message:', err);
+    
     res.status(400).json({
       success: false,
-      error: err.message
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 });

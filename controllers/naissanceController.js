@@ -139,9 +139,19 @@ naissanceController.generateNaissancePdf = async (req, res) => {
       
       log('Données formatées pour le PDF:', JSON.stringify(pdfData, null, 2));
       
-      // Utiliser directement generatePdf au lieu de generateNaissancePdf
-      // et passer le type de document et les données formatées
-      const pdfBuffer = await generatePdf('naissance', pdfData);
+      // Préparer les données pour le PDF en incluant la région dans l'objet details
+      const pdfGenerationData = {
+        ...pdfData,
+        details: {
+          ...(pdfData.details || {}),
+          region: pdfData.mairie || 'LA VILLE D\'ABÉCHÉ'
+        }
+      };
+      
+      log('Données formatées pour le PDF (avec région):', JSON.stringify(pdfGenerationData, null, 2));
+      
+      // Utiliser directement generatePdf avec les données mises à jour
+      const pdfBuffer = await generatePdf('naissance', pdfGenerationData);
       
       log('PDF généré avec succès, taille du buffer:', pdfBuffer?.length || 0);
 
@@ -259,8 +269,18 @@ naissanceController.generateNaissancePdf = async (req, res) => {
     // Générer le PDF
     try {
       log('Début de la génération du PDF...');
-      console.log('Données envoyées au générateur PDF:', JSON.stringify(pdfData, null, 2));
-      const pdfBuffer = await generatePdf('naissance', pdfData);
+      
+      // Préparer les données pour le PDF en incluant la région dans l'objet details
+      const pdfGenerationData = {
+        ...pdfData,
+        details: {
+          ...(pdfData.details || {}),
+          region: naissance.details?.region || naissance.mairie || 'LA VILLE D\'ABÉCHÉ'
+        }
+      };
+      
+      console.log('Données envoyées au générateur PDF:', JSON.stringify(pdfGenerationData, null, 2));
+      const pdfBuffer = await generatePdf('naissance', pdfGenerationData);
       console.log('PDF généré avec succès, taille du buffer:', pdfBuffer?.length || 'inconnue');
       
       if (!pdfBuffer || !(pdfBuffer instanceof Buffer)) {

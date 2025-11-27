@@ -1,0 +1,535 @@
+/* Styles pour la barre latérale */
+#sidebar-container {
+  background-color: #2c3e50;
+  color: white;
+  height: 100vh;
+  position: fixed;
+  width: 250px;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+  padding: 20px 15px;
+  background-color: #2c3e50;
+  text-align: center;
+  border-bottom: 1px solid #3a516b;
+}
+
+.sidebar-menu {
+  padding: 15px;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  padding: 10px 15px !important;
+  border-radius: 4px;
+  margin: 2px 0;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.nav-link.active {
+  background-color: #3498db !important;
+  color: white !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link i {
+  width: 20px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+/* Styles pour le popover des événements du calendrier */
+.fc-daygrid-more {
+  background: rgba(52, 152, 219, 0.1) !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.3) !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  font-size: 0.8em !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fc-daygrid-more:hover {
+  background: rgba(52, 152, 219, 0.2) !important;
+}
+
+/* Style pour le popover des événements */
+.fc-popover {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden;
+}
+
+.fc-popover-header {
+  background-color: #3498db !important;
+  color: white !important;
+  padding: 10px 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.fc-popover-close {
+  color: white !important;
+  opacity: 0.8 !important;
+}
+
+.fc-popover-close:hover {
+  opacity: 1 !important;
+}
+
+.fc-popover-body {
+  padding: 10px !important;
+  background-color: white;
+}
+
+/* Amélioration de l'apparence des événements dans le popover */
+.fc-popover .fc-event {
+  margin: 2px 0 !important;
+  border-left: 3px solid #3498db !important;
+  border-radius: 0 !important;
+}
+
+/* Style pour le bouton "+ X de plus" */
+.fc-daygrid-day-bottom {
+  margin-top: 2px;
+}
+
+.fc-daygrid-more-link {
+  color: #3498db !important;
+  text-decoration: none !important;
+  font-weight: 500;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  transition: all 0.2s;
+}
+
+.fc-daygrid-more-link:hover {
+  background: rgba(52, 152, 219, 0.1) !important;
+  color: #2980b9 !important;
+}
+
+/* Styles pour les événements du calendrier */
+.fc-event {
+  border: none !important;
+  margin: 1px 2px !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+  font-size: 0.85em !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.fc-event:hover {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.fc-event .fc-event-main {
+  padding: 2px 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.fc-event-time {
+  font-weight: 500 !important;
+  margin-right: 4px !important;
+}
+
+.fc-event-title {
+  flex-grow: 1 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Style pour l'indicateur "+ X de plus" */
+.fc-daygrid-more-link {
+  font-size: 0.8em !important;
+  padding: 0 2px !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 3px !important;
+  color: #6c757d !important;
+  text-decoration: none !important;
+}
+
+.fc-daygrid-more-link:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Style pour les badges dans les événements */
+.fc-event .badge {
+  font-size: 0.7em !important;
+  padding: 0.2em 0.4em !important;
+  line-height: 1 !important;
+  margin-right: 4px !important;
+  opacity: 0.9 !important;
+}
+
+/* Amélioration de l'accessibilité au survol */
+.fc-event:hover .badge {
+  opacity: 1 !important;
+}
+
+/* Style pour les événements de type différent */
+.fc-event-type-naissance {
+  background-color: #4caf50 !important; /* Vert */
+  border-left: 3px solid #388e3c !important;
+}
+
+.fc-event-type-mariage {
+  background-color: #2196f3 !important; /* Bleu */
+  border-left: 3px solid #1976d2 !important;
+}
+
+.fc-event-type-deces {
+  background-color: #757575 !important; /* Gris */
+  border-left: 3px solid #616161 !important;
+}
+
+.fc-event-type-general {
+  background-color: #9c27b0 !important; /* Violet */
+  border-left: 3px solid #7b1fa2 !important;
+}
+
+/* Style pour les cellules du calendrier */
+.fc-daygrid-day {
+  transition: background-color 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Style pour l'en-tête des colonnes */
+.fc-col-header-cell {
+  background-color: #f8f9fa;
+  font-weight: 500;
+}
+
+/* Style pour le jour actuel */
+.fc-day-today {
+  background-color: #e8f4fd !important;
+}
+
+/* Style pour la barre de recherche du calendrier */
+.fc-toolbar .search-container {
+    position: relative;
+    margin-left: 15px;
+    background: white;
+    border-radius: 20px;
+    padding: 5px 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.fc-toolbar .search-container:focus-within {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.fc-toolbar .search-container i {
+    color: #6c757d;
+    margin-right: 8px;
+    transition: color 0.3s ease;
+}
+
+.fc-toolbar .search-container:hover i {
+    color: #3498db;
+}
+
+.fc-toolbar .search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 2px 5px;
+    width: 180px;
+    font-size: 0.9em;
+    color: #495057;
+    transition: width 0.3s ease;
+}
+
+.fc-toolbar .search-input:focus {
+    width: 220px;
+}
+
+.fc-toolbar .search-input::placeholder {
+    color: #adb5bd;
+    font-size: 0.9em;
+}
+
+/* Style pour les boutons du calendrier */
+.fc-button {
+  background-color: #f8f9fa !important;
+  border: 1px solid #dee2e6 !important;
+  color: #212529 !important;
+  text-transform: capitalize !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  border-radius: 0.25rem !important;
+  transition: all 0.15s ease-in-out !important;
+  box-shadow: none !important;
+}
+
+.fc-button:hover {
+  background-color: #e2e6ea !important;
+  border-color: #dae0e5 !important;
+}
+
+.fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: white !important;
+}
+
+/* Style pour la barre d'outils */
+.fc-toolbar-title {
+  font-size: 1.5em !important;
+  font-weight: 500 !important;
+  color: #2c3e50 !important;
+}
+
+/* Style pour les événements en mode liste */
+.fc-list-event {
+  padding: 8px !important;
+  border-radius: 4px !important;
+  margin-bottom: 4px !important;
+}
+
+.fc-list-event:hover {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Style pour les événements en mode jour/semaine */
+.fc-timegrid-event {
+  border-radius: 4px !important;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+/* Amélioration de la réactivité sur mobile */
+@media (max-width: 768px) {
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.2em !important;
+    margin: 5px 0 !important;
+  }
+  
+  .fc-button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+.fc-button:hover {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+  color: #212529;
+}
+
+.fc-button:focus, .fc-button:active {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  outline: 0;
+}
+
+.fc-button-active {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+}
+
+/* En-tête des jours */
+.fc-col-header-cell-cushion {
+  color: #495057;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.fc-col-header {
+  background-color: #f8f9fa;
+}
+
+/* Cellules des jours */
+.fc-daygrid-day {
+  transition: background-color 0.2s;
+}
+
+.fc-day-today {
+  background-color: #e7f1ff !important;
+}
+
+/* Événements */
+.fc-event {
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85em;
+  padding: 2px 5px;
+  margin: 1px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fc-event:hover {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+.fc-event-main {
+  padding: 2px 4px;
+}
+
+/* Styles spécifiques aux types d'événements */
+.event-type-reunion {
+  background-color: #e83e8c;
+  border-left: 4px solid #d63384;
+}
+
+.event-type-mariage {
+  background-color: #20c997;
+  border-left: 4px solid #198754;
+}
+
+.event-type-naissance {
+  background-color: #6c757d;
+  border-left: 4px solid #495057;
+}
+
+.event-type-deces {
+  background-color: #343a40;
+  border-left: 4px solid #212529;
+}
+
+.event-type-general {
+  background-color: #3498db;
+  border-left: 4px solid #0d6efd;
+}
+
+/* Style pour les événements dans la vue liste */
+.fc-list-event {
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.fc-list-event:hover {
+  transform: translateX(5px);
+}
+
+/* Style pour la vue mois */
+.fc-daygrid-day-number {
+  color: #495057;
+  text-decoration: none;
+  padding: 5px;
+}
+
+.fc-daygrid-day-top {
+  justify-content: space-between;
+  flex-direction: row;
+  padding: 5px;
+}
+
+/* Style pour la vue semaine/jour */
+.fc-timegrid-slot {
+  height: 2.5em;
+}
+
+.fc-timegrid-event {
+  border-radius: 4px;
+  margin: 1px 2px;
+}
+
+/* Style pour les boutons d'action */
+.fc-toolbar-title {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Style pour les boutons d'export/impression */
+.fc-exportButton-button,
+.fc-printButton-button {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.fc-exportButton-button:hover,
+.fc-printButton-button:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+  color: white;
+}
+
+/* Style pour les écrans mobiles */
+@media (max-width: 768px) {
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fc-toolbar-chunk {
+    margin-bottom: 10px;
+  }
+  
+  .fc-header-toolbar {
+    margin-bottom: 1em;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.2em;
+  }
+  
+  .fc-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Style pour les notifications */
+.fc-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1060;
+  max-width: 350px;
+  width: 100%;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Style pour les événements en cours */
+.fc-event-today {
+  box-shadow: 0 0 0 2px #0d6efd;
+}
+
+/* Style pour les événements sélectionnés */
+.fc-event-selected {
+  box-shadow: 0 0 0 2px #0d6efd;
+  z-index: 1000;
+}

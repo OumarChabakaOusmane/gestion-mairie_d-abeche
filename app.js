@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { connectDB } = require('./config/db');
 const { validateEnv } = require('./config/validateEnv');
+const Conversation = require('./models/Conversation');
+const Message = require('./models/Message');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
@@ -24,7 +26,30 @@ const User = require('./models/User');
 validateEnv();
 
 const app = express();
+
+// Configuration CORS pour l'application Express
+app.use(cors({
+  origin: function(origin, callback) {
+    // Autoriser les requêtes sans origine (comme les applications mobiles ou Postman)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+    if (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+  exposedHeaders: ['X-Request-Id'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
+// Création du serveur HTTP
 const server = createServer(app);
+
+// Configuration CORS pour Socket.IO
 const io = new Server(server, {
   cors: {
     origin: function(origin, callback) {
@@ -446,7 +471,10 @@ app.use((req, res, next) => {
 const connectedUsers = new Map(); // Tracker les connexions
 
 io.on('connection', (socket) => {
-  console.log('Nouvelle connexion Socket.IO:', socket.id);
+  console.log('=== NOUVELLE CONNEXION SOCKET.IO ===');
+  console.log('ID de la socket:', socket.id);
+  console.log('Adresse IP du client:', socket.handshake.address);
+  console.log('En-têtes de la requête:', socket.handshake.headers);
   
   // Limiter le nombre de connexions par IP
   const clientIP = socket.handshake.address;
@@ -460,6 +488,7 @@ io.on('connection', (socket) => {
   
   userConnections.push(socket.id);
   connectedUsers.set(clientIP, userConnections);
+  console.log(`Connexion acceptée pour ${socket.id} (${userConnections.length} connexions pour cette IP)`);
   
   // Timeout de connexion inactive (30 minutes)
   const inactivityTimeout = setTimeout(() => {
@@ -467,47 +496,173 @@ io.on('connection', (socket) => {
     socket.disconnect(true);
   }, 30 * 60 * 1000);
   
-    const resetTimeout = () => {
+  const resetTimeout = () => {
     clearTimeout(inactivityTimeout);
   };
   
-  // Gestion des conversations
-  socket.on('join-conversation', (conversationId) => {
-    resetTimeout();
-    if (typeof conversationId !== 'string' || conversationId.length > 50) {
-      socket.emit('error', 'ID de conversation invalide');
-      return;
-    }
-    socket.join(conversationId);
-    console.log(`Socket ${socket.id} a rejoint la conversation ${conversationId}`);
-  });
-  
-  // Quitter une conversation
-  socket.on('leave-conversation', (conversationId) => {
-    resetTimeout();
-    socket.leave(conversationId);
-    console.log(`Socket ${socket.id} a quitté la conversation ${conversationId}`);
-  });
-  
-  // Nouveau message avec validation
-  socket.on('new-message', (data) => {
-    resetTimeout();
+  // Gestion des événements de connexion utilisateur
+  socket.on('join', (userId) => {
+    console.log(`=== UTILISATEUR REJOINT ===`);
+    console.log(`Socket ID: ${socket.id}`);
+    console.log(`User ID: ${userId}`);
     
-    // Validation des données
-    if (!data || !data.conversationId || !data.message) {
-      socket.emit('error', 'Données de message invalides');
+    // Stocker l'ID utilisateur avec la socket
+    socket.userId = userId;
+    
+    // Informer les autres utilisateurs que cet utilisateur est en ligne
+    socket.broadcast.emit('userOnline', userId);
+    
+    console.log(`L'utilisateur ${userId} est maintenant connecté (${socket.id})`);
+  });
+
+  // Rejoindre une conversation
+  socket.on('joinConversation', async (conversationId) => {
+    if (!conversationId) {
+      console.error('Aucun ID de conversation fourni');
       return;
     }
     
-    // Limiter la taille du message
-    if (data.message.length > 1000) {
-      socket.emit('error', 'Message trop long');
-      return;
+    try {
+      // Vérifier que l'utilisateur a accès à cette conversation
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        participants: { $in: [socket.userId] }
+      });
+      
+      if (!conversation) {
+        console.error(`L'utilisateur ${socket.userId} n'a pas accès à la conversation ${conversationId}`);
+        return socket.emit('error', { message: 'Accès non autorisé à cette conversation' });
+      }
+      
+      const roomName = `conversation_${conversationId}`;
+      
+      // Rejoindre la salle de conversation
+      await socket.join(roomName);
+      console.log(`Socket ${socket.id} a rejoint la conversation ${conversationId} (salle: ${roomName})`);
+      
+      // Marquer les messages comme lus
+      if (socket.userId) {
+        const result = await Message.updateMany(
+          { 
+            conversation: conversationId,
+            sender: { $ne: socket.userId },
+            readBy: { $ne: socket.userId }
+          },
+          { $addToSet: { readBy: socket.userId } }
+        );
+        
+        console.log(`Marquage des messages comme lus pour l'utilisateur ${socket.userId}:`, result);
+        
+        // Informer les autres participants que les messages ont été lus
+        conversation.participants.forEach(participantId => {
+          if (participantId.toString() !== socket.userId) {
+            io.to(`user_${participantId}`).emit('messagesRead', {
+              conversationId: conversationId,
+              readerId: socket.userId
+            });
+          }
+        });
+      }
+      
+      resetTimeout();
+    } catch (error) {
+      console.error('Erreur lors de la jointure de la conversation:', error);
+      socket.emit('error', { message: 'Erreur lors de la jointure de la conversation' });
     }
-    
-    socket.to(data.conversationId).emit('message-received', data);
   });
-  
+
+  // Gestion des messages
+  socket.on('sendMessage', async (data) => {
+    try {
+      resetTimeout();
+      
+      const { conversationId, content, senderId, recipientId } = data;
+      
+      console.log('=== NOUVEAU MESSAGE ===');
+      console.log('Conversation ID:', conversationId);
+      console.log('Expéditeur:', senderId);
+      console.log('Destinataire:', recipientId);
+      console.log('Contenu:', content);
+      
+      // Vérifier que l'expéditeur est bien celui qui est connecté
+      if (senderId !== socket.userId) {
+        console.error('Tentative d\'envoi de message avec un ID expéditeur incorrect');
+        return socket.emit('error', { message: 'Non autorisé' });
+      }
+      
+      // Vérifier que l'utilisateur a le droit d'envoyer un message dans cette conversation
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        participants: { $in: [senderId] }
+      }).populate('participants', 'name email');
+      
+      if (!conversation) {
+        console.error('Conversation non trouvée ou accès non autorisé');
+        return socket.emit('error', { message: 'Conversation non trouvée ou accès non autorisé' });
+      }
+      
+      // Créer un nouveau message
+      const message = new Message({
+        conversation: conversationId,
+        sender: senderId,
+        content: content,
+        readBy: [senderId]
+      });
+      
+      // Sauvegarder le message
+      await message.save();
+      
+      // Mettre à jour la conversation
+      conversation.lastMessage = message._id;
+      conversation.updatedAt = new Date();
+      await conversation.save();
+      
+      // Récupérer le message avec les données de l'expéditeur
+      const populatedMessage = await Message.findById(message._id)
+        .populate('sender', 'name email');
+      
+      console.log('Message sauvegardé avec succès:', populatedMessage);
+      
+      // Diffuser le message aux participants de la conversation
+      const roomName = `conversation_${conversationId}`;
+      console.log(`Envoi du message à la salle: ${roomName}`);
+      
+      io.to(roomName).emit('newMessage', {
+        ...populatedMessage.toObject(),
+        conversation: conversation
+      });
+      
+      // Informer les participants qu'ils ont un nouveau message
+      for (const participant of conversation.participants) {
+        const participantId = participant._id.toString();
+        if (participantId !== senderId) {
+          const userRoom = `user_${participantId}`;
+          console.log(`Envoi de la notification à l'utilisateur: ${participantId} (salle: ${userRoom})`);
+          
+          // Compter les messages non lus
+          const unreadCount = await Message.countDocuments({
+            conversation: conversationId,
+            sender: { $ne: participantId },
+            readBy: { $ne: participantId }
+          });
+          
+          io.to(userRoom).emit('newMessageNotification', {
+            conversationId: conversationId,
+            message: populatedMessage,
+            unreadCount: unreadCount,
+            conversation: conversation
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error);
+      socket.emit('error', { 
+        message: 'Erreur lors de l\'envoi du message',
+        error: error.message 
+      });
+    }
+  });
+
   // Déconnexion
   socket.on('disconnect', () => {
     clearTimeout(inactivityTimeout);

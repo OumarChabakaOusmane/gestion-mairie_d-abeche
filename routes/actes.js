@@ -643,18 +643,45 @@ router.get('/edit/:id', authenticate, async (req, res) => {
 // Mettre à jour un acte
 router.put('/:id', validateActeInput, authenticate, async (req, res) => {
   try {
-    const { type, details, mairie } = req.body;
+    let { type, details, mairie } = req.body;
     validateActe(type, details);
-
+    
+    // Journalisation des données reçues pour le débogage
+    console.log('Données reçues pour la mise à jour:', {
+      id: req.params.id,
+      type,
+      mairie,
+      details: {
+        ...details,
+        // Ne pas logger tout le contenu si c'est trop volumineux
+        contenu: details.contenu ? '[contenu présent]' : 'non défini'
+      },
+      user: req.user ? req.user._id : 'non authentifié'
+    });
+    
+    // S'assurer que la région est cohérente entre mairie et details.region
+    if (mairie && (!details.region || details.region === 'LA VILLE D\'ABÉCHÉ')) {
+      details.region = mairie;
+      console.log(`Mise à jour de details.region avec la valeur de mairie: ${mairie}`);
+    } else if (details.region && (!mairie || mairie === 'LA VILLE D\'ABÉCHÉ')) {
+      mairie = details.region;
+      console.log(`Mise à jour de mairie avec la valeur de details.region: ${details.region}`);
+    }
+    
+    // Préparer les données de mise à jour
+    const updateData = {
+      type,
+      details,
+      mairie,
+      lastModifiedBy: req.user._id,
+      lastModifiedAt: new Date()
+    };
+    
+    console.log('Données de mise à jour:', updateData);
+    
     const acte = await Acte.findByIdAndUpdate(
       req.params.id,
-      { 
-        type, 
-        details, 
-        mairie,
-        lastModifiedBy: req.user._id,
-        lastModifiedAt: new Date()
-      },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -681,8 +708,11 @@ router.put('/:id', validateActeInput, authenticate, async (req, res) => {
 // Télécharger un PDF d'acte de décès
 router.get('/deces/:id/pdf', decesController.generateDecesPdf);
 
-// Supprimer un acte
-router.delete('/:id', async (req, res) => {
+// Middleware d'autorisation
+const { authorize } = require('../middleware/auth');
+
+// Supprimer un acte (uniquement pour les administrateurs)
+router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     const acte = await Acte.findByIdAndDelete(req.params.id);
     
@@ -695,12 +725,13 @@ router.delete('/:id', async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Acte supprimé'
+      message: 'Acte supprimé avec succès'
     });
   } catch (err) {
+    console.error('Erreur lors de la suppression de l\'acte:', err);
     res.status(500).json({
       success: false,
-      error: 'Erreur serveur'
+      error: 'Erreur lors de la suppression de l\'acte'
     });
   }
 });

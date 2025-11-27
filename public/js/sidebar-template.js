@@ -102,9 +102,18 @@ window.commonCSS = `
     background-color: rgba(255, 255, 255, 0.1);
   }
   
-  .sidebar .nav-link.active {
-    color: white;
-    background-color: var(--secondary-color);
+  /* Style pour l'élément actif dans la barre latérale */
+  #sidebar-container .nav-link.active {
+    color: white !important;
+    background-color: #3498db !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  
+  /* S'assurer que la couleur est appliquée même avec la classe show */
+  #sidebar-container .nav-link.active.show,
+  #sidebar-container .nav-link[aria-current="page"] {
+    color: white !important;
+    background-color: #3498db !important;
   }
   
   .main-content {
@@ -141,15 +150,17 @@ function checkAuth() {
 // Fonction pour faire des requêtes API authentifiées
 async function apiRequest(url, options = {}) {
   const token = localStorage.getItem('token');
-  if (!token && !options.public) {
+  
+  // Ne pas rediriger automatiquement pour les requêtes publiques ou si on est déjà sur la page de login
+  if (!token && !options.public && !window.location.pathname.includes('/login')) {
     console.warn('Aucun token trouvé, redirection vers la page de connexion');
     window.location.href = '/login';
-    return null;
+    return { status: 401, message: 'Non authentifié' };
   }
 
   const defaultOptions = {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': token ? `Bearer ${token}` : '',
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
@@ -179,13 +190,35 @@ async function apiRequest(url, options = {}) {
     // Gérer les réponses non-JSON (comme les PDF)
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
-    const result = isJson ? await response.json() : await response.blob();
     
+    // Si la réponse n'est pas du JSON, on la retourne telle quelle
+    if (!isJson) {
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+      return response.blob();
+    }
+    
+    // Pour les réponses JSON
+    const result = await response.json();
+    
+    // Si la réponse est une erreur, on la gère
     if (!response.ok) {
-      if (response.status === 401) {
+      // Pour les erreurs 401 (non autorisé), on déconnecte l'utilisateur
+      if (response.status === 401 && !window.location.pathname.includes('/login')) {
         console.warn('Session expirée ou non autorisée, déconnexion...');
         logout();
         return null;
+      }
+      
+      // Pour les erreurs 403 (interdit), on retourne un objet avec le statut
+      if (response.status === 403) {
+        console.warn(`Accès refusé à la ressource: ${url}`);
+        return { 
+          status: 403, 
+          success: false,
+          message: result.message || 'Accès refusé. Vous n\'avez pas les permissions nécessaires.'
+        };
       }
       
       // Gérer les erreurs de validation

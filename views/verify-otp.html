@@ -294,10 +294,30 @@
             const resultDiv = document.getElementById('result');
             const verifyBtn = document.getElementById('verifyBtn');
             
+            // Vérifier que l'OTP contient exactement 6 chiffres
+            if (otp.length !== 6) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Le code OTP doit contenir exactement 6 chiffres
+                    </div>
+                `;
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Vérifier le code';
+                return;
+            }
+            
             verifyBtn.disabled = true;
             verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Vérification...';
             
             try {
+                // Vérifier si l'email est toujours présent
+                if (!email) {
+                    email = localStorage.getItem('pendingEmail');
+                    if (!email) {
+                        throw new Error('Session expirée. Veuillez recommencer l\'inscription.');
+                    }
+                }
                 // Validation de l'email
                 if (!email || typeof email !== 'string' || email.includes('[')) {
                     throw new Error('Email invalide. Veuillez recommencer l\'inscription.');
@@ -305,15 +325,29 @@
                 
                 console.log('Envoi de la requête avec email:', email, 'et OTP:', otp);
                 
+                console.log('Envoi de la requête de vérification OTP...');
+                console.log('Email:', email);
+                console.log('OTP:', otp);
+                
                 const response = await fetch('/api/auth/verify-otp', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ email, otp })
+                    body: JSON.stringify({ 
+                        email: email.trim(),
+                        otp: otp.trim()
+                    })
                 });
                 
-                const result = await response.json();
+                console.log('Réponse du serveur:', response);
+                const result = await response.json().catch(err => {
+                    console.error('Erreur lors de l\'analyse de la réponse JSON:', err);
+                    throw new Error('Format de réponse invalide du serveur');
+                });
+                
+                console.log('Résultat de la vérification:', result);
                 
                 if (result.success) {
                     resultDiv.innerHTML = `

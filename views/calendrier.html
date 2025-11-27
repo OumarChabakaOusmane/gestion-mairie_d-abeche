@@ -6,9 +6,175 @@
   <title>Calendrier - État Civil Tchad</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
-  <style id="common-styles"></style>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+  <link href="/css/calendrier.css" rel="stylesheet">
+  <style id="common-styles">
+    /* Styles de base */
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Style de la barre latérale */
+    #sidebar-container {
+      min-height: 100vh;
+      background: #2c3e50; /* Couleur de fond principale */
+      color: white;
+      padding: 0;
+      width: 250px;
+      position: fixed;
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-header {
+      padding: 20px 15px;
+      background-color: #2c3e50; /* Même couleur que le fond */
+      text-align: center;
+      border-bottom: 1px solid #3a516b; /* Bordure plus claire */
+    }
+    
+    .sidebar-header h4 {
+      color: white;
+      margin: 10px 0 5px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .sidebar-header .small {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.8rem;
+      display: block;
+    }
+    
+    .sidebar-menu {
+      padding: 15px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .sidebar-menu .nav-link {
+      color: rgba(255, 255, 255, 0.8); /* Texte légèrement transparent */
+      padding: 12px 20px;
+      margin: 0 0 5px 0;
+      border-radius: 0;
+      border-left: 3px solid transparent;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      font-size: 0.95rem;
+      background-color: transparent;
+      border-bottom: 1px solid #3a516b;
+    }
+    
+    .sidebar-menu .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1); /* Légère surbrillance au survol */
+      color: white;
+    }
+    
+    .sidebar-menu .nav-link.active {
+      background-color: #3498db; /* Bleu pour l'élément actif */
+      color: white;
+      border-left-color: #2980b9;
+      font-weight: 500;
+    }
+    
+    .sidebar-menu .nav-link i {
+      margin-right: 12px;
+      font-size: 1.1rem;
+      width: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7); /* Couleur des icônes avec transparence */
+    }
+    
+    .sidebar-menu .nav-link:hover i,
+    .sidebar-menu .nav-link.active i {
+      color: #fff; /* Couleur des icônes au survol et actives */
+    }
+    
+    .sidebar-footer {
+      padding: 15px;
+      background-color: #2c3e50; /* Même couleur que le fond */
+      border-top: 1px solid #3a516b; /* Bordure plus claire */
+      text-align: center;
+    }
+    
+    .sidebar-footer a {
+      color: rgba(255, 255, 255, 0.6); /* Couleur des liens du pied de page avec transparence */
+      margin: 0 8px;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+    
+    .sidebar-footer a:hover {
+      color: #3498db; /* Couleur au survol des liens du pied de page */
+    }
+    
+    .sidebar-footer a:hover {
+      color: white;
+      text-decoration: none;
+    }
+    
+    .sidebar-footer i {
+      margin-right: 5px;
+    }
+    
+    /* Style spécifique pour le conteneur principal */
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      min-height: 100vh;
+      background-color: #f3f4f6;
+    }
+    
+    /* Styles pour les cartes en mode clair */
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      padding: 2rem;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+      border: 1px solid #e9ecef;
+    }
+    
+    .form-header {
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .form-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .form-header {
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+  </style>
+  
   <style>
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+    
+    .main-content {
+      padding: 2rem 0;
+    }
+    
     .calendar-container {
       background: white;
       border-radius: 15px;
@@ -24,220 +190,218 @@
       text-align: center;
     }
     
-    .calendar-icon {
-      font-size: 3rem;
-      color: #3498db;
-      margin-bottom: 1rem;
+    #calendar {
+      min-height: 600px;
     }
     
-    .stats-row {
-      margin-bottom: 2rem;
-    }
-    
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 15px;
-      padding: 20px;
-      color: white;
-      text-align: center;
-      margin-bottom: 15px;
-      transition: transform 0.3s;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-5px);
-    }
-    
-    .stat-card.naissance {
-      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    }
-    
-    .stat-card.mariage {
-      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    }
-    
-    .stat-card.deces {
-      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-    }
-    
-    .fc-toolbar-title {
-      font-size: 1.5rem !important;
-      font-weight: 600 !important;
-    }
-    
-    .fc-button-primary {
-      background-color: #3498db !important;
-      border-color: #3498db !important;
-    }
-    
-    .fc-button-primary:hover {
-      background-color: #2980b9 !important;
-      border-color: #2980b9 !important;
-    }
-    
+    /* Styles pour les événements */
     .fc-event {
-      border-radius: 5px !important;
-      border: none !important;
-      padding: 2px 5px !important;
-    }
-    
-    .event-naissance {
-      background-color: #3498db !important;
-    }
-    
-    .event-mariage {
-      background-color: #e74c3c !important;
-    }
-    
-    .event-deces {
-      background-color: #95a5a6 !important;
-    }
-    
-    .filter-buttons {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    
-    .filter-btn {
-      margin: 0 5px;
-      border-radius: 20px;
-      padding: 8px 20px;
-      font-weight: 600;
-    }
-    
-    .quick-actions {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    
-    .legend {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .legend-color {
-      width: 16px;
-      height: 16px;
+      border: none;
       border-radius: 4px;
+      padding: 2px 5px;
+      margin: 1px 0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .fc-event:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Styles spécifiques aux types d'événements */
+    .event-type-reunion {
+      background-color: #e83e8c;
+      border-left: 4px solid #d63384;
+    }
+    
+    .event-type-mariage {
+      background-color: #20c997;
+      border-left: 4px solid #198754;
+    }
+    
+    .event-type-naissance {
+      background-color: #6c757d;
+      border-left: 4px solid #495057;
+    }
+    
+    .event-type-deces {
+      background-color: #343a40;
+      border-left: 4px solid #212529;
+    }
+    
+    .event-type-general {
+      background-color: #3498db;
+      border-left: 4px solid #0d6efd;
+    }
+    
+    /* Styles pour les notifications */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+    }
+    
+    /* Styles pour les boutons d'action */
+    .fc-button {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.875rem;
+    }
+    
+    /* Réactivité */
+    @media (max-width: 768px) {
+      .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .fc-toolbar-chunk {
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="sidebar-container"></div>
+  <div id="sidebar-container">
+    <!-- En-tête de la barre latérale -->
+    <div class="sidebar-header">
+      <img src="/images/logo.png" alt="Logo Mairie" style="max-width: 80px; margin-bottom: 10px;">
+      <h4>Mairie d'Abéché</h4>
+      <div class="small">Gestion de l'État Civil</div>
+    </div>
+    
+    <!-- Menu de navigation -->
+    <div class="sidebar-menu">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Tableau de bord</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link active" href="/calendrier">
+            <i class="far fa-calendar-alt"></i>
+            <span>Calendrier</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/naissance">
+            <i class="fas fa-baby"></i>
+            <span>Actes de naissance</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/mariage">
+            <i class="fas fa-ring"></i>
+            <span>Actes de mariage</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/deces">
+            <i class="fas fa-cross"></i>
+            <span>Actes de décès</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/documents">
+            <i class="fas fa-file-alt"></i>
+            <span>Documents</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/messagerie">
+            <i class="fas fa-envelope"></i>
+            <span>Messagerie</span>
+            <span class="badge bg-danger rounded-pill ms-auto">3</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/rapports">
+            <i class="fas fa-chart-bar"></i>
+            <span>Rapports</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/utilisateurs">
+            <i class="fas fa-users"></i>
+            <span>Utilisateurs</span>
+          </a>
+        </li>
+        
+        <li class="nav-item mt-3">
+          <a class="nav-link" href="/parametres">
+            <i class="fas fa-cog"></i>
+            <span>Paramètres</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Pied de page de la barre latérale -->
+    <div class="sidebar-footer">
+      <div class="user-info mb-2">
+        <div class="d-flex align-items-center justify-content-center">
+          <img src="/images/avatar.svg" alt="Utilisateur" class="rounded-circle me-2" width="32" height="32" style="background-color: #f8f9fa; padding: 2px;">
+          <div class="user-details text-start">
+            <div class="user-name">Admin</div>
+            <div class="user-role small">Administrateur</div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center">
+        <a href="/profil" class="me-3" title="Profil">
+          <i class="fas fa-user-edit"></i>
+        </a>
+        <a href="#" id="logoutBtn" title="Déconnexion">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
   
   <div class="main-content">
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <i class="fas fa-calendar-alt calendar-icon"></i>
-        <h2>Calendrier des Événements</h2>
-        <p class="text-muted">Gérez les événements de l'état civil</p>
-        
-        <!-- Boutons d'action -->
-        <div class="d-flex justify-content-center gap-2 mb-4">
-          <button id="ajouterEvenement" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Ajouter un événement
-          </button>
-          <button id="modifierEvenement" class="btn btn-warning" disabled>
-            <i class="fas fa-edit me-2"></i>Modifier
-          </button>
-          <button id="supprimerEvenement" class="btn btn-danger" disabled>
-            <i class="fas fa-trash me-2"></i>Supprimer
-          </button>
-        </div>
-      </div>
-      
-      <!-- Statistiques rapides -->
-      <div class="row stats-row">
-        <div class="col-md-4">
-          <div class="stat-card naissance">
-            <i class="fas fa-baby fa-2x mb-2"></i>
-            <h4 id="naissanceCount">0</h4>
-            <p class="mb-0">Naissances ce mois</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card mariage">
-            <i class="fas fa-heart fa-2x mb-2"></i>
-            <h4 id="mariageCount">0</h4>
-            <p class="mb-0">Mariages ce mois</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-card deces">
-            <i class="fas fa-cross fa-2x mb-2"></i>
-            <h4 id="decesCount">0</h4>
-            <p class="mb-0">Décès ce mois</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Actions rapides -->
-      <div class="quick-actions">
-        <div class="row align-items-center">
-          <div class="col-md-8">
-            <h6 class="mb-2"><i class="fas fa-bolt me-2"></i>Actions rapides</h6>
-            <div class="btn-group" role="group">
-              <button type="button" class="btn btn-outline-primary btn-sm" onclick="goToToday()">
-                <i class="fas fa-calendar-day me-1"></i>Aujourd'hui
-              </button>
-              <button type="button" class="btn btn-outline-success btn-sm" onclick="exportCalendar()">
-                <i class="fas fa-download me-1"></i>Exporter
-              </button>
-              <button type="button" class="btn btn-outline-info btn-sm" onclick="printCalendar()">
-                <i class="fas fa-print me-1"></i>Imprimer
-              </button>
+    <div class="container" style="max-width: 1200px;">
+      <div class="row justify-content-center">
+        <div class="col-lg-11">
+          <div class="form-container">
+            <div class="form-header d-flex align-items-center">
+              <i class="far fa-calendar-alt me-3" style="font-size: 2rem; color: #2c3e50;"></i>
+              <div>
+                <h2 class="mb-0" style="color: #2c3e50;">Calendrier des Événements</h2>
+                <p class="text-muted mb-0">Visualisez et gérez les événements de l'état civil</p>
+              </div>
+              <div class="ms-auto">
+                <button id="addEventBtn" class="btn btn-primary">
+                  <i class="fas fa-plus me-2"></i>Nouvel événement
+                </button>
+              </div>
             </div>
+            
+            <!-- Indicateur de chargement -->
+            <div id="loading-indicator" class="text-center my-4" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <p class="mt-2">Chargement des événements...</p>
+            </div>
+            
+            <!-- Message d'erreur -->
+            <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+            
+            <!-- Calendrier -->
+            <div id="calendar" class="mt-4"></div>
           </div>
-          <div class="col-md-4 text-end">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal">
-              <i class="fas fa-plus me-2"></i>Ajouter événement
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Filtres -->
-      <div class="filter-buttons">
-        <button type="button" class="btn btn-outline-secondary filter-btn active" data-filter="all">
-          <i class="fas fa-list me-1"></i>Tout
-        </button>
-        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="naissance">
-          <i class="fas fa-baby me-1"></i>Naissances
-        </button>
-        <button type="button" class="btn btn-outline-danger filter-btn" data-filter="mariage">
-          <i class="fas fa-heart me-1"></i>Mariages
-        </button>
-        <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="deces">
-          <i class="fas fa-cross me-1"></i>Décès
-        </button>
-      </div>
-      
-      <!-- Calendrier principal -->
-      <div id="calendar"></div>
-      
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #3498db;"></div>
-          <span>Naissances</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #e74c3c;"></div>
-          <span>Mariages</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #95a5a6;"></div>
-          <span>Décès</span>
         </div>
       </div>
     </div>
@@ -251,644 +415,153 @@
           <h5 class="modal-title" id="eventModalLabel">Nouvel Événement</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
-        <div class="modal-body">
-          <form id="eventForm" class="needs-validation" novalidate>
-            <input type="hidden" id="eventId">
+        <form id="eventForm">
+          <input type="hidden" id="eventId">
+          <div class="modal-body">
             <div class="mb-3">
               <label for="eventTitle" class="form-label">Titre <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="eventTitle" required>
-              <div class="invalid-feedback">Veuillez saisir un titre pour l'événement</div>
             </div>
+            
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="startDate" class="form-label">Date de début <span class="text-danger">*</span></label>
-                <input type="datetime-local" class="form-control" id="startDate" required>
-                <div class="invalid-feedback">Veuillez sélectionner une date de début</div>
+                <label for="eventStart" class="form-label">Début <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control" id="eventStart" required>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="endDate" class="form-label">Date de fin</label>
-                <input type="datetime-local" class="form-control" id="endDate">
-                <div class="invalid-feedback">La date de fin doit être postérieure à la date de début</div>
+                <label for="eventEnd" class="form-label">Fin</label>
+                <input type="datetime-local" class="form-control" id="eventEnd">
               </div>
             </div>
+            
+            <div class="mb-3">
+              <label for="eventType" class="form-label">Type d'événement</label>
+              <select class="form-select" id="eventType" required>
+                <option value="autre">Autre</option>
+                <option value="mariage">Mariage</option>
+                <option value="naissance">Naissance</option>
+                <option value="deces">Décès</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label for="eventLocation" class="form-label">Lieu</label>
+              <input type="text" class="form-control" id="eventLocation">
+            </div>
+            
             <div class="mb-3">
               <label for="eventDescription" class="form-label">Description</label>
               <textarea class="form-control" id="eventDescription" rows="3"></textarea>
             </div>
-            <div class="mb-3">
-              <label for="eventType" class="form-label">Type d'événement <span class="text-danger">*</span></label>
-              <select class="form-select" id="eventType" required>
-                <option value="">Sélectionnez un type</option>
-                <option value="naissance">Naissance</option>
-                <option value="mariage">Mariage</option>
-                <option value="deces">Décès</option>
-                <option value="autre">Autre</option>
-              </select>
-              <div class="invalid-feedback">Veuillez sélectionner un type d'événement</div>
-            </div>
-          </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal pour les détails de l'événement -->
+  <div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventDetailsTitle">Détails de l'événement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body" id="eventDetailsBody">
+          <!-- Le contenu sera rempli dynamiquement -->
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="button" class="btn btn-primary" id="saveEvent">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button type="button" class="btn btn-primary" id="editEventBtn">
+            <i class="fas fa-edit me-1"></i>Modifier
+          </button>
+          <button type="button" class="btn btn-danger" id="deleteEventBtn">
+            <i class="fas fa-trash-alt me-1"></i>Supprimer
+          </button>
         </div>
       </div>
     </div>
   </div>
-
+  
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/js/sidebar-template.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
+  <script src="/js/sidebar-template.js"></script>
+  <script src="/js/calendrier.js"></script>
+  
   <script>
-    let calendar;
-    let currentFilter = 'all';
-    let allEvents = [];
-    let selectedEvent = null;
-    let eventModal = null;
-    
-    // Initialiser le modal d'événement
-    // Fonction pour ouvrir le modal d'ajout/modification d'événement
-    function openEventModal(event = null) {
-      const form = document.getElementById('eventForm');
-      const modalTitle = document.getElementById('eventModalLabel');
+    // Fonction utilitaire pour afficher les messages
+    function showMessage(message, type = 'success') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+      `;
       
-      // Vérifier que les éléments existent avant de les utiliser
-      if (!form || !modalTitle) {
-        console.error('Erreur: Éléments du formulaire non trouvés');
-        return;
-      }
-
-      try {
-        if (event) {
-          // Mode édition
-          modalTitle.textContent = 'Modifier l\'événement';
-          
-          // Remplir le formulaire avec les données de l'événement
-          const eventIdEl = document.getElementById('eventId');
-          const eventTitleEl = document.getElementById('eventTitle');
-          const eventDescEl = document.getElementById('eventDescription');
-          const eventTypeEl = document.getElementById('eventType');
-          const startDateEl = document.getElementById('startDate');
-          const endDateEl = document.getElementById('endDate');
-          
-          if (eventIdEl) eventIdEl.value = event.id || '';
-          if (eventTitleEl) eventTitleEl.value = event.title || '';
-          if (eventDescEl) eventDescEl.value = event.extendedProps?.description || '';
-          if (eventTypeEl) eventTypeEl.value = event.extendedProps?.type || 'autre';
-          
-          // Formater les dates pour l'input datetime-local
-          const startDate = event.start ? new Date(event.start) : new Date();
-          const endDate = event.end ? new Date(event.end) : new Date(startDate.getTime() + 3600000); // +1 heure par défaut
-          
-          if (startDateEl) startDateEl.value = startDate.toISOString().slice(0, 16);
-          if (endDateEl) endDateEl.value = endDate.toISOString().slice(0, 16);
-        } else {
-          // Mode création
-          modalTitle.textContent = 'Nouvel Événement';
-          form.reset();
-          
-          // Définir la date de début à maintenant et la fin à +1h
-          const now = new Date();
-          const endTime = new Date(now.getTime() + 3600000); // +1 heure
-          
-          const startDateEl = document.getElementById('startDate');
-          const endDateEl = document.getElementById('endDate');
-          
-          if (startDateEl) startDateEl.value = now.toISOString().slice(0, 16);
-          if (endDateEl) endDateEl.value = endTime.toISOString().slice(0, 16);
-        }
+      // Ajouter le message en haut du conteneur principal
+      const mainContent = document.querySelector('.main-content .container');
+      if (mainContent) {
+        mainContent.insertBefore(alertDiv, mainContent.firstChild);
         
-        // Vérifier que le modal est initialisé avant de l'afficher
-        if (!eventModal) {
-          eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-        }
-        eventModal.show();
-        
-      } catch (error) {
-        console.error('Erreur lors de l\'ouverture du modal:', error);
-        showNotification('Une erreur est survenue lors de l\'ouverture du formulaire', 'error');
+        // Supprimer automatiquement après 5 secondes
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 5000);
       }
     }
     
-    // Fonction pour sauvegarder un événement
-    async function saveEvent() {
-      const form = document.getElementById('eventForm');
-      if (!form) {
-        console.error('Erreur: Formulaire non trouvé');
-        return;
+    // Vérification de l'authentification
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return null;
       }
-      
-      // Valider le formulaire
-      if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-      }
-      
-      // Récupérer les éléments du formulaire
-      const eventIdEl = document.getElementById('eventId');
-      const eventTitleEl = document.getElementById('eventTitle');
-      const startDateEl = document.getElementById('startDate');
-      const endDateEl = document.getElementById('endDate');
-      const eventDescEl = document.getElementById('eventDescription');
-      const eventTypeEl = document.getElementById('eventType');
-      
-      // Vérifier que tous les champs obligatoires sont présents
-      if (!eventTitleEl || !startDateEl || !eventTypeEl) {
-        showNotification('Erreur: Certains champs obligatoires sont manquants', 'error');
-        return;
-      }
-      
-      // Préparer les données de l'événement
-      const eventData = {
-        title: eventTitleEl.value,
-        start: startDateEl.value,
-        end: endDateEl ? endDateEl.value : undefined,
-        description: eventDescEl ? eventDescEl.value : '',
-        type: eventTypeEl.value
-      };
-      
-      // Valider les dates
-      if (eventData.end && new Date(eventData.end) <= new Date(eventData.start)) {
-        showNotification('La date de fin doit être postérieure à la date de début', 'error');
-        return;
-      }
-      
-      // Si c'est une mise à jour, ajouter l'ID
-      if (eventIdEl && eventIdEl.value) {
-        eventData.id = eventIdEl.value;
-      }
-      
-      try {
-        const method = 'POST'; // Toujours utiliser POST car l'API gère la création et la mise à jour avec POST
-        const url = '/api/calendrier';
-        
-        // Afficher les données qui seront envoyées pour le débogage
-        console.log('Envoi des données:', {
-          url,
-          method,
-          data: eventData
-        });
-        
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify(eventData)
-        });
-        
-        // Vérifier si la réponse est valide
-        if (!response.ok) {
-          let errorMessage = 'Erreur lors de la sauvegarde';
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorMessage;
-            console.error('Détails de l\'erreur:', errorData);
-          } catch (e) {
-            console.error('Erreur lors de la lecture de la réponse:', e);
-          }
-          throw new Error(errorMessage);
-        }
-        
-        const result = await response.json();
-        console.log('Réponse du serveur:', result);
-        
-        if (result.success) {
-          showNotification('Événement enregistré avec succès!', 'success');
-          if (eventModal) eventModal.hide();
-          await loadEvents(); // Recharger les événements
-        } else {
-          throw new Error(result.message || 'Erreur lors de la sauvegarde');
-        }
-        
-      } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('Erreur: ' + error.message, 'error');
-      }
+      return token;
     }
     
-    // Fonction pour supprimer un événement
-    async function deleteEvent(eventId) {
-      if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
-        return;
-      }
-      
-      try {
-        const response = await fetch(`/api/calendrier/${eventId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Erreur lors de la suppression');
-        }
-        
-        // Mettre à jour l'interface
-        const eventToRemove = calendar.getEventById(eventId);
-        if (eventToRemove) {
-          eventToRemove.remove();
-        }
-        
-        showNotification('Événement supprimé avec succès', 'success');
-        
-        // Désélectionner l'événement
-        selectedEvent = null;
-        document.getElementById('modifierEvenement').disabled = true;
-        document.getElementById('supprimerEvenement').disabled = true;
-        
-      } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('Erreur: ' + error.message, 'error');
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', async () => {
+    // Initialisation de la page
+    document.addEventListener('DOMContentLoaded', () => {
+      // Vérifier l'authentification
       const token = checkAuth();
       if (!token) return;
       
-      document.getElementById('common-styles').textContent = commonCSS;
-      document.getElementById('sidebar-container').innerHTML = createSidebar('calendrier');
-      
-      // Initialiser le modal
-      eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-      
-      // Gestionnaire pour le bouton d'ajout
-      document.getElementById('ajouterEvenement').addEventListener('click', () => {
-        openEventModal();
-      });
-      
-      // Gestionnaire pour le bouton de modification
-      document.getElementById('modifierEvenement').addEventListener('click', () => {
-        if (selectedEvent) {
-          openEventModal(selectedEvent);
-        }
-      });
-      
-      // Gestionnaire pour le bouton de suppression
-      document.getElementById('supprimerEvenement').addEventListener('click', () => {
-        if (selectedEvent) {
-          deleteEvent(selectedEvent.id);
-        }
-      });
-      
-      // Gestionnaire pour le bouton d'enregistrement
-      document.getElementById('saveEvent').addEventListener('click', saveEvent);
-      
-      await initializeCalendar();
-      await loadEvents();
-      // Charger aussi les statistiques globales du dashboard pour affichage en temps réel
-      await loadDashboardStats();
-      // Polling léger pour garder les compteurs à jour (tous les 30s)
-      setInterval(() => loadDashboardStats(), 30000);
-      setupEventListeners();
-    });
-    
-    async function initializeCalendar() {
-      const calendarEl = document.getElementById('calendar');
-      
-      calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'fr',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        buttonText: {
-          today: 'Aujourd\'hui',
-          month: 'Mois',
-          week: 'Semaine',
-          list: 'Liste'
-        },
-        height: 'auto',
-        eventClick: function(info) {
-          selectedEvent = info.event;
-          document.getElementById('modifierEvenement').disabled = false;
-          document.getElementById('supprimerEvenement').disabled = false;
-          showEventDetails(info.event);
-        },
+      // Initialisation de la barre latérale
+      const sidebarContainer = document.getElementById('sidebar-container');
+      if (sidebarContainer) {
+        sidebarContainer.innerHTML = createSidebar('calendrier');
         
-        // Désélectionner l'événement quand on clique ailleurs
-        dateClick: function() {
-          selectedEvent = null;
-          document.getElementById('modifierEvenement').disabled = true;
-          document.getElementById('supprimerEvenement').disabled = true;
-        },
-        dateClick: function(info) {
-          // Optionnel: créer un nouvel événement à cette date
-          console.log('Date cliquée:', info.dateStr);
-        },
-        // Quand la plage de dates affichée change (navigation mois/semaine/etc.)
-        datesSet: async function(info) {
-          // Recharger les événements correspondant à la nouvelle plage
-          await loadEvents();
-        },
-        eventDidMount: function(info) {
-          // Ajouter des classes CSS selon le type d'événement
-          const eventType = info.event.extendedProps.type;
-          info.el.classList.add(`event-${eventType}`);
-        }
-      });
-      
-      calendar.render();
-    }
-    
-    async function loadEvents() {
-      try {
-        // Essayer d'utiliser la plage de dates actuelle affichée par FullCalendar
-        let startParam = null;
-        let endParam = null;
-        try {
-          const view = calendar.view;
-          if (view && view.activeStart && view.activeEnd) {
-            startParam = view.activeStart.toISOString();
-            endParam = view.activeEnd.toISOString();
-          }
-        } catch (e) {
-          // ignore
-        }
-
-        const url = startParam && endParam
-          ? `/api/calendrier?start=${encodeURIComponent(startParam)}&end=${encodeURIComponent(endParam)}`
-          : '/api/calendrier';
-
-        const result = await apiRequest(url);
-
-        if (!result) {
-          // apiRequest a déjà affiché un message utilisateur (showError), on évite le message redondant
-          allEvents = [];
-          updateCalendarEvents();
-          updateStats();
-          return;
-        }
-
-        // Le serveur peut renvoyer soit un tableau d'événements (implémentation actuelle),
-        // soit un objet { success: true, data: [...] } (autre format attendu). On gère les deux.
-        let eventsData = null;
-        if (Array.isArray(result)) {
-          eventsData = result;
-        } else if (result.success && Array.isArray(result.data)) {
-          eventsData = result.data;
-        } else {
-          console.warn('Format de réponse inattendu pour /api/calendrier :', result);
-          eventsData = [];
-        }
-
-        allEvents = eventsData
-          .filter(event => event && event.title && event.start)
-          .map(event => ({
-            id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
-            title: event.title || 'Sans titre',
-            start: event.start,
-            backgroundColor: event.color || getTypeColor(getEventType(event.title)),
-            borderColor: event.color || getTypeColor(getEventType(event.title)),
-            extendedProps: {
-              type: event.extendedProps?.type || getEventType(event.title),
-              numeroActe: event.extendedProps?.numeroActe || 'N/A',
-              details: event.extendedProps?.details || {}
-            }
-          }));
-
-        updateCalendarEvents();
-        updateStats();
-        // (garantit que les compteurs affichés reflètent la source de vérité)
-        loadDashboardStats().catch(err => console.warn('Erreur loadDashboardStats:', err));
-
-      } catch (error) {
-        console.error('Erreur lors du chargement des événements:', error);
-        showNotification(
-          'Impossible de charger les événements. Veuillez réessayer plus tard.',
-          'error'
-        );
-
-        // En cas d'erreur imprévue, vider la liste et mettre à jour l'affichage
-        allEvents = [];
-        updateCalendarEvents();
-        updateStats();
-      }
-    }
-
-    // Récupérer les statistiques globales utilisées par le dashboard
-    async function loadDashboardStats() {
-      try {
-        const result = await apiRequest('/api/dashboard/stats');
-        if (!result) return; // apiRequest gère l'affichage d'erreur
-
-        const data = result.success ? result.data : (result.data || null);
-        if (!data) return;
-
-        // Mettre à jour les éléments du calendrier (ids conservés pour compatibilité)
-        const naissanceEl = document.getElementById('naissanceCount');
-        const mariageEl = document.getElementById('mariageCount');
-        const decesEl = document.getElementById('decesCount');
-
-        if (naissanceEl) naissanceEl.textContent = data.naissances ?? data.naissance ?? naissanceEl.textContent;
-        if (mariageEl) mariageEl.textContent = data.mariages ?? data.mariage ?? mariageEl.textContent;
-        if (decesEl) decesEl.textContent = data.deces ?? data.decesCount ?? decesEl.textContent;
-      } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques dashboard:', error);
-      }
-    }
-    
-    function getEventType(title) {
-      if (title.toLowerCase().includes('naissance')) return 'naissance';
-      if (title.toLowerCase().includes('mariage')) return 'mariage';
-      if (title.toLowerCase().includes('décès') || title.toLowerCase().includes('deces')) return 'deces';
-      return 'autre';
-    }
-    
-    function updateCalendarEvents() {
-      let filteredEvents = allEvents;
-      
-      if (currentFilter !== 'all') {
-        filteredEvents = allEvents.filter(event => 
-          event.extendedProps.type === currentFilter
-        );
-      }
-      
-      calendar.removeAllEvents();
-      calendar.addEventSource(filteredEvents);
-    }
-    
-    function updateStats() {
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      
-      const thisMonthEvents = allEvents.filter(event => {
-        const eventDate = new Date(event.start);
-        return eventDate.getMonth() === currentMonth && 
-               eventDate.getFullYear() === currentYear;
-      });
-      
-      const stats = {
-        naissance: thisMonthEvents.filter(e => e.extendedProps.type === 'naissance').length,
-        mariage: thisMonthEvents.filter(e => e.extendedProps.type === 'mariage').length,
-        deces: thisMonthEvents.filter(e => e.extendedProps.type === 'deces').length
-      };
-      
-      document.getElementById('naissanceCount').textContent = stats.naissance;
-      document.getElementById('mariageCount').textContent = stats.mariage;
-      document.getElementById('decesCount').textContent = stats.deces;
-    }
-    
-    function setupEventListeners() {
-      // Filtres
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          
-          currentFilter = e.target.dataset.filter;
-          updateCalendarEvents();
-          // Mettre à jour les compteurs après changement de filtre/affichage
-          updateStats();
+        // Initialiser les tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(tooltipTriggerEl => {
+          new bootstrap.Tooltip(tooltipTriggerEl);
         });
-      });
-    }
-    
-    function showEventDetails(event) {
-      const modalEl = document.getElementById('eventModal');
-      const detailsDiv = document.getElementById('eventDetails');
-      
-      // Préparer le contenu avant d'afficher le modal
-      const eventType = event.extendedProps.type;
-      const typeIcon = {
-        naissance: 'fa-baby',
-        mariage: 'fa-heart',
-        deces: 'fa-cross',
-        autre: 'fa-calendar'
-      }[eventType] || 'fa-calendar';
-      
-      // Créer le contenu du modal
-      detailsDiv.innerHTML = `
-        <div class="text-center mb-3">
-          <i class="fas ${typeIcon} fa-3x text-primary mb-2"></i>
-          <h5>${event.title}</h5>
-        </div>
-        <div class="row">
-          <div class="col-sm-4"><strong>Date:</strong></div>
-          <div class="col-sm-8">${new Date(event.start).toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}</div>
-        </div>
-        <div class="row mt-2">
-          <div class="col-sm-4"><strong>Type:</strong></div>
-          <div class="col-sm-8">
-            <span class="badge bg-${getTypeColor(eventType)}">
-              ${eventType.charAt(0).toUpperCase() + eventType.slice(1)}
-            </span>
-          </div>
-        </div>
-        ${event.extendedProps.details ? `
-          <div class="row mt-2">
-            <div class="col-sm-4"><strong>Détails:</strong></div>
-            <div class="col-sm-8">${JSON.stringify(event.extendedProps.details, null, 2)}</div>
-          </div>
-        ` : ''}
-      `;
-      
-      // Afficher le modal manuellement
-      modalEl.style.display = 'block';
-      modalEl.classList.add('show');
-      document.body.classList.add('modal-open');
-      
-      // Ajouter le backdrop manuellement
-      const backdrop = document.createElement('div');
-      backdrop.className = 'modal-backdrop fade show';
-      document.body.appendChild(backdrop);
-      
-      // Gestion de la fermeture
-      const closeModal = () => {
-        modalEl.style.display = 'none';
-        modalEl.classList.remove('show');
-        document.body.classList.remove('modal-open');
-        if (document.body.contains(backdrop)) {
-          document.body.removeChild(backdrop);
-        }
-      };
-      
-      // Fermer en cliquant sur le bouton
-      const closeButton = modalEl.querySelector('[data-bs-dismiss="modal"]');
-      if (closeButton) {
-        closeButton.onclick = closeModal;
       }
       
-      // Fermer en cliquant en dehors
-      backdrop.onclick = closeModal;
+      // Initialisation du gestionnaire de calendrier
+      try {
+        const calendarManager = new CalendrierManager();
+        window.calendarManager = calendarManager; // Pour le débogage
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation du calendrier:', error);
+        showMessage('Une erreur est survenue lors du chargement du calendrier', 'danger');
+      }
       
-      // Retourner la fonction de fermeture pour une utilisation externe si nécessaire
-      return closeModal;
-    }
-    
-    function getTypeColor(type) {
-      const colors = {
-        naissance: 'primary',
-        mariage: 'danger',
-        deces: 'secondary',
-        autre: 'info'
-      };
-      return colors[type] || 'secondary';
-    }
-    
-    function goToToday() {
-      calendar.today();
-    }
-    
-    function exportCalendar() {
-      // Créer un fichier CSV des événements
-      const csvContent = "data:text/csv;charset=utf-8," + 
-        "Date,Titre,Type\n" +
-        allEvents.map(event => 
-          `${event.start},"${event.title}",${event.extendedProps.type}`
-        ).join("\n");
-      
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `calendrier_etat_civil_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showNotification('Calendrier exporté avec succès', 'success');
-    }
-    
-    function printCalendar() {
-      window.print();
-    }
-    
-    function showNotification(message, type = 'info') {
-      const alertClass = {
-        success: 'alert-success',
-        error: 'alert-danger',
-        info: 'alert-info'
-      }[type] || 'alert-info';
-      
-      const notification = document.createElement('div');
-      notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
-      notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-      notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
+      // Gestion des clics sur les boutons
+      document.addEventListener('click', (e) => {
+        // Gestion des fermetures de messages d'alerte
+        if (e.target.classList.contains('btn-close')) {
+          e.target.closest('.alert').remove();
         }
-      }, 5000);
-    }
+      });
+    });
   </script>
 </body>
 </html>

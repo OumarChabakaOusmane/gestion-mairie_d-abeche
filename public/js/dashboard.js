@@ -1,3 +1,16 @@
+// Fonction utilitaire pour vérifier si l'utilisateur est administrateur
+function isAdmin() {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    const user = JSON.parse(userStr);
+    return user && user.role === 'admin';
+  } catch (error) {
+    console.error('Erreur lors de la vérification du rôle administrateur:', error);
+    return false;
+  }
+}
+
 class Dashboard {
   constructor() {
     this.retryCount = 0;

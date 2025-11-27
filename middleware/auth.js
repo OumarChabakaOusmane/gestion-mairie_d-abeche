@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const logger = require('../config/logger');
+const connectedUsers = require('../services/connectedUsers');
 
 // Middleware d'authentification de base
 const authenticate = async (req, res, next) => {
@@ -58,11 +59,26 @@ const authenticate = async (req, res, next) => {
     }
 
     // Ajouter l'utilisateur et le token à la requête
-    req.user = { id: user._id.toString(), role: user.role, email: user.email };
+    req.user = { 
+      id: user._id.toString(), 
+      role: user.role, 
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar
+    };
     req.token = token;
+    
+    // Mettre à jour la liste des utilisateurs connectés
+    connectedUsers.addOrUpdateUser(user);
     
     // Journaliser l'accès réussi
     logger.info(`Accès autorisé - ID: ${user._id}, Email: ${user.email}`);
+    
+    // Ajouter un gestionnaire pour la fin de la réponse pour nettoyer si nécessaire
+    res.on('finish', () => {
+      // Vous pourriez vouloir ajouter une logique de déconnexion ici si nécessaire
+      // Par exemple, si vous utilisez des sessions courtes
+    });
     
     next();
   } catch (error) {

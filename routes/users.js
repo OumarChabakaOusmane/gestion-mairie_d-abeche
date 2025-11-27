@@ -11,6 +11,139 @@ const { upload, handleUploadErrors } = require('../middleware/upload');
 // Appliquer le middleware d'authentification à toutes les routes
 router.use(authenticate);
 
+// Importer le service des utilisateurs connectés
+const connectedUsers = require('../services/connectedUsers');
+
+// Route pour obtenir la liste des utilisateurs connectés
+router.get('/connected', async (req, res) => {
+  try {
+    // Vérifier si l'utilisateur est admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Accès non autorisé. Seul un administrateur peut accéder à cette ressource.'
+      });
+    }
+
+    // Nettoyer les utilisateurs inactifs avant de renvoyer la liste
+    connectedUsers.cleanupInactiveUsers(30); // 30 minutes d'inactivité
+    
+    // Récupérer la liste des utilisateurs connectés
+    const connectedUsersList = connectedUsers.getAllConnectedUsers();
+    
+    res.json({
+      success: true,
+      data: connectedUsersList
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs connectés:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Une erreur est survenue lors de la récupération des utilisateurs connectés.'
+    });
+  }
+});
+
+// Route pour obtenir tous les utilisateurs (admin seulement)
+router.get('/', authenticate, async (req, res) => {
+  try {
+    console.log('=== DÉBUT ROUTE /api/users ===');
+    console.log('Utilisateur:', {
+      id: req.user._id,
+      email: req.user.email,
+      role: req.user.role
+    });
+
+    // Vérifier si l'utilisateur est admin
+    if (req.user.role !== 'admin') {
+      console.log('Accès refusé: utilisateur non admin');
+      return res.status(403).json({
+        success: false,
+        error: 'Accès non autorisé. Seul un administrateur peut accéder à cette ressource.'
+      });
+    }
+
+    // Récupérer les paramètres de pagination et de filtrage
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100; // Augmenté à 100 pour le débogage
+    const skip = (page - 1) * limit;
+    
+    // Construire la requête de filtrage
+    const filter = {};
+    if (req.query.role) {
+      filter.role = req.query.role;
+    }
+    if (req.query.search) {
+      filter.$or = [
+        { name: { $regex: req.query.search, $options: 'i' } },
+        { email: { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
+    
+    console.log('Filtres de recherche:', filter);
+
+    // Récupérer les utilisateurs avec pagination
+    console.log('Récupération des utilisateurs...');
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean() // Convertir en objet JavaScript simple
+        .exec(),
+      User.countDocuments(filter).exec()
+    ]);
+    
+    console.log(`Nombre d'utilisateurs trouvés: ${users.length}`);
+    
+    if (users.length > 0) {
+      console.log('Premier utilisateur trouvé:', {
+        _id: users[0]._id,
+        name: users[0].name,
+        email: users[0].email,
+        role: users[0].role
+      });
+    } else {
+      console.log('Aucun utilisateur trouvé dans la base de données');
+    }
+    
+    // Formater les données de date pour l'affichage
+    const usersWithFormattedDates = users.map(user => {
+      const formattedUser = {
+        ...user,
+        createdAt: user.createdAt ? user.createdAt.toISOString() : null,
+        updatedAt: user.updatedAt ? user.updatedAt.toISOString() : null
+      };
+      return formattedUser;
+    });
+    
+    console.log('Utilisateurs formatés:', usersWithFormattedDates.length);
+
+    const response = {
+      success: true,
+      data: usersWithFormattedDates,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit
+      }
+    };
+    
+    console.log('Réponse envoyée avec succès');
+    console.log('=== FIN ROUTE /api/users ===');
+    res.json(response);
+  } catch (err) {
+    console.error('Erreur lors de la récupération des utilisateurs:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur serveur lors de la récupération des utilisateurs',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 // Route pour obtenir les informations de l'utilisateur connecté
 router.get('/me', async (req, res) => {
   try {

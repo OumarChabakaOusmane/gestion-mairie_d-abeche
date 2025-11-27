@@ -148,7 +148,7 @@ router.post(
   '/verify-otp',
   [
     body('email').isEmail().normalizeEmail(),
-    body('otp').isString().isLength({ min: 6, max: 6 }).withMessage('OTP invalide')
+    body('otp').isString().withMessage('Le code OTP est requis')
   ],
   validateInputs,
   async (req, res) => {
@@ -166,7 +166,9 @@ router.post(
     }
 
     // Vérifier l'expiration
-    if (new Date() > pendingUser.otpExpires) {
+    const now = new Date();
+    if (now > new Date(pendingUser.otpExpires)) {
+      console.log(`OTP expired: ${pendingUser.otpExpires}, current time: ${now}`);
       await PendingUser.deleteOne({ email });
       return res.status(400).json({
         success: false,
@@ -175,10 +177,11 @@ router.post(
     }
 
     // Vérifier le code OTP
-    if (pendingUser.otp !== otp) {
+    if (pendingUser.otp !== otp.trim()) {
+      console.log(`OTP mismatch: expected ${pendingUser.otp}, got ${otp}`);
       return res.status(400).json({
         success: false,
-        error: 'Code OTP invalide.'
+        error: 'Code OTP invalide. Veuillez vérifier le code et réessayer.'
       });
     }
 

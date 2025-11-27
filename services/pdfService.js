@@ -383,11 +383,31 @@ const generateNaissancePdf = (data) => {
            align: 'center'
          })
          .font('Helvetica-Bold')
-         .fontSize(12)
-         .text('MAIRIE DE LA VILLE D\'ABÉCHÉ', textLeftMargin, headerY + 45, {
-           width: textWidth,
-           align: 'center'
-         });
+         .fontSize(12);
+         
+      // Extraire la région en priorisant différentes sources possibles
+      let region = 'LA VILLE D\'ABÉCHÉ';
+      
+      if (pdfData.details?.region) {
+        region = pdfData.details.region;
+      } else if (pdfData.region) {
+        region = pdfData.region;
+      } else if (pdfData.mairie) {
+        region = pdfData.mairie;
+      }
+      
+      // Nettoyer la région pour s'assurer qu'elle est en majuscules et sans espaces superflus
+      region = region.trim().toUpperCase();
+      
+      // Si la région commence par "MAIRIE DE ", on la supprime pour éviter la redondance
+      if (region.startsWith('MAIRIE DE ')) {
+        region = region.substring(10);
+      }
+      
+      doc.text(`MAIRIE DE ${region}`, textLeftMargin, headerY + 45, {
+        width: textWidth,
+        align: 'center'
+      });
 
       // Numéro d'acte à droite
       doc.font('Helvetica-Bold')

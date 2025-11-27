@@ -5,28 +5,52 @@ const logger = require('../config/logger');
 const Naissance = require('../models/Naissance');
 const Mariage = require('../models/Mariage');
 const Deces = require('../models/Deces');
+const NodeCache = require('node-cache');
+
+// Mise en cache des résultats pendant 60 secondes
+const eventCache = new NodeCache({ stdTTL: 60 });
 
 // Récupérer les événements du calendrier
 router.get('/', async (req, res, next) => {  
   try {
-    let { start, end } = req.query;
-
+    const { start, end } = req.query;
+    const cacheKey = `${start}-${end}`;
+    let startDate, endDate;
+    
+    // Vérifier le cache
+    const cachedData = eventCache.get(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+    
     // Si start/end manquent, on utilise le mois courant comme plage par défaut
     if (!start || !end) {
       const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-      start = start || firstDay.toISOString();
-      end = end || lastDay.toISOString();
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
       logger.info('Paramètres start/end manquants — utilisation du mois courant par défaut');
+    } else {
+      // Nettoyer et convertir les dates en objets Date valides
+      const cleanStart = start.split('T')[0]; // Ne garder que la partie date
+      const cleanEnd = end.split('T')[0];     // Ne garder que la partie date
+      
+      startDate = new Date(cleanStart);
+      endDate = new Date(cleanEnd);
+      
+      // Ajuster l'heure de fin pour inclure toute la journée
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Vérifier si les dates sont valides
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide');
+      }
     }
 
-    logger.info(`Récupération des événements du ${start} au ${end}`);
+    logger.info(`Récupération des événements du ${startDate} au ${endDate}`);
+    logger.info(`Requête Naissance: dateNaissance entre ${startDate} et ${endDate}, statut: validé`);
+    logger.info(`Requête Mariage: dateMariage entre ${startDate} et ${endDate}, statut: validé`);
+    logger.info(`Requête Décès: dateDeces entre ${startDate} et ${endDate}, statut: validé`);
 
-    // Convertir les dates en objets Date
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    
     // Récupérer les naissances dans la plage de dates
     const [naissances, mariages, deces] = await Promise.all([
       Naissance.find({
@@ -34,8 +58,8 @@ router.get('/', async (req, res, next) => {
           $gte: startDate,
           $lte: endDate
         },
-        statut: 'validé' // Uniquement les actes validés
-      }),
+        statut: 'validé'
+      }).lean(),
       
       // Récupérer les mariages dans la plage de dates
       Mariage.find({
@@ -43,8 +67,8 @@ router.get('/', async (req, res, next) => {
           $gte: startDate,
           $lte: endDate
         },
-        statut: 'validé' // Uniquement les actes validés
-      }),
+        statut: 'validé'
+      }).lean(),
       
       // Récupérer les décès dans la plage de dates
       Deces.find({
@@ -52,98 +76,128 @@ router.get('/', async (req, res, next) => {
           $gte: startDate,
           $lte: endDate
         },
-        statut: 'validé' // Uniquement les actes validés
-      })
+        statut: 'validé'
+      }).lean()
     ]);
     
+    // Log des résultats bruts
+    logger.info(`Résultats bruts - Naissances: ${naissances.length}, Mariages: ${mariages.length}, Décès: ${deces.length}`);
+    if (naissances.length > 0) logger.info('Exemple de naissance:', JSON.stringify(naissances[0], null, 2));
+    if (mariages.length > 0) logger.info('Exemple de mariage:', JSON.stringify(mariages[0], null, 2));
+    if (deces.length > 0) logger.info('Exemple de décès:', JSON.stringify(deces[0], null, 2));
+    
     // Formater les événements pour FullCalendar
+    const formatEvent = (event, type, title, color) => {
+      // Déterminer la date de l'événement
+      let eventDate;
+      let eventTitle = title;
+      let details = {};
+      
+      switch(type) {
+        case 'naissance':
+          eventDate = event.dateNaissance ? new Date(event.dateNaissance) : new Date();
+          eventTitle = `Naissance de ${event.prenomsEnfant || ''} ${event.nomEnfant || ''}`.trim();
+          details = {
+            type: 'Naissance',
+            nom: event.nomEnfant || 'Non spécifié',
+            prenom: event.prenomsEnfant || '',
+            date: eventDate.toLocaleDateString('fr-FR'),
+            lieu: event.lieuNaissance || 'Non spécifié',
+            sexe: event.sexe || 'Non spécifié',
+            numeroActe: event.numeroActe || 'N/A'
+          };
+          break;
+          
+        case 'mariage':
+          eventDate = event.dateMariage ? new Date(event.dateMariage) : new Date();
+          eventTitle = `Mariage de ${event.epoux?.prenoms || ''} ${event.epoux?.nom || ''} et ${event.epouse?.prenoms || ''} ${event.epouse?.nom || ''}`.trim();
+          details = {
+            type: 'Mariage',
+            epoux: {
+              nom: event.epoux?.nom || 'Non spécifié',
+              prenom: event.epoux?.prenoms || ''
+            },
+            epouse: {
+              nom: event.epouse?.nom || 'Non spécifié',
+              prenom: event.epouse?.prenoms || ''
+            },
+            date: eventDate.toLocaleDateString('fr-FR'),
+            lieu: event.lieuMariage || 'Non spécifié',
+            numeroActe: event.numeroActe || 'N/A'
+          };
+          break;
+          
+        case 'deces':
+          eventDate = event.dateDeces ? new Date(event.dateDeces) : new Date();
+          eventTitle = `Décès de ${event.defunt?.prenoms || ''} ${event.defunt?.nom || ''}`.trim();
+          details = {
+            type: 'Décès',
+            defunt: {
+              nom: event.defunt?.nom || 'Non spécifié',
+              prenom: event.defunt?.prenoms || ''
+            },
+            date: eventDate.toLocaleDateString('fr-FR'),
+            lieu: event.lieuDeces || 'Non spécifié',
+            numeroActe: event.numeroActe || 'N/A'
+          };
+          if (event.defunt?.dateNaissance) {
+            details.dateNaissance = new Date(event.defunt.dateNaissance).toLocaleDateString('fr-FR');
+          }
+          break;
+      }
+      
+      // Formater la date au format ISO (sans l'heure)
+      const formattedDate = eventDate.toISOString().split('T')[0];
+      
+      return {
+        id: `${type}-${event._id}`,
+        title: eventTitle,
+        start: formattedDate,
+        allDay: true,
+        color: color,
+        extendedProps: details
+      };
+    };
+
+    // Combiner tous les événements
     const events = [
-      // Naissances
-      ...naissances.map(naissance => ({
-        id: `naissance-${naissance._id}`,
-        title: 'Naissance',
-        start: naissance.dateNaissance,
-        color: '#4CAF50', // Vert
-        extendedProps: {
-          type: 'naissance',
-          numeroActe: naissance.numeroActe,
-          details: {
-            nom: naissance.enfant.nom,
-            prenom: naissance.enfant.prenom,
-            date: naissance.dateNaissance,
-            lieu: naissance.lieuNaissance
-          }
-        }
-      })),
-      
-      // Mariages
-      ...mariages.map(mariage => ({
-        id: `mariage-${mariage._id}`,
-        title: 'Mariage',
-        start: mariage.dateMariage,
-        color: '#2196F3', // Bleu
-        extendedProps: {
-          type: 'mariage',
-          numeroActe: mariage.numeroActe,
-          details: {
-            epoux: `${mariage.epoux.prenom} ${mariage.epoux.nom}`,
-            epouse: `${mariage.epouse.prenom} ${mariage.epouse.nom}`,
-            date: mariage.dateMariage,
-            lieu: mariage.lieuMariage
-          }
-        }
-      })),
-      
-      // Décès
-      ...deces.map(deces => ({
-        id: `deces-${deces._id}`,
-        title: 'Décès',
-        start: deces.dateDeces,
-        color: '#F44336', // Rouge
-        extendedProps: {
-          type: 'deces',
-          numeroActe: deces.numeroActe,
-          details: {
-            defunt: `${deces.defunt.prenom} ${deces.defunt.nom}`,
-            date: deces.dateDeces,
-            lieu: deces.lieuDeces,
-            dateNaissance: deces.defunt.dateNaissance
-          }
-        }
-      }))
+      ...naissances.map(naissance => formatEvent(naissance, 'naissance', 'Naissance', '#4CAF50')),
+      ...mariages.map(mariage => formatEvent(mariage, 'mariage', 'Mariage', '#2196F3')),
+      ...deces.map(deces => formatEvent(deces, 'deces', 'Décès', '#9E9E9E'))
     ];
     
-    logger.info(`Retour de ${events.length} événements`);
-
-    // S'assurer que les dates sont sérialisables proprement (ISO strings)
-    const serialized = events.map(ev => ({
-      id: ev.id,
-      title: ev.title,
-      start: (ev.start instanceof Date) ? ev.start.toISOString() : ev.start,
-      color: ev.color,
-      extendedProps: ev.extendedProps || {}
-    }));
-
-    res.json({ success: true, data: serialized });
+    // Mettre en cache les résultats
+    const result = { 
+      success: true,
+      events: events || []
+    };
+    
+    // Mettre en cache uniquement si on a des résultats
+    if (events && events.length > 0) {
+      eventCache.set(cacheKey, result);
+    }
+    
+    // Envoyer la réponse
+    return res.json(result);
     
   } catch (error) {
-    logger.error('Erreur lors de la récupération des événements:', {
-      message: error.message,
-      stack: error.stack,
-      query: req.query
+    logger.error('Erreur lors de la récupération des événements:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la récupération des événements',
+      error: error.message 
     });
-    
-    next(error);
   }
 });
 
-// Récupérer le détail d'un événement
+// Récupérer les détails d'un événement spécifique
 router.get('/:type/:id', async (req, res, next) => {
   try {
     const { type, id } = req.params;
     let event = null;
     
-    switch (type) {
+    // Récupérer l'événement en fonction du type
+    switch(type) {
       case 'naissance':
         event = await Naissance.findById(id);
         break;

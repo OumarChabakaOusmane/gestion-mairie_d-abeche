@@ -181,9 +181,33 @@
                 <input type="text" name="nationaliteMere" class="form-control" placeholder="Ex: Tchadienne">
               </div>
               
-              <div class="col-12">
-                <label class="form-label">Mairie</label>
-                <input type="text" name="mairie" class="form-control" placeholder="Ex: Mairie d'abeche 1er Arrondissement" required>
+              <div class="col-md-6">
+                <label class="form-label">Région</label>
+                <select class="form-select" id="region" name="region" required>
+                  <option value="">Sélectionner une région</option>
+                  <option value="BATHA">Batha</option>
+                  <option value="BILTINE">Biltine</option>
+                  <option value="CHARI_BAGUIRMI">Chari-Baguirmi</option>
+                  <option value="ENNEDI_EST">Ennedi Est</option>
+                  <option value="ENNEDI_OUEST">Ennedi Ouest</option>
+                  <option value="GUERA">Guéra</option>
+                  <option value="HADJER_LAMIS">Hadjer-Lamis</option>
+                  <option value="KANEM">Kanem</option>
+                  <option value="LAC">Lac</option>
+                  <option value="LOGONE_OCCIDENTAL">Logone Occidental</option>
+                  <option value="LOGONE_ORIENTAL">Logone Oriental</option>
+                  <option value="MANDOUL">Mandoul</option>
+                  <option value="MAYO_KEBBI_EST">Mayo-Kebbi Est</option>
+                  <option value="MAYO_KEBBI_OUEST">Mayo-Kebbi Ouest</option>
+                  <option value="MOYEN_CHARI">Moyen-Chari</option>
+                  <option value="NDJAMENA">Ndjamena</option>
+                  <option value="OUADDAI">Ouaddaï</option>
+                  <option value="SALAMAT">Salamat</option>
+                  <option value="SILA">Sila</option>
+                  <option value="TANDJILE">Tandjilé</option>
+                  <option value="TIBESTI">Tibesti</option>
+                  <option value="WADI_FIRA">Wadi Fira</option>
+                </select>
               </div>
               
               <div class="col-12 mt-4">
@@ -205,6 +229,20 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/sidebar-template.js?v=2"></script>
+  <script>
+    // Fonction utilitaire pour afficher les messages d'erreur
+    function showError(message) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Erreur !</strong> ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
   <script src="/js/pdfUtils.js?v=1.2"></script>
   <style>
     /* Style pour les boutons d'action */
@@ -292,7 +330,7 @@
     }
     
     function populateForm(acte) {
-      const details = acte.details;
+      const details = acte.details || {};
       
       // Informations de l'enfant
       if (details.nom) document.querySelector('input[name="nom"]').value = details.nom;
@@ -319,8 +357,32 @@
       if (details.professionMere) document.querySelector('input[name="professionMere"]').value = details.professionMere;
       if (details.nationaliteMere) document.querySelector('input[name="nationaliteMere"]').value = details.nationaliteMere;
       
-      // Mairie
-      if (acte.mairie) document.querySelector('input[name="mairie"]').value = acte.mairie;
+      // Gestion de la région avec priorité et logs de débogage
+      const regionSelect = document.querySelector('select[name="region"]');
+      console.log('Données de l\'acte chargé pour édition:', {
+        acteId: acte._id,
+        detailsRegion: acte.details?.region,
+        acteRegion: acte.region,
+        acteMairie: acte.mairie,
+        currentSelectValue: regionSelect.value
+      });
+      
+      // Essayer de trouver la région dans l'ordre de priorité
+      if (acte.details?.region) {
+        // Cas 1: La région est dans acte.details.region
+        regionSelect.value = acte.details.region;
+        console.log('Région chargée depuis acte.details.region:', acte.details.region);
+      } else if (acte.region) {
+        // Cas 2: La région est directement dans acte.region
+        regionSelect.value = acte.region;
+        console.log('Région chargée depuis acte.region:', acte.region);
+      } else if (acte.mairie) {
+        // Cas 3: Utiliser mairie comme fallback pour la rétrocompatibilité
+        regionSelect.value = acte.mairie;
+        console.log('Région chargée depuis acte.mairie (fallback):', acte.mairie);
+      } else {
+        console.log('Aucune région trouvée dans les données de l\'acte');
+      }
     }
     
     function showError(message) {
@@ -344,10 +406,9 @@
         
         // Validation côté client
         const requiredFields = [
-          'nom', 'prenom', 'sexe', 'dateNaissance', 'lieuNaissance',
+          'nom', 'prenom', 'sexe', 'dateNaissance', 'lieuNaissance', 'region',
           'pere', 'prenomPere', 'dateNaissancePere', 'lieuNaissancePere', 'professionPere',
-          'mere', 'prenomMere', 'dateNaissanceMere', 'lieuNaissanceMere', 'professionMere',
-          'mairie'
+          'mere', 'prenomMere', 'dateNaissanceMere', 'lieuNaissanceMere', 'professionMere'
         ];
         
         const missingFields = requiredFields.filter(field => !acteData[field]);
@@ -388,10 +449,21 @@
             nationaliteMere: acteData.nationaliteMere || '',
             
             // Autres champs
-            adresse: acteData.adresse || ''
+            adresse: acteData.adresse || '',
+            // Toujours inclure la région dans les détails
+            region: acteData.region || document.querySelector('select[name="region"]').value
           },
-          mairie: acteData.mairie
+          // Pour la rétrocompatibilité, on garde aussi mairie
+          mairie: acteData.region || document.querySelector('select[name="region"]').value
         };
+        
+        // Ajouter des logs pour le débogage
+        console.log('Données du formulaire avant envoi:', {
+          acteDataRegion: acteData.region,
+          selectValue: document.querySelector('select[name="region"]').value,
+          requestDataRegion: requestData.details.region,
+          requestDataMairie: requestData.mairie
+        });
         
         console.log('Données envoyées au serveur:', JSON.stringify(requestData, null, 2));
         

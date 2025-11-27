@@ -1,704 +1,833 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tableau de bord - État Civil Abéché</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style id="common-styles">
-    /* Styles de base */
-    body {
-      min-height: 100vh;
-      background-color: #f8f9fa;
-    }
-
-    /* Style spécifique pour le header du tableau de bord */
-    .dashboard-header {
-      background: #0d6efd;
-      transition: background-color 0.3s ease;
-    }
-    
-    /* Styles pour les boutons d'action */
-    .btn-action {
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-      width: 34px;
-      height: 34px;
-      padding: 0;
-      margin: 0 2px;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background-color: transparent;
-    }
-    
-    .btn-action i {
-      transition: all 0.2s ease;
-      font-size: 16px;
-    }
-    
-    .btn-action:hover {
-      transform: translateY(-2px) scale(1.1);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    
-    .btn-action:active {
-      transform: translateY(1px) scale(0.98);
-    }
-    
-    .btn-action:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-    }
-    
-    .btn-action:after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.5);
-      opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%, -50%);
-      transform-origin: 50% 50%;
-    }
-    
-    .btn-action:focus:not(:active)::after {
-      animation: ripple 0.6s ease-out;
-    }
-    
-    @keyframes ripple {
-      0% {
-        transform: scale(0, 0);
-        opacity: 0.5;
+  <title>Tableau de bord - État Civil du Tchad </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style id="common-styles">
+      /* Styles RTL */
+      body.rtl {
+        text-align: right;
+        font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
       }
-      100% {
-        transform: scale(20, 20);
+
+      /* Correction des marges et paddings pour RTL */
+      body.rtl .me-1 {
+        margin-left: 0.25rem !important;
+        margin-right: 0 !important;
+      }
+
+      body.rtl .me-2 {
+        margin-left: 0.5rem !important;
+        margin-right: 0 !important;
+      }
+
+      body.rtl .me-3 {
+        margin-left: 1rem !important;
+        margin-right: 0 !important;
+      }
+
+      body.rtl .ms-1 {
+        margin-right: 0.25rem !important;
+        margin-left: 0 !important;
+      }
+
+      body.rtl .ms-2 {
+        margin-right: 0.5rem !important;
+        margin-left: 0 !important;
+      }
+
+      body.rtl .ms-3 {
+        margin-right: 1rem !important;
+        margin-left: 0 !important;
+      }
+
+      body.rtl .pe-1 {
+        padding-left: 0.25rem !important;
+        padding-right: 0 !important;
+      }
+
+      body.rtl .pe-2 {
+        padding-left: 0.5rem !important;
+        padding-right: 0 !important;
+      }
+
+      body.rtl .ps-1 {
+        padding-right: 0.25rem !important;
+        padding-left: 0 !important;
+      }
+
+      body.rtl .ps-2 {
+        padding-right: 0.5rem !important;
+        padding-left: 0 !important;
+      }
+
+      /* Correction des flottants */
+      body.rtl .float-end {
+        float: left !important;
+      }
+
+      body.rtl .float-start {
+        float: right !important;
+      }
+
+      /* Correction des textes */
+      body.rtl .text-end {
+        text-align: left !important;
+      }
+
+      body.rtl .text-start {
+        text-align: right !important;
+      }
+
+      /* Correction des dropdowns */
+      body.rtl .dropdown-menu {
+        text-align: right;
+        left: auto !important;
+        right: 0 !important;
+      }
+
+      body.rtl .dropdown-menu-end {
+        right: auto !important;
+        left: 0 !important;
+      }
+
+      /* Correction des icônes */
+      body.rtl .fa-chevron-right:before {
+        content: "\f053";
+        /* Chevron left */
+      }
+
+      body.rtl .fa-chevron-left:before {
+        content: "\f054";
+        /* Chevron right */
+      }
+
+      /* Correction des formulaires */
+      body.rtl .form-check {
+        padding-right: 1.5em;
+        padding-left: 0;
+      }
+
+      body.rtl .form-check .form-check-input {
+        float: right;
+        margin-right: -1.5em;
+        margin-left: 0;
+      }
+
+      /* Correction des tables */
+      body.rtl table {
+        direction: rtl;
+      }
+
+      body.rtl th {
+        text-align: right;
+      }
+
+      /* Correction des badges */
+      body.rtl .badge {
+        direction: ltr;
+        display: inline-flex;
+      }
+
+      /* Styles de base */
+      body {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+      }
+
+      /* Style spécifique pour le header du tableau de bord */
+      .dashboard-header {
+        background: #0d6efd;
+        transition: background-color 0.3s ease;
+      }
+
+      /* Styles pour les boutons d'action */
+      .btn-action {
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        margin: 0 2px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background-color: transparent;
+      }
+
+      .btn-action i {
+        transition: all 0.2s ease;
+        font-size: 16px;
+      }
+
+      .btn-action:hover {
+        transform: translateY(-2px) scale(1.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-action:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      .btn-action:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+      }
+
+      .btn-action:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
         opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%, -50%);
+        transform-origin: 50% 50%;
       }
-    }
-    
-    /* Animation de chargement */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .fa-spin {
-      animation: spin 1s linear infinite;
-    }
-    
-    /* Styles spécifiques pour chaque type de bouton */
-    .btn-view {
-      color: #0d6efd;
-      background-color: rgba(13, 110, 253, 0.1);
-    }
-    
-    .btn-view:hover {
-      background-color: rgba(13, 110, 253, 0.2);
-    }
-    
-    .btn-edit {
-      color: #ffc107;
-      background-color: rgba(255, 193, 7, 0.1);
-    }
-    
-    .btn-edit:hover {
-      background-color: rgba(255, 193, 7, 0.2);
-    }
-    
-    .btn-delete {
-      color: #dc3545;
-      background-color: rgba(220, 53, 69, 0.1);
-    }
-    
-    .btn-delete:hover {
-      background-color: rgba(220, 53, 69, 0.2);
-    }
-    
-    .btn-download {
-      color: #198754;
-      background-color: rgba(25, 135, 84, 0.1);
-    }
-    
-    .btn-download:hover {
-      background-color: rgba(25, 135, 84, 0.2);
-    }
-  </style>
-  <style>
-    /* Styles pour les boutons d'action */
-    .action-buttons {
-      display: flex;
-      gap: 4px;
-    }
-    
-    .action-buttons .btn {
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-    }
-    
-    .action-buttons .btn i {
-      color: white !important;
-      font-size: 14px;
-      line-height: 1;
-    }
-    
-    .dashboard-header {
-      background: #0d6efd;
-      color: white;
-      padding: 1.5rem 0 0.5rem 0;
-      margin: 0 0 2.5rem 0;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
-    }
 
-    .header-content {
-      padding: 0 1.5rem;
-    }
+      .btn-action:focus:not(:active)::after {
+        animation: ripple 0.6s ease-out;
+      }
 
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
+      @keyframes ripple {
+        0% {
+          transform: scale(0, 0);
+          opacity: 0.5;
+        }
 
-    .header-title h1 {
-      margin: 0;
-      font-size: 1.75rem;
-      font-weight: 600;
-    }
+        100% {
+          transform: scale(20, 20);
+          opacity: 0;
+        }
+      }
 
-    .header-subtitle {
-      font-size: 0.9rem;
-      opacity: 0.9;
-      margin-top: 0.25rem;
-    }
+      /* Animation de chargement */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-    /* Style amélioré pour la barre de recherche */
-    .search-container {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-    }
+      .fa-spin {
+        animation: spin 1s linear infinite;
+      }
 
-    .search-container .input-group {
-      border-radius: 30px;
-      overflow: hidden;
-      background: white;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    }
+      /* Styles spécifiques pour chaque type de bouton */
+      .btn-view {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+      }
 
-    .search-container .input-group:focus-within {
-      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-    }
+      .btn-view:hover {
+        background-color: rgba(13, 110, 253, 0.2);
+      }
 
-    .search-container .form-control {
-      border: none;
-      padding: 0.75rem 1.25rem;
-      box-shadow: none;
-      background: white !important;
-    }
+      .btn-edit {
+        color: #ffc107;
+        background-color: rgba(255, 193, 7, 0.1);
+      }
 
-    .search-container .btn {
-      background: #0d6efd;
-      color: white;
-      border: none;
-      padding: 0 1.25rem;
-      transition: all 0.3s ease;
-    }
+      .btn-edit:hover {
+        background-color: rgba(255, 193, 7, 0.2);
+      }
 
-    .search-container .btn:hover {
-      background: #0b5ed7;
-    }
+      .btn-delete {
+        color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+      }
 
-    /* Style amélioré pour les boutons de contrôle */
-    .header-controls {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+      .btn-delete:hover {
+        background-color: rgba(220, 53, 69, 0.2);
+      }
 
-    @media (max-width: 768px) {
+      .btn-download {
+        color: #198754;
+        background-color: rgba(25, 135, 84, 0.1);
+      }
+
+      .btn-download:hover {
+        background-color: rgba(25, 135, 84, 0.2);
+      }
+    </style>
+    <style>
+      /* Styles pour les boutons d'action */
+      .action-buttons {
+        display: flex;
+        gap: 4px;
+      }
+
+      .action-buttons .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+      }
+
+      .action-buttons .btn i {
+        color: white !important;
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      .dashboard-header {
+        background: #0d6efd;
+        color: white;
+        padding: 1.5rem 0 0.5rem 0;
+        margin: 0 0 2.5rem 0;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
+      }
+
+      .header-content {
+        padding: 0 1.5rem;
+      }
+
       .header-top {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
       }
 
-      .header-controls {
-        width: 100%;
-        justify-content: flex-start;
+      .header-title h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
       }
 
+      .header-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
+      }
+
+      /* Style amélioré pour la barre de recherche */
       .search-container {
-        max-width: 100%;
-      }
-    }
-
-    .header-controls .btn {
-      border-radius: 30px;
-      padding: 0.4rem 1rem;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .header-controls .btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
-    }
-
-    .header-controls .dropdown-menu {
-      border: none;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      padding: 0.5rem 0;
-      margin-top: 8px;
-    }
-
-    .header-controls .dropdown-item {
-      padding: 0.5rem 1.25rem;
-      border-radius: 6px;
-      margin: 0 0.5rem;
-      width: auto;
-    }
-
-    .header-controls .dropdown-item:hover {
-      background: #f8f9fa;
-    }
-
-    .header-controls .dropdown-divider {
-      margin: 0.3rem 0.5rem;
-    }
-
-    .dashboard-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-      animation: float 30s ease-in-out infinite;
-      will-change: transform;
-      animation-play-state: running;
-    }
-
-    .dashboard-header:not(.visible)::before {
-      animation-play-state: paused;
-    }
-
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0px);
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
       }
 
-      50% {
-        transform: translateY(-10px);
-      }
-    }
-
-    /* Enhanced Stat Cards */
-    .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .stat-card.births {
-      background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-      color: white;
-    }
-
-    .stat-card.marriages {
-      background: linear-gradient(135deg, #198754, #157347);
-      color: white;
-    }
-
-    .stat-card.deaths {
-      background: linear-gradient(135deg, #dc3545, #bb2d3b);
-      color: white;
-    }
-
-    .stat-card.documents {
-      background: linear-gradient(135deg, #6f42c1, #5a3d8a);
-      color: white;
-    }
-
-
-
-    .stat-icon {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 3rem;
-      opacity: 0.3;
-    }
-
-    .stat-card .stat-number {
-      font-size: 2.2rem;
-      font-weight: 700;
-      margin: 0.5rem 0;
-      color: white;
-      line-height: 1.2;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
-
-    .stat-label {
-      font-size: 1.1rem;
-      opacity: 0.95;
-      margin: 0.5rem 0 1.5rem 0;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-
-    /* Masquer les barres de progression */
-    .progress-custom {
-      display: none;
-      margin-bottom: 1rem;
-      overflow: hidden;
-    }
-
-    .progress-bar-custom {
-      height: 100%;
-      border-radius: 10px;
-      background-color: rgba(255, 255, 255, 0.9);
-      transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 0%;
-    }
-
-    .quick-actions {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      margin-bottom: 1.5rem;
-    }
-
-    .quick-action-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 1.5rem;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 10px;
-      background: white;
-      text-decoration: none;
-      color: #495057;
-      transition: all 0.25s ease;
-      height: 140px;
-      text-align: center;
-    }
-
-    .quick-action-btn:hover {
-      border-color: #0d6efd;
-      color: #0d6efd;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(13, 110, 253, 0.15);
-      background-color: #f8f9fa;
-    }
-
-    .quick-action-icon {
-      font-size: 2.2rem;
-      margin-bottom: 12px;
-      color: #0d6efd;
-    }
-
-    .loading-skeleton {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: loading 2s infinite;
-      border-radius: 8px;
-      will-change: background-position;
-    }
-
-    @keyframes loading {
-      0% {
-        background-position: 200% 0;
+      .search-container .input-group {
+        border-radius: 30px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
       }
 
-      100% {
-        background-position: -200% 0;
+      .search-container .input-group:focus-within {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
       }
-    }
 
-    .metric-trend {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.875rem;
-      margin-top: 5px;
-    }
+      .search-container .form-control {
+        border: none;
+        padding: 0.75rem 1.25rem;
+        box-shadow: none;
+        background: white !important;
+      }
 
-    .trend-up {
-      color: #28a745;
-    }
+      .search-container .btn {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 0 1.25rem;
+        transition: all 0.3s ease;
+      }
 
-    .trend-down {
-      color: #dc3545;
-    }
+      .search-container .btn:hover {
+        background: #0b5ed7;
+      }
 
-    .trend-neutral {
-      color: #6c757d;
-    }
+      /* Style amélioré pour les boutons de contrôle */
+      .header-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+      }
 
-    /* Optimisation: Réduire les animations sur les appareils moins performants */
-    @media (prefers-reduced-motion: reduce) {
+      @media (max-width: 768px) {
+        .header-top {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-start;
+        }
+
+        .header-controls {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .search-container {
+          max-width: 100%;
+        }
+      }
+
+      .header-controls .btn {
+        border-radius: 30px;
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header-controls .btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .header-controls .dropdown-menu {
+        border: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        padding: 0.5rem 0;
+        margin-top: 8px;
+      }
+
+      .header-controls .dropdown-item {
+        padding: 0.5rem 1.25rem;
+        border-radius: 6px;
+        margin: 0 0.5rem;
+        width: auto;
+      }
+
+      .header-controls .dropdown-item:hover {
+        background: #f8f9fa;
+      }
+
+      .header-controls .dropdown-divider {
+        margin: 0.3rem 0.5rem;
+      }
+
       .dashboard-header::before {
-        animation: none;
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 30s ease-in-out infinite;
+        will-change: transform;
+        animation-play-state: running;
       }
 
-      .loading-skeleton {
-        animation: none;
-        background: #e0e0e0;
+      .dashboard-header:not(.visible)::before {
+        animation-play-state: paused;
       }
 
+      @keyframes float {
+
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* Enhanced Stat Cards */
       .stat-card {
-        transition: none;
-      }
-    }
-
-    /* Styles pour le tableau de bord */
-    .main-content {
-      padding: 1rem;
-    }
-
-    .dashboard-header {
-      padding: 1rem 0;
-      margin-bottom: 1rem;
-      border-radius: 10px;
-    }
-
-    /* Styles du titre et sous-titre du header: blanc et gras */
-    .dashboard-header .title-text {
-      color: #ffffff;
-      font-weight: 800;
-    }
-
-    .dashboard-header .subtitle-text {
-      color: #ffffff;
-      font-weight: 600;
-    }
-
-    /* Style texte simple pour la date de dernière mise à jour (sans badge) */
-    .dashboard-header .last-updated-text {
-      color: rgba(255, 255, 255, 0.9);
-      font-weight: 500;
-    }
-
-    .stat-card {
-      height: 160px;
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-    }
-
-    .stat-card .stat-number {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 0.5rem 0;
-    }
-
-    .stat-card .stat-icon {
-      top: 1rem;
-      right: 1rem;
-      font-size: 1.5rem;
-      opacity: 0.8;
-    }
-
-    /* Réduire l'espacement des cartes de statistiques */
-    .row {
-      margin-bottom: 0.5rem;
-    }
-
-    /* Style pour la section de gestion des actes */
-    .quick-actions {
-      margin-top: 1.5rem;
-    }
-
-    .quick-actions h5 {
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: #495057;
-    }
-
-    /* Améliorer la table des actes */
-    #actesTable {
-      font-size: 0.875rem;
-    }
-
-    #actesTable th {
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    #actesTable td {
-      vertical-align: middle;
-    }
-
-    /* Réduire la hauteur des lignes du tableau */
-    .table> :not(caption)>*>* {
-      padding: 0.5rem;
-    }
-
-    /* Boutons d'action plus compacts */
-    .btn-action {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.8rem;
-      margin-right: 0.25rem;
-    }
-
-    /* Ajustements pour les petits écrans */
-    @media (max-width: 768px) {
-      .stat-card {
-        height: 160px;
-        padding: 1.25rem;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
       }
 
-      .stat-card .stat-number {
-        font-size: 2rem;
+      .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .stat-card.births {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
         color: white;
       }
 
+      .stat-card.marriages {
+        background: linear-gradient(135deg, #198754, #157347);
+        color: white;
+      }
+
+      .stat-card.deaths {
+        background: linear-gradient(135deg, #dc3545, #bb2d3b);
+        color: white;
+      }
+
+      .stat-card.documents {
+        background: linear-gradient(135deg, #6f42c1, #5a3d8a);
+        color: white;
+      }
+
+
+
+      .stat-icon {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        font-size: 3rem;
+        opacity: 0.3;
+      }
+
+      .stat-card .stat-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+        color: white;
+        line-height: 1.2;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
       .stat-label {
-        font-size: 1rem;
-        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        opacity: 0.95;
+        margin: 0.5rem 0 1.5rem 0;
+        font-weight: 500;
+        letter-spacing: 0.3px;
       }
 
-      /* Ajustements pour la table sur mobile */
-      .table-responsive {
-        border: none;
-      }
-
-      .table thead {
+      /* Masquer les barres de progression */
+      .progress-custom {
         display: none;
-      }
-
-      .table,
-      .table tbody,
-      .table tr,
-      .table td {
-        display: block;
-        width: 100%;
-      }
-
-      .table tr {
         margin-bottom: 1rem;
-        border: 1px solid #dee2e6;
+        overflow: hidden;
+      }
+
+      .progress-bar-custom {
+        height: 100%;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 0%;
+      }
+
+      .quick-actions {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+      }
+
+      .quick-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        background: white;
+        text-decoration: none;
+        color: #495057;
+        transition: all 0.25s ease;
+        height: 140px;
+        text-align: center;
+      }
+
+      .quick-action-btn:hover {
+        border-color: #0d6efd;
+        color: #0d6efd;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.15);
+        background-color: #f8f9fa;
+      }
+
+      .quick-action-icon {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+        color: #0d6efd;
+      }
+
+      .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 2s infinite;
+        border-radius: 8px;
+        will-change: background-position;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .metric-trend {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.875rem;
+        margin-top: 5px;
+      }
+
+      .trend-up {
+        color: #28a745;
+      }
+
+      .trend-down {
+        color: #dc3545;
+      }
+
+      .trend-neutral {
+        color: #6c757d;
+      }
+
+      /* Optimisation: Réduire les animations sur les appareils moins performants */
+      @media (prefers-reduced-motion: reduce) {
+        .dashboard-header::before {
+          animation: none;
+        }
+
+        .loading-skeleton {
+          animation: none;
+          background: #e0e0e0;
+        }
+
+        .stat-card {
+          transition: none;
+        }
+      }
+
+      /* Styles pour le tableau de bord */
+      .main-content {
+        padding: 1rem;
+      }
+
+      .dashboard-header {
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+      }
+
+      /* Styles du titre et sous-titre du header: blanc et gras */
+      .dashboard-header .title-text {
+        color: #ffffff;
+        font-weight: 800;
+      }
+
+      .dashboard-header .subtitle-text {
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      /* Style texte simple pour la date de dernière mise à jour (sans badge) */
+      .dashboard-header .last-updated-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+      }
+
+      .stat-card {
+        height: 160px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .stat-card .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+      }
+
+      .stat-card .stat-icon {
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        opacity: 0.8;
+      }
+
+      /* Réduire l'espacement des cartes de statistiques */
+      .row {
+        margin-bottom: 0.5rem;
+      }
+
+      /* Style pour la section de gestion des actes */
+      .quick-actions {
+        margin-top: 1.5rem;
+      }
+
+      .quick-actions h5 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #495057;
+      }
+
+      /* Améliorer la table des actes */
+      #actesTable {
+        font-size: 0.875rem;
+      }
+
+      #actesTable th {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #actesTable td {
+        vertical-align: middle;
+      }
+
+      /* Réduire la hauteur des lignes du tableau */
+      .table> :not(caption)>*>* {
+        padding: 0.5rem;
+      }
+
+      /* Boutons d'action plus compacts */
+      .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+      }
+
+      /* Ajustements pour les petits écrans */
+      @media (max-width: 768px) {
+        .stat-card {
+          height: 160px;
+          padding: 1.25rem;
+        }
+
+        .stat-card .stat-number {
+          font-size: 2rem;
+          color: white;
+        }
+
+        .stat-label {
+          font-size: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        /* Ajustements pour la table sur mobile */
+        .table-responsive {
+          border: none;
+        }
+
+        .table thead {
+          display: none;
+        }
+
+        .table,
+        .table tbody,
+        .table tr,
+        .table td {
+          display: block;
+          width: 100%;
+        }
+
+        .table tr {
+          margin-bottom: 1rem;
+          border: 1px solid #dee2e6;
+          border-radius: 0.25rem;
+        }
+
+        .table td {
+          text-align: right;
+          padding-left: 50%;
+          position: relative;
+          border-bottom: 1px solid #dee2e6;
+        }
+
+        .table td::before {
+          content: attr(data-label);
+          position: absolute;
+          left: 1rem;
+          width: 45%;
+          text-align: left;
+          font-weight: bold;
+        }
+      }
+
+      /* Styles pour la section Gestion d'actes */
+      .table {
+        margin-bottom: 0;
+        --bs-table-bg: #ffffff;
+        --bs-table-striped-bg: #f8f9fa;
+        --bs-table-hover-bg: #f1f1f1;
+        color: #212529;
+      }
+
+      .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+      }
+
+      .table tbody tr {
+        transition: background-color 0.15s ease-in-out;
+      }
+
+      .table tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+      }
+
+      /* Style pour les boutons d'action */
+      .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        margin: 0 0.125rem;
         border-radius: 0.25rem;
       }
 
-      .table td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-        border-bottom: 1px solid #dee2e6;
+      /* Style pour les badges de type d'acte */
+      .badge-type {
+        font-size: 0.8em;
+        padding: 0.35em 0.65em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
-      .table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 1rem;
-        width: 45%;
-        text-align: left;
-        font-weight: bold;
+      .badge-naissance {
+        background-color: #198754;
+        color: white;
       }
-    }
 
-    /* Styles pour la section Gestion d'actes */
-    .table {
-      margin-bottom: 0;
-      --bs-table-bg: #ffffff;
-      --bs-table-striped-bg: #f8f9fa;
-      --bs-table-hover-bg: #f1f1f1;
-      color: #212529;
-    }
+      .badge-mariage {
+        background-color: #0d6efd;
+        color: white;
+      }
 
-    .table thead th {
-      background-color: #f8f9fa;
-      border-bottom: 2px solid #dee2e6;
-      font-weight: 600;
-    }
-
-    .table tbody tr {
-      transition: background-color 0.15s ease-in-out;
-    }
-
-    .table tbody tr:hover {
-      background-color: rgba(13, 110, 253, 0.05);
-    }
-
-    /* Style pour les boutons d'action */
-    .btn-action {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.8rem;
-      margin: 0 0.125rem;
-      border-radius: 0.25rem;
-    }
-
-    /* Style pour les badges de type d'acte */
-    .badge-type {
-      font-size: 0.8em;
-      padding: 0.35em 0.65em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-naissance {
-      background-color: #198754;
-      color: white;
-    }
-
-    .badge-mariage {
-      background-color: #0d6efd;
-      color: white;
-    }
-
-    .badge-deces {
-      background-color: #dc3545;
-      color: white;
-    }
-  </style>
+      .badge-deces {
+        background-color: #dc3545;
+        color: white;
+      }
+    </style>
 </head>
 
 <body>
@@ -710,8 +839,12 @@
         <!-- Ligne du haut avec titre et contrôles -->
         <div class="header-top">
           <div class="header-title">
-            <h1 class="title-text">Tableau de Bord d'Abéché</h1>
-            <div class="header-subtitle">Vue d'ensemble des activités d'état civil d'Abéché</div>
+            <h1 class="title-text" data-i18n="title">Tableau de Bord d'Abéché</h1>
+            <div class="header-subtitle">
+              <span data-i18n="subtitle">Vue d'ensemble des activités d'état civil d'Abéché</span>
+              <span> - </span>
+              <span id="currentDate" class="date-display"></span>
+            </div>
           </div>
 
           <div class="header-controls">
@@ -743,8 +876,14 @@
           <div class="col-12">
             <div class="search-container">
               <div class="input-group">
-                <input type="text" class="form-control border-0 py-2 px-3" id="globalSearch"
-                  placeholder="Rechercher dans tous les actes..." style="font-size: 0.95rem;">
+                <label for="globalSearch" class="visually-hidden" data-i18n="search">Rechercher</label>
+                <input type="text" class="form-control border-0 py-2 px-3" id="globalSearch" name="search"
+                  aria-label="Rechercher dans les actes" data-i18n-placeholder="search" placeholder="Rechercher..."
+                  style="font-size: 0.95rem;">
+                <button class="btn btn-outline-secondary" type="button" id="searchBtn" data-i18n="searchButton">
+                  <i class="fas fa-search"></i>
+                  <span class="visually-hidden" data-i18n="search">Rechercher</span>
+                </button>
               </div>
             </div>
           </div>
@@ -752,8 +891,11 @@
 
         <!-- Badge de mise à jour -->
         <div class="d-flex justify-content-between align-items-center mt-2">
-          <span id="lastUpdatedBadge" class="last-updated-text" title="Dernière mise à jour des statistiques">
-            <i class="fas fa-sync-alt me-1"></i> Dernière mise à jour: <span id="lastUpdatedTime">—</span>
+          <span id="lastUpdatedBadge" class="last-updated-text" data-i18n-title="lastUpdate"
+            title="Dernière mise à jour des statistiques">
+            <i class="fas fa-sync-alt me-1"></i>
+            <span data-i18n="lastUpdate">Dernière mise à jour</span>:
+            <span id="lastUpdatedTime">—</span>
           </span>
         </div>
       </div>
@@ -767,7 +909,7 @@
             <i class="fas fa-baby"></i>
           </div>
           <div class="stat-number" id="births-count">0</div>
-          <div class="stat-label">Naissances</div>
+          <div class="stat-label" data-i18n="births">Naissances</div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
@@ -776,7 +918,7 @@
             <i class="fas fa-ring"></i>
           </div>
           <div class="stat-number" id="marriages-count">0</div>
-          <div class="stat-label">Mariages</div>
+          <div class="stat-label" data-i18n="marriages">Mariages</div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
@@ -785,7 +927,7 @@
             <i class="fas fa-skull"></i>
           </div>
           <div class="stat-number" id="deaths-count">0</div>
-          <div class="stat-label">Décès</div>
+          <div class="stat-label" data-i18n="deaths">Décès</div>
         </div>
       </div>
 
@@ -795,7 +937,7 @@
             <i class="fas fa-file-alt"></i>
           </div>
           <div class="stat-number" id="documents-count">0</div>
-          <div class="stat-label">Documents</div>
+          <div class="stat-label" data-i18n="documents">Documents</div>
         </div>
       </div>
     </div>
@@ -808,22 +950,27 @@
     <div class="row mb-4">
       <div class="col-lg-12">
         <div class="quick-actions">
-          <h5 class="mb-4 d-flex align-items-center justify-content-between">Gestion d'actes
+          <h5 class="mb-4 d-flex align-items-center justify-content-between">
+            <span data-i18n="actesManagement">Gestion d'actes</span>
             <div class="d-flex align-items-center gap-2">
-              <label for="typeFilter" class="me-2 mb-0 small text-muted">Filtrer:</label>
-              <select id="typeFilter" class="form-select form-select-sm" style="width:auto;">
-                <option value="all" selected>Tous</option>
-                <option value="naissance">Naissance</option>
-                <option value="mariage">Mariage</option>
-                <option value="deces">Décès</option>
-              </select>
+              <div class="form-group mb-0">
+                <label for="typeFilter" class="form-label me-2 mb-0 small text-muted"
+                  data-i18n="filter">Filtrer:</label>
+                <select id="typeFilter" class="form-select form-select-sm" style="width:auto;"
+                  aria-label="Filtrer par type d'acte">
+                  <option value="all" selected data-i18n="all">Tous</option>
+                  <option value="naissance" data-i18n="birth">Naissance</option>
+                  <option value="mariage" data-i18n="marriage">Mariage</option>
+                  <option value="deces" data-i18n="death">Décès</option>
+                </select>
+              </div>
             </div>
           </h5>
           <table class="table table-striped" id="actesTable">
             <thead>
               <tr>
-                <th scope="col">Numéro</th>
-                <th scope="col">Type</th>
+                <th scope="col" data-i18n="number">Numéro</th>
+                <th scope="col" data-i18n="type">Type</th>
                 <th scope="col">Nom</th>
                 <th scope="col">Date</th>
                 <th scope="col">Actions</th>
@@ -843,6 +990,19 @@
   <!-- Suppression du type="module" pour éviter les problèmes de portée -->
   <script src="/js/dashboard.js"></script>
   <script>
+    // Fonction pour vérifier si l'utilisateur est administrateur
+    function isAdmin() {
+      try {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return false;
+        const user = JSON.parse(userStr);
+        return user && user.role === 'admin';
+      } catch (error) {
+        console.error('Erreur lors de la vérification du rôle administrateur:', error);
+        return false;
+      }
+    }
+
     // Fonction pour basculer entre les thèmes clair/sombre
     function toggleTheme() {
       const html = document.documentElement;
@@ -863,28 +1023,98 @@
     }
 
     // Initialiser le thème au chargement
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-bs-theme', savedTheme);
-
-      // Mettre à jour l'icône
-      const themeIcon = document.getElementById('themeIcon');
-      if (themeIcon) {
-        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    // Fonction pour initialiser les écouteurs d'événements
+    function initializeEventListeners() {
+      // Gestion du changement de thème
+      const themeToggle = document.getElementById('themeToggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
       }
 
-      // Gestion du bouton d'actualisation
-      const refreshButton = document.getElementById('refreshButton');
-      if (refreshButton) {
-        refreshButton.addEventListener('click', () => {
-          if (window.dashboardInstance && typeof window.dashboardInstance.handleRefresh === 'function') {
-            window.dashboardInstance.handleRefresh();
-          } else {
-            window.location.reload();
+      // Gestion de la recherche
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) {
+        searchInput.addEventListener('keyup', function (event) {
+          if (event.key === 'Enter') {
+            performSearch();
           }
         });
       }
+
+      // Gestion du filtre de type d'acte
+      const typeFilter = document.getElementById('typeFilter');
+      if (typeFilter) {
+        typeFilter.addEventListener('change', loadRecentActes);
+      }
+
+      // Gestion du bouton de rafraîchissement
+      const refreshButton = document.getElementById('refreshButton');
+      if (refreshButton) {
+        refreshButton.addEventListener('click', refreshDashboard);
+      }
+    }
+
+    // Fonction pour charger les données initiales
+    async function loadInitialData() {
+      try {
+        showLoadingState();
+        await Promise.all([
+          loadStatistics(),
+          loadRecentActes()
+        ]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données initiales:', error);
+        showError('Une erreur est survenue lors du chargement des données');
+      } finally {
+        hideLoadingState();
+      }
+    }
+
+    // Initialisation de l'application
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Masquer le contenu pendant le chargement
+        document.body.style.visibility = 'hidden';
+
+        // Appliquer le thème sauvegardé
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+          themeToggle.innerHTML = savedTheme === 'dark' ?
+            '<i class="bi bi-sun-fill"></i>' :
+            '<i class="bi bi-moon-fill"></i>';
+        }
+
+        // Appliquer la langue sauvegardée ou la langue par défaut
+        const savedLang = localStorage.getItem('selectedLanguage') || 'fr';
+        await changeLanguage(savedLang, true); // true indique que c'est le chargement initial
+
+        // Mettre à jour le sélecteur de langue
+        const langSelect = document.getElementById('languageSelect');
+        if (langSelect) {
+          langSelect.value = savedLang;
+        }
+
+        // Initialiser les événements
+        initializeEventListeners();
+
+        // Charger les données initiales
+        await loadInitialData();
+
+        // Mettre à jour la date toutes les minutes
+        setInterval(() => updateDate(savedLang), 60000);
+
+        // Afficher le contenu une fois l'initialisation terminée
+        document.body.style.visibility = 'visible';
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+        showError('Une erreur est survenue lors du chargement de l\'application');
+        document.body.style.visibility = 'visible'; // Toujours afficher le contenu même en cas d'erreur
+      }
     });
+
     // Variables globales nécessaires
     window.dashboardData = {
       stats: { naissances: 0, mariages: 0, deces: 0, documents: 0 },
@@ -895,99 +1125,204 @@
     // Fonctions pour le changement de langue
     const translations = {
       fr: {
+        // Général
         title: 'Tableau de Bord d\'Abéché',
         subtitle: 'Vue d\'ensemble des activités d\'état civil d\'Abéché',
-        naissances: 'Naissances',
-        mariages: 'Mariages',
-        deces: 'Décès',
+        search: 'Rechercher...',
+        searchButton: 'Rechercher',
+        loading: 'Chargement...',
+        lastUpdate: 'Dernière mise à jour',
+        // Menu
+        dashboard: 'Tableau de bord',
+        deaths: 'Décès',
+        calendar: 'Calendrier',
         documents: 'Documents',
-        search: 'Rechercher dans tous les actes...'
-      },
-      ar: {
-        title: 'لوحة تحكم أبشي',
-        subtitle: 'نظرة عامة على أنشطة الأحوال المدنية في أبشي',
-        naissances: 'المواليد',
-        mariages: 'الزيجات',
-        deces: 'الوفيات',
-        documents: 'الوثائق',
-        refresh: 'تحديث',
-        export: 'تصدير',
-        search: 'البحث في جميع السجلات...'
+        reports: 'Rapports',
+        messaging: 'Messagerie',
+        users: 'Utilisateurs',
+        settings: 'Paramètres',
+        logout: 'Déconnexion',
+        // Filtres
+        filter: 'Filtrer',
+        all: 'Tous',
+        birth: 'Naissance',
+        marriage: 'Mariage',
+        death: 'Décès',
+        // Tableau
+        number: 'Numéro',
+        type: 'Type',
+        name: 'Nom',
+        date: 'Date',
+        actions: 'Actions',
+        // Gestion d'actes
+        actesManagement: 'Gestion d\'actes',
+        // Messages
+        confirmDelete: 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+        // Autres
+        noResults: 'Aucun résultat trouvé',
+        showingResults: 'Affichage de {from} à {to} sur {total} résultats'
       },
       en: {
+        // Général
         title: 'Abéché Dashboard',
         subtitle: 'Overview of civil status activities in Abéché',
-        naissances: 'Births',
-        mariages: 'Marriages',
-        deces: 'Deaths',
+        search: 'Search...',
+        searchButton: 'Search',
+        loading: 'Loading...',
+        lastUpdate: 'Last update',
+        // Menu
+        dashboard: 'Dashboard',
+        deaths: 'Deaths',
+        calendar: 'Calendar',
         documents: 'Documents',
-        refresh: 'Refresh',
-        export: 'Export',
-        search: 'Search in all records...'
+        reports: 'Reports',
+        messaging: 'Messaging',
+        users: 'Users',
+        settings: 'Settings',
+        logout: 'Logout',
+        // Filtres
+        filter: 'Filter',
+        all: 'All',
+        birth: 'Birth',
+        marriage: 'Marriage',
+        death: 'Death',
+        // Tableau
+        number: 'Number',
+        type: 'Type',
+        name: 'Name',
+        date: 'Date',
+        actions: 'Actions',
+        // Gestion d'actes
+        actesManagement: 'Records Management',
+        // Messages
+        confirmDelete: 'Are you sure you want to delete this item?',
+        // Autres
+        noResults: 'No results found',
+        showingResults: 'Showing {from} to {to} of {total} results'
+      },
+      ar: {
+        // Général
+        title: 'لوحة القيادة - أبشي',
+        subtitle: 'نظرة عامة على أنشطة السجل المدني في أبشي',
+        search: 'بحث...',
+        searchButton: 'بحث',
+        loading: 'جاري التحميل...',
+        lastUpdate: 'آخر تحديث',
+        // Menu
+        dashboard: 'لوحة القيادة',
+        deaths: 'الوفيات',
+        calendar: 'التقويم',
+        documents: 'الوثائق',
+        reports: 'التقارير',
+        messaging: 'الرسائل',
+        users: 'المستخدمون',
+        settings: 'الإعدادات',
+        logout: 'تسجيل الخروج',
+        // Cartes statistiques
+        births: 'المواليد',
+        marriages: 'الزيجات',
+        deaths: 'الوفيات',
+        documents: 'الوثائق',
+        // Actions
+        view: 'عرض',
+        edit: 'تعديل',
+        delete: 'حذف',
+        download: 'تحميل',
+        refresh: 'تحديث',
+        // Messages
+        confirmDelete: 'هل أنت متأكد من رغبتك في حذف هذا العنصر؟',
+        // Autres
+        noResults: 'لا توجد نتائج',
+        showingResults: 'عرض {from} إلى {to} من أصل {total} نتيجة'
       }
     };
 
-    function changeLanguage(lang) {
+    function updateTranslations(lang) {
+      const t = translations[lang] || translations['fr'];
+
+      // Mettre à jour les éléments avec data-i18n
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          el.textContent = t[key];
+        }
+      });
+
+      // Mettre à jour les placeholders
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) {
+          el.placeholder = t[key];
+        }
+      });
+
+      // Mettre à jour les titres
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (t[key]) {
+          el.title = t[key];
+        }
+      });
+    }
+
+    function formatNumber(number, lang) {
+      if (lang === 'ar') {
+        // Convertir les chiffres en chiffres arabes
+        return new Intl.NumberFormat('ar-EG').format(number);
+      }
+      return new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-US').format(number);
+    }
+
+    function updateDate(lang) {
+      const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      const locale = lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR';
+      const dateElements = document.querySelectorAll('.date-display');
+
+      dateElements.forEach(el => {
+        el.textContent = new Date().toLocaleDateString(locale, options);
+      });
+    }
+
+    function changeLanguage(lang, isInitialLoad = false) {
       try {
+        const currentLang = localStorage.getItem('selectedLanguage');
         localStorage.setItem('selectedLanguage', lang);
-        const currentLangElement = document.getElementById('currentLang');
-        if (currentLangElement) {
-          currentLangElement.textContent = lang.toUpperCase();
-        }
-
-        const t = translations[lang];
-        if (!t) return;
-
-        // Mettre à jour le titre principal
-        const mainTitle = document.querySelector('h1');
-        if (mainTitle) {
-          mainTitle.textContent = t.title;
-        }
-
-        // Mettre à jour le sous-titre avec la date
-        const subtitleElement = document.querySelector('.opacity-75, .header-subtitle');
-        if (subtitleElement) {
-          subtitleElement.innerHTML = t.subtitle + ' - <span id="currentDate"></span>';
-        }
-
-        // Mettre à jour le placeholder de recherche
-        const searchInput = document.getElementById('globalSearch');
-        if (searchInput) {
-          searchInput.placeholder = t.search;
-        }
-
-        // Mettre à jour les labels des statistiques
-        const naissancesLabel = document.querySelector('.births .stat-label');
-        const mariagesLabel = document.querySelector('.marriages .stat-label');
-        const decesLabel = document.querySelector('.deaths .stat-label');
-        const documentsLabel = document.querySelector('.documents .stat-label');
-
-        if (naissancesLabel) naissancesLabel.textContent = t.naissances;
-        if (mariagesLabel) mariagesLabel.textContent = t.mariages;
-        if (decesLabel) decesLabel.textContent = t.deces;
-        if (documentsLabel) documentsLabel.textContent = t.documents;
-
-        // Mettre à jour la date
-        const currentDateElement = document.getElementById('currentDate');
-        if (currentDateElement) {
-          currentDateElement.textContent = new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'en' ? 'en-US' : 'fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          });
-        }
+        document.documentElement.lang = lang;
 
         // Appliquer la direction RTL pour l'arabe
         if (lang === 'ar') {
-          document.body.style.direction = 'rtl';
-          document.body.style.textAlign = 'right';
+          document.documentElement.dir = 'rtl';
+          document.body.classList.add('rtl');
+          document.body.classList.remove('ltr');
         } else {
-          document.body.style.direction = 'ltr';
-          document.body.style.textAlign = 'left';
+          document.documentElement.dir = 'ltr';
+          document.body.classList.add('ltr');
+          document.body.classList.remove('rtl');
         }
-        
-        showSuccess(`Langue changée vers ${lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}`);
+
+        // Mettre à jour tous les textes traduisibles
+        updateTranslations(lang);
+
+        // Mettre à jour la date
+        updateDate(lang);
+
+        // Forcer le reflow pour s'assurer que les styles sont appliqués
+        document.body.offsetHeight;
+
+        // Ne pas afficher le message de succès lors du chargement initial
+        if (!isInitialLoad && currentLang !== lang) {
+          showSuccess(lang === 'fr' ? 'Langue changée avec succès' :
+            lang === 'ar' ? 'تم تغيير اللغة بنجاح' :
+              'Language changed successfully');
+        }
       } catch (error) {
         console.error('Erreur lors du changement de langue :', error);
         showError('Une erreur est survenue lors du changement de langue');
@@ -1096,19 +1431,20 @@
       addEvent('themeToggle', 'click', toggleTheme);
       addEvent('searchBtn', 'click', performSearch);
 
-      // Initialisation du tableau de bord
-
-      // Gestionnaire d'événement pour la recherche
+      // Ajouter la gestion de la touche Entrée dans le champ de recherche
       const searchInput = document.getElementById('globalSearch');
       if (searchInput) {
-        searchInput.addEventListener('keypress', (e) => {
+        searchInput.addEventListener('keypress', function (e) {
           if (e.key === 'Enter') {
+            e.preventDefault();
             performSearch();
           }
         });
       } else {
         console.error('Champ de recherche global non trouvé');
       }
+
+      // Initialisation du tableau de bord
     });
 
     async function initializeDashboard() {
@@ -1304,9 +1640,10 @@
                 <button type="button" class="btn btn-warning text-white edit-acte" data-id="${acteId}" title="Modifier">
                   <i class="fas fa-edit"></i>
                 </button>
+                ${isAdmin() ? `
                 <button type="button" class="btn btn-danger delete-acte" data-id="${acteId}" data-numero="${acte.numeroActe || ''}" title="Supprimer">
                   <i class="fas fa-trash"></i>
-                </button>
+                </button>` : ''}
                 <button type="button" class="btn btn-success download-pdf" data-id="${acteId}" data-numero="${acte.numeroActe || ''}" data-type="${acte.type || ''}" title="Télécharger PDF">
                   <i class="fas fa-file-pdf"></i>
                 </button>
@@ -1773,8 +2110,59 @@
           { label: 'Par', value: details.lieuDelivrancePieceDeclarant }
         ])}
         `;
+      } else if (acte.type === 'deces') {
+        // Calcul de l'âge si date de naissance disponible
+        let ageText = '';
+        if (details.dateNaissance) {
+          const dateNaissance = new Date(details.dateNaissance);
+          const dateDeces = dateNaissance ? new Date(details.dateDeces) : null;
+          if (dateDeces && !isNaN(dateNaissance.getTime())) {
+            const age = dateDeces.getFullYear() - dateNaissance.getFullYear();
+            const m = dateDeces.getMonth() - dateNaissance.getMonth();
+            if (m < 0 || (m === 0 && dateDeces.getDate() < dateNaissance.getDate())) {
+              age--;
+            }
+            ageText = ` (${age} ans)`;
+          }
+        }
+
+        specificContent = `
+          ${infoSection('INFORMATIONS SUR LE DÉFUNT', [
+          { label: 'Prénom(s)', value: details.prenom },
+          { label: 'Nom', value: details.nom },
+          { label: 'Date de naissance', value: details.dateNaissance || 'Non renseignée' },
+          { label: 'Lieu de naissance', value: details.lieuNaissance || 'Non renseigné' },
+          { label: 'Sexe', value: details.sexe === 'M' ? 'Masculin' : 'Féminin' },
+          { label: 'Profession', value: details.profession || 'Non renseignée' },
+          { label: 'Adresse', value: details.adresse || 'Non renseignée' },
+          { label: 'Nationalité', value: details.nationalite || 'Non renseignée' }
+        ])}
+
+          ${infoSection('CIRCONSTANCES DU DÉCÈS', [
+          { label: 'Date du décès', value: details.dateDeces || 'Non renseignée' },
+          { label: 'Heure du décès', value: details.heureDeces || 'Non renseignée' },
+          { label: 'Lieu du décès', value: details.lieuDeces || 'Non renseigné' },
+          { label: 'Cause du décès', value: details.causeDeces || 'Non renseignée' },
+          { label: 'Âge au moment du décès', value: ageText || 'Non renseigné' }
+        ])}
+
+          ${infoSection('INFORMATIONS SUR LES PARENTS', [
+          { label: 'Père', value: details.nomPere ? `${details.prenomPere || ''} ${details.nomPere || ''}`.trim() : 'Non renseigné' },
+          { label: 'Mère', value: details.nomMere ? `${details.prenomMere || ''} ${details.nomMere || ''}`.trim() : 'Non renseignée' },
+          { label: 'Adresse des parents', value: details.adresseParents || 'Non renseignée' }
+        ])}
+
+          ${infoSection('DÉCLARATION', [
+          { label: 'Déclarant', value: details.nomDeclarant || 'Non renseigné' },
+          { label: 'Lien avec le défunt', value: details.lienDeclarant || 'Non renseigné' },
+          { label: 'Date de déclaration', value: formatDate(dateEnregistrement) },
+          { label: 'Numéro de pièce', value: details.numeroPieceDeclarant || 'Non renseigné' },
+          { label: 'Délivré le', value: details.dateDelivrancePieceDeclarant || 'Non renseignée' },
+          { label: 'Par', value: details.lieuDelivrancePieceDeclarant || 'Non renseigné' }
+        ])}
+        `;
       } else {
-        // Pour les autres types d'actes (à compléter si nécessaire)
+        // Pour les autres types d'actes (mariages, etc.)
         specificContent = `
           <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>
