@@ -93,3 +93,4 @@ mongod.lock
 *.njsproj
 *.sln
 *.sw?
+node_modules
