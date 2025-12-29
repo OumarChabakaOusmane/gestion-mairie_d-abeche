@@ -2,12 +2,12 @@
 window.createSidebar = function(activePage = '') {
   return `
     <div class="sidebar">
-      <div class="text-center mb-4">
-        <div class="d-flex align-items-center justify-content-center mb-2">
-          <img src="/images/td.png" alt="Drapeau du Tchad" class="me-2" style="width: 40px; height: 24px; object-fit: cover;">
-          <i class="fas fa-landmark me-2"></i>
+      <div class="text-center mb-5" style="padding: 0 15px;">
+        <div class="d-flex align-items-center justify-content-center mb-3">
+          <img src="/images/td.png" alt="Drapeau du Tchad" class="me-2" style="width: 50px; height: 30px; object-fit: cover;">
+          <i class="fas fa-landmark me-2" style="font-size: 24px;"></i>
         </div>
-        <h4>État Civil Tchad</h4>
+        <h4 style="font-size: 22px; font-weight: 700;">État Civil Tchad</h4>
       </div>
       <ul class="nav flex-column">
         <li class="nav-item">
@@ -88,25 +88,33 @@ window.commonCSS = `
     color: white;
     height: 100vh;
     position: fixed;
-    width: 250px;
-    padding-top: 20px;
+    width: 320px;
+    padding-top: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
   
   .sidebar .nav-link {
     color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    padding: 12px 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
   }
   
   .sidebar .nav-link:hover {
     color: white;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
   }
   
   /* Style pour l'élément actif dans la barre latérale */
   #sidebar-container .nav-link.active {
     color: white !important;
     background-color: #3498db !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-weight: 600;
   }
   
   /* S'assurer que la couleur est appliquée même avec la classe show */
@@ -116,8 +124,20 @@ window.commonCSS = `
     background-color: #3498db !important;
   }
   
+  .sidebar h4 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+  
+  .sidebar .nav-link i {
+    font-size: 18px;
+    width: 24px;
+    margin-right: 12px;
+  }
+  
   .main-content {
-    margin-left: 250px;
+    margin-left: 320px;
     padding: 20px;
   }
 `;

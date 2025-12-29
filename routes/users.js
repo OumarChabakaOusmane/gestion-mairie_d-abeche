@@ -301,10 +301,26 @@ router.put('/me/settings', async (req, res) => {
   }
 });
 
-// Créer un nouvel utilisateur
+// Créer un nouvel utilisateur (admin seulement)
 router.post('/', async (req, res) => {
   try {
+    // Vérifier si l'utilisateur est admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Accès non autorisé. Seul un administrateur peut créer un utilisateur.'
+      });
+    }
+    
     const { name, email, role, password } = req.body;
+    
+    // Validation des champs requis
+    if (!name || !email || !role || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tous les champs sont requis'
+      });
+    }
     
     // Vérifier si l'email existe déjà
     const existingUser = await User.findOne({ email });
@@ -333,7 +349,7 @@ router.post('/', async (req, res) => {
       data: { _id: user._id, name, email, role }
     });
   } catch (err) {
-    console.error('Erreur dans /:', err);
+    console.error('Erreur dans POST /:', err);
     res.status(400).json({
       success: false,
       error: 'Erreur serveur',
@@ -342,23 +358,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Lister tous les utilisateurs
-router.get('/', async (req, res) => {
-  try {
-    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
-    res.json({
-      success: true,
-      data: users
-    });
-  } catch (err) {
-    console.error('Erreur dans /:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur serveur',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-});
+// Cette route est un doublon - la route GET '/' est déjà définie plus haut (ligne 48)
+// Supprimée pour éviter les conflits
 
 // Obtenir un utilisateur spécifique
 router.get('/:id', async (req, res) => {
@@ -386,22 +387,41 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Mettre à jour un utilisateur
+// Mettre à jour un utilisateur (admin seulement)
 router.put('/:id', async (req, res) => {
   try {
+    // Vérifier si l'utilisateur est admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Accès non autorisé. Seul un administrateur peut modifier un utilisateur.'
+      });
+    }
+    
     const { name, email, role, password } = req.body;
     
     const updateData = { name, email, role };
     
     // Si un nouveau mot de passe est fourni
-    if (password) {
+    if (password && password.trim()) {
       updateData.password = await bcrypt.hash(password, 10);
+    }
+    
+    // Vérifier si l'email est déjà utilisé par un autre utilisateur
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: req.params.id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cet email est déjà utilisé par un autre utilisateur'
+        });
+      }
     }
     
     const user = await User.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true, select: '-password' }
+      { new: true, runValidators: true, select: '-password' }
     );
     
     if (!user) {
@@ -417,7 +437,7 @@ router.put('/:id', async (req, res) => {
       data: user
     });
   } catch (err) {
-    console.error('Erreur dans /:id:', err);
+    console.error('Erreur dans PUT /:id:', err);
     res.status(400).json({
       success: false,
       error: 'Erreur serveur',
@@ -426,9 +446,25 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Supprimer un utilisateur
+// Supprimer un utilisateur (admin seulement)
 router.delete('/:id', async (req, res) => {
   try {
+    // Vérifier si l'utilisateur est admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Accès non autorisé. Seul un administrateur peut supprimer un utilisateur.'
+      });
+    }
+    
+    // Empêcher un admin de se supprimer lui-même
+    if (req.params.id === req.user.id || req.params.id === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Vous ne pouvez pas supprimer votre propre compte'
+      });
+    }
+    
     const user = await User.findByIdAndDelete(req.params.id);
     
     if (!user) {
@@ -443,7 +479,7 @@ router.delete('/:id', async (req, res) => {
       message: 'Utilisateur supprimé avec succès'
     });
   } catch (err) {
-    console.error('Erreur dans /:id:', err);
+    console.error('Erreur dans DELETE /:id:', err);
     res.status(500).json({
       success: false,
       error: 'Erreur serveur',

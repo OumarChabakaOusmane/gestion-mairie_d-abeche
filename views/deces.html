@@ -20,17 +20,18 @@
     }
     
     .main-content {
-      margin-left: 250px;
+      margin-left: 320px;
       padding: 20px;
     }
     
     .page-container {
       background: white;
       border-radius: 10px;
-      padding: 25px 30px;
+      padding: 40px 50px;
       margin: 20px auto;
       box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-      max-width: 1200px;
+      max-width: 1400px;
+      font-size: 16px;
     }
     
     .form-section {
@@ -88,13 +89,26 @@
     }
     
     .step-text {
-      font-size: 14px;
+      font-size: 16px;
       color: #6c757d;
       font-weight: 500;
     }
     
+    .step-number {
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+    }
+    
     .step.active .step-text {
       color: #0d6efd;
+    }
+    
+    .form-label {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
     }
     
     .form-label.required:after {
@@ -102,26 +116,74 @@
       color: #dc3545;
     }
     
+    .form-control, .form-select {
+      font-size: 16px;
+      padding: 12px 15px;
+      height: auto;
+      min-height: 48px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+    
+    h4 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    
+    h1.h3 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    
     .form-actions {
       display: flex;
       justify-content: space-between;
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #eee;
+    }
+    
+    .btn {
+      font-size: 16px;
+      padding: 12px 30px;
+      font-weight: 600;
+    }
+    
+    .btn-lg {
+      font-size: 18px;
+      padding: 15px 40px;
+    }
+    
+    .row.g-3 {
+      --bs-gutter-y: 1.5rem;
+      --bs-gutter-x: 1.5rem;
     }
     
     .summary-card {
       background: #f8f9fa;
       border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .summary-card h5 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #2c3e50;
     }
     
     .summary-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      padding: 12px 0;
       border-bottom: 1px solid #dee2e6;
+      font-size: 16px;
     }
     
     .summary-row:last-child {
@@ -131,10 +193,12 @@
     .summary-label {
       font-weight: 600;
       color: #495057;
+      font-size: 16px;
     }
     
     .summary-value {
       color: #212529;
+      font-size: 16px;
     }
     
     .invalid-feedback {
@@ -157,8 +221,8 @@
     <div class="page-container">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h1 class="h3 mb-1"><i class="fas fa-skull me-2 text-primary"></i> Enregistrement d'un Acte de Décès</h1>
-          <p class="text-muted mb-0">Remplissez les informations requises pour enregistrer un nouvel acte de décès</p>
+          <h1 class="h3 mb-3"><i class="fas fa-skull me-2 text-primary"></i> Enregistrement d'un Acte de Décès</h1>
+          <p class="text-muted mb-4" style="font-size: 18px;">Remplissez les informations requises pour enregistrer un nouvel acte de décès</p>
         </div>
       </div>
       
@@ -209,7 +273,7 @@
             
             <div class="col-md-4">
               <label class="form-label required">Date de décès</label>
-              <input type="date" name="dateDeces" class="form-control" required onchange="calculerAge()">
+              <input type="date" name="dateDeces" class="form-control" required>
             </div>
             
             <div class="col-md-4">
@@ -220,7 +284,7 @@
             <div class="col-md-4">
               <label class="form-label">Âge</label>
               <div class="input-group">
-                <input type="number" name="age" class="form-control" readonly>
+                <input type="number" name="age" class="form-control" min="0" max="150" placeholder="Âge au décès">
                 <span class="input-group-text">ans</span>
               </div>
             </div>
@@ -445,25 +509,6 @@
       }
     });
     
-    // Fonction pour calculer l'âge
-    function calculerAge() {
-      const dateDeces = document.querySelector('input[name="dateDeces"]').value;
-      const dateNaissance = document.querySelector('input[name="dateNaissance"]');
-      
-      if (!dateDeces) return;
-      
-      // Si on a une date de naissance, calculer l'âge
-      if (dateNaissance && dateNaissance.value) {
-        const naissance = new Date(dateNaissance.value);
-        const deces = new Date(dateDeces);
-        let age = deces.getFullYear() - naissance.getFullYear();
-        const m = deces.getMonth() - naissance.getMonth();
-        if (m < 0 || (m === 0 && deces.getDate() < naissance.getDate())) {
-          age--;
-        }
-        document.querySelector('input[name="age"]').value = age >= 0 ? age : '';
-      }
-    }
     
     // Fonction pour valider une étape
     function validateStep(step) {

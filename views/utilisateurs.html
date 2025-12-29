@@ -3,183 +3,678 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Utilisateurs - État Civil Tchad</title>
+  <title>Gestion des Utilisateurs - État Civil Tchad</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style id="common-styles"></style>
   <style>
+    .main-content {
+      margin-left: 320px;
+      padding: 20px;
+    }
+    
     .page-container {
       background: white;
       border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 40px 50px;
+      margin: 20px auto;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      max-width: 1400px;
+      font-size: 16px;
+    }
+    
+    .page-header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    .table {
+      font-size: 16px;
+    }
+    
+    .table thead th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 2px solid #dee2e6;
+      padding: 15px;
+    }
+    
+    .table tbody td {
+      padding: 15px;
+      vertical-align: middle;
+    }
+    
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .badge {
+      font-size: 14px;
+      padding: 6px 12px;
+      font-weight: 500;
+    }
+    
+    .btn-action {
+      padding: 6px 12px;
+      margin: 0 3px;
+      font-size: 14px;
+    }
+    
+    .form-label {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .form-control, .form-select {
+      font-size: 16px;
+      padding: 12px 15px;
+      height: auto;
+      min-height: 48px;
+    }
+    
+    .modal-header {
+      background-color: #2c3e50;
+      color: white;
+    }
+    
+    .modal-header .btn-close {
+      filter: invert(1);
+    }
+    
+    .search-box {
+      max-width: 400px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      margin-right: 12px;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: #2c3e50;
     }
   </style>
 </head>
 <body>
   <div id="sidebar-container"></div>
+  
   <div class="main-content">
     <div class="page-container">
-  <div class="main-content">
-    <h2 class="mb-4"><i class="fas fa-users me-2"></i> Gestion des Utilisateurs</h2>
-    
-    <div class="d-flex justify-content-between mb-3">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
-        <i class="fas fa-plus me-2"></i>Nouvel utilisateur
-      </button>
-      <div class="input-group" style="width: 300px;">
-        <input type="text" class="form-control" placeholder="Rechercher..." id="searchUsers">
-        <button class="btn btn-outline-secondary" type="button">
-          <i class="fas fa-search"></i>
-        </button>
+      <div class="page-header">
+        <h1><i class="fas fa-users me-2 text-primary"></i> Gestion des Utilisateurs</h1>
+        <p class="text-muted mb-0">Gérez les utilisateurs du système</p>
       </div>
+      
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newUserModal">
+          <i class="fas fa-plus me-2"></i>Nouvel Utilisateur
+      </button>
+        <div class="input-group search-box">
+          <input type="text" class="form-control" placeholder="Rechercher par nom ou email..." id="searchUsers" autocomplete="off">
+          <button class="btn btn-outline-secondary" type="button" id="searchBtn" title="Rechercher">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
     </div>
     
-    <div class="users-container">
-      <div id="usersList">
-        
+      <div class="table-container">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom & Prénom</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Date d'enregistrement</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr>
+              <td colspan="6" class="text-center py-4">
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="spinner-border text-primary me-2" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                  </div>
+                  <span>Chargement des utilisateurs...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel" aria-modal="true">
-    <div class="modal-dialog" role="document">
+  
+  <!-- Modal Nouvel Utilisateur -->
+  <div class="modal fade" id="newUserModal" tabindex="-1" aria-labelledby="newUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="newUserModalLabel">Nouvel utilisateur</h5>
+          <h5 class="modal-title" id="newUserModalLabel">
+            <i class="fas fa-user-plus me-2"></i>Nouvel Utilisateur
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <form id="newUserForm">
             <div class="mb-3">
-              <label class="form-label">Nom complet</label>
-              <input type="text" class="form-control" name="name" required>
+              <label class="form-label required">Nom complet</label>
+              <input type="text" class="form-control" name="name" required placeholder="Ex: Jean Dupont">
             </div>
             <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" name="email" required>
+              <label class="form-label required">Email</label>
+              <input type="email" class="form-control" name="email" required placeholder="exemple@email.com">
             </div>
             <div class="mb-3">
-              <label class="form-label">Rôle</label>
+              <label class="form-label required">Rôle</label>
               <select class="form-select" name="role" required>
+                <option value="">Sélectionner un rôle</option>
                 <option value="agent">Agent</option>
                 <option value="admin">Administrateur</option>
+                <option value="officier_etat_civil">Officier d'État Civil</option>
+                <option value="gestionnaire">Gestionnaire</option>
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">Mot de passe</label>
-              <input type="password" class="form-control" name="password" required>
+              <label class="form-label required">Mot de passe</label>
+              <input type="password" class="form-control" name="password" required minlength="6" placeholder="Minimum 6 caractères">
             </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-save me-2"></i>Enregistrer
             </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   </div>
-  <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-modal="true">
-    <div class="modal-dialog" role="document">
+  
+  <!-- Modal Modifier Utilisateur -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editUserModalLabel">Modifier utilisateur</h5>
+          <h5 class="modal-title" id="editUserModalLabel">
+            <i class="fas fa-user-edit me-2"></i>Modifier Utilisateur
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <form id="editUserForm">
             <input type="hidden" name="id">
             <div class="mb-3">
-              <label class="form-label">Nom complet</label>
+              <label class="form-label required">Nom complet</label>
               <input type="text" class="form-control" name="name" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Email</label>
+              <label class="form-label required">Email</label>
               <input type="email" class="form-control" name="email" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Rôle</label>
+              <label class="form-label required">Rôle</label>
               <select class="form-select" name="role" required>
+                <option value="">Sélectionner un rôle</option>
                 <option value="agent">Agent</option>
                 <option value="admin">Administrateur</option>
+                <option value="officier_etat_civil">Officier d'État Civil</option>
+                <option value="gestionnaire">Gestionnaire</option>
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
-              <input type="password" class="form-control" name="password">
+              <label class="form-label">Nouveau mot de passe</label>
+              <input type="password" class="form-control" name="password" minlength="6" placeholder="Laisser vide pour ne pas changer">
+              <small class="text-muted">Minimum 6 caractères</small>
             </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-save me-2"></i>Enregistrer
             </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   </div>
-    </div>
-  </div>
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/sidebar-template.js?v=2"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = checkAuth();
-      if (!token) return;
+    // Fonction de vérification d'authentification
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
       
-      document.getElementById('common-styles').textContent = commonCSS;
-      document.getElementById('sidebar-container').innerHTML = createSidebar('utilisateurs');
+      if (!token || !userStr) {
+        window.location.href = '/login';
+        return null;
+      }
+      
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role !== 'admin') {
+          window.location.href = '/dashboard';
+          return null;
+        }
+        return token;
+      } catch (e) {
+        window.location.href = '/login';
+        return null;
+      }
+    }
+    
+    // Gestionnaire d'utilisateurs
+    class UserManager {
+      constructor() {
+        this.users = [];
+        this.filteredUsers = [];
+        this.token = checkAuth();
+        if (!this.token) return;
+        
+        this.init();
+      }
+      
+      init() {
+        document.getElementById('common-styles').textContent = commonCSS;
+        document.getElementById('sidebar-container').innerHTML = createSidebar('utilisateurs');
 
-      // Only target modals specific to this page
-      const pageModals = [
-        { id: 'newUserModal', options: { backdrop: true, keyboard: true, focus: true } },
-        // Add other modals specific to this page
-      ];
-
-      pageModals.forEach(({ id, options }) => {
-        const modalEl = document.getElementById(id);
-        if (!modalEl) return;
-
-        // Create a custom modal instance for this specific modal
-        class AccessibleModal extends bootstrap.Modal {
-          _showBackdrop() {
-            super._showBackdrop();
-            this._element.removeAttribute('aria-hidden');
-            this._element.setAttribute('aria-modal', 'true');
+        // Événements
+        document.getElementById('newUserForm').addEventListener('submit', (e) => this.createUser(e));
+        document.getElementById('editUserForm').addEventListener('submit', (e) => this.updateUser(e));
+        
+        // Recherche en temps réel
+        const searchInput = document.getElementById('searchUsers');
+        const searchBtn = document.getElementById('searchBtn');
+        
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            this.filterUsers(e.target.value);
+          });
+          
+          // Recherche avec la touche Entrée
+          searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              this.filterUsers(e.target.value);
+            }
+          });
+        }
+        
+        if (searchBtn) {
+          searchBtn.addEventListener('click', () => {
+            const searchTerm = searchInput ? searchInput.value : '';
+            this.filterUsers(searchTerm);
+            // Focus sur le champ de recherche après la recherche
+            if (searchInput) searchInput.focus();
+          });
+        }
+        
+        // Charger les utilisateurs
+        this.loadUsers();
+      }
+      
+      async loadUsers() {
+        try {
+          const response = await fetch('/api/users', {
+            headers: {
+              'Authorization': `Bearer ${this.token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erreur lors du chargement');
           }
           
-          _hideModal() {
-            // Remove the modal-open class and reset body styles
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            
-            // Remove the modal backdrop if no other modals are open
-            const otherOpenModals = document.querySelectorAll('.modal.show');
-            if (otherOpenModals.length <= 1) { // Only remove if this is the last modal
-              const backdrop = document.querySelector('.modal-backdrop');
-              if (backdrop) backdrop.remove();
-            }
-            
-            // Reset the modal state
-            this._element.classList.remove('show');
-            this._element.style.display = 'none';
-            this._element.removeAttribute('aria-modal');
-            this._element.removeAttribute('role');
-            this._element.removeAttribute('aria-hidden');
-            
-            // Trigger the hidden event
-            const hideEvent = new Event('hidden.bs.modal');
-            this._element.dispatchEvent(hideEvent);
+          if (data.success) {
+            this.users = data.data || [];
+            this.filteredUsers = [...this.users];
+            this.renderUsers();
           }
+        } catch (error) {
+          console.error('Erreur:', error);
+          this.showError('Erreur lors du chargement des utilisateurs: ' + error.message);
         }
-
-        // Initialize the modal with our custom class
-        const modal = new AccessibleModal(modalEl, options);
+      }
+      
+      filterUsers(searchTerm) {
+        try {
+          // Si le terme de recherche est vide, afficher tous les utilisateurs
+          if (!searchTerm || !searchTerm.trim()) {
+            this.filteredUsers = [...this.users];
+          } else {
+            // Filtrer les utilisateurs par nom ou email
+            const term = searchTerm.toLowerCase().trim();
+            this.filteredUsers = this.users.filter(user => {
+              const nameMatch = user.name && user.name.toLowerCase().includes(term);
+              const emailMatch = user.email && user.email.toLowerCase().includes(term);
+              return nameMatch || emailMatch;
+            });
+          }
+          
+          // Afficher les résultats
+          this.renderUsers();
+          
+          // Afficher un message si aucun résultat
+          if (this.filteredUsers.length === 0 && searchTerm && searchTerm.trim()) {
+            console.log(`Aucun résultat trouvé pour "${searchTerm}"`);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la recherche:', error);
+          this.showError('Erreur lors de la recherche');
+        }
+      }
+      
+      renderUsers() {
+        const tbody = document.getElementById('usersTableBody');
         
-        // Ensure proper ARIA attributes when shown
-        modalEl.addEventListener('show.bs.modal', () => {
-          modalEl.removeAttribute('aria-hidden');
-          modalEl.setAttribute('aria-modal', 'true');
+        if (!tbody) {
+          console.error('Élément usersTableBody non trouvé');
+          return;
+        }
+        
+        if (this.filteredUsers.length === 0) {
+          const searchInput = document.getElementById('searchUsers');
+          const searchTerm = searchInput ? searchInput.value.trim() : '';
+          
+          if (searchTerm) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="text-center py-4">
+                  <i class="fas fa-search fa-2x text-muted mb-3 d-block"></i>
+                  <p class="text-muted mb-2">Aucun utilisateur trouvé pour "<strong>${searchTerm}</strong>"</p>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('searchUsers').value=''; userManager.filterUsers('');">
+                    <i class="fas fa-times me-1"></i> Effacer la recherche
+                  </button>
+                </td>
+              </tr>`;
+          } else {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="text-center py-4">
+                  <i class="fas fa-users-slash fa-2x text-muted mb-3 d-block"></i>
+                  <p class="text-muted">Aucun utilisateur trouvé</p>
+                </td>
+              </tr>`;
+          }
+          return;
+        }
+        
+        tbody.innerHTML = this.filteredUsers.map((user, index) => {
+          const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '?';
+          const date = user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : 'N/A';
+          
+          const roleBadge = {
+            'admin': 'danger',
+            'agent': 'primary',
+            'officier_etat_civil': 'info',
+            'gestionnaire': 'success'
+          }[user.role] || 'secondary';
+          
+          const roleLabel = {
+            'admin': 'Administrateur',
+            'agent': 'Agent',
+            'officier_etat_civil': 'Officier d\'État Civil',
+            'gestionnaire': 'Gestionnaire'
+          }[user.role] || user.role;
+          
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">${initials}</div>
+                  <div>
+                    <div class="user-name">${user.name || 'N/A'}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${user.email || 'N/A'}</td>
+              <td><span class="badge bg-${roleBadge}">${roleLabel}</span></td>
+              <td>${date}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary btn-action" onclick="userManager.editUser('${user._id}')" title="Modifier">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger btn-action" onclick="userManager.deleteUser('${user._id}')" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>`;
+        }).join('');
+      }
+      
+      async createUser(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const userData = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          role: formData.get('role'),
+          password: formData.get('password')
+        };
+        
+        try {
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erreur lors de la création');
+          }
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Succès!',
+            text: 'Utilisateur créé avec succès',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          bootstrap.Modal.getInstance(document.getElementById('newUserModal')).hide();
+          form.reset();
+          this.loadUsers();
+        } catch (error) {
+          console.error('Erreur:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+          });
+        }
+      }
+      
+      async updateUser(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const userId = formData.get('id');
+        const userData = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          role: formData.get('role')
+        };
+        
+        const password = formData.get('password');
+        if (password && password.trim()) {
+          userData.password = password;
+        }
+        
+        try {
+          const response = await fetch(`/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${this.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erreur lors de la mise à jour');
+          }
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Succès!',
+            text: 'Utilisateur modifié avec succès',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+          form.reset();
+          this.loadUsers();
+        } catch (error) {
+          console.error('Erreur:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+          });
+        }
+      }
+      
+      editUser(userId) {
+        const user = this.users.find(u => u._id === userId);
+        if (!user) return;
+        
+        const form = document.getElementById('editUserForm');
+        form.querySelector('input[name="id"]').value = user._id;
+        form.querySelector('input[name="name"]').value = user.name || '';
+        form.querySelector('input[name="email"]').value = user.email || '';
+        form.querySelector('select[name="role"]').value = user.role || '';
+        form.querySelector('input[name="password"]').value = '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        modal.show();
+      }
+      
+      async deleteUser(userId) {
+        const user = this.users.find(u => u._id === userId);
+        if (!user) return;
+        
+        const result = await Swal.fire({
+          title: 'Êtes-vous sûr?',
+          text: `Voulez-vous vraiment supprimer l'utilisateur "${user.name}" ?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Oui, supprimer',
+          cancelButtonText: 'Annuler'
         });
-      });
+        
+        if (!result.isConfirmed) return;
+        
+        try {
+          const response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${this.token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erreur lors de la suppression');
+          }
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Supprimé!',
+            text: 'Utilisateur supprimé avec succès',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          this.loadUsers();
+        } catch (error) {
+          console.error('Erreur:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+          });
+        }
+      }
+      
+      showError(message) {
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-4">
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                ${message}
+                <button class="btn btn-sm btn-outline-secondary ms-3" onclick="userManager.loadUsers()">
+                  <i class="fas fa-sync-alt me-1"></i> Réessayer
+                </button>
+              </div>
+            </td>
+          </tr>`;
+      }
+    }
+    
+    // Initialisation
+    let userManager;
+    document.addEventListener('DOMContentLoaded', () => {
+      userManager = new UserManager();
+      window.userManager = userManager;
     });
   </script>
 </body>

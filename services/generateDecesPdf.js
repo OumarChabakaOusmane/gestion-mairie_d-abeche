@@ -178,17 +178,19 @@ const generateDecesPdf = async (data) => {
         // Formater les noms complets
         nom: (details.nom || data.nom || '').toUpperCase(),
         prenoms: details.prenom || data.prenom || '',
-        dateNaissance: details.dateNaissance || data.dateNaissance || '',
-        lieuNaissance: details.lieuNaissance || data.lieuNaissance || '',
         sexe: details.sexe || data.sexe || '',
         // Informations du décès
         dateDeces: details.dateDeces || data.dateDeces || '',
         heureDeces: details.heureDeces || data.heureDeces || '',
         lieuDeces: details.lieuDeces || data.lieuDeces || '',
         causeDeces: details.causeDeces || data.causeDeces || '',
+        age: details.age || data.age || null,
+        nationalite: details.nationalite || data.nationalite || 'Tchadienne',
+        adresse: details.adresse || data.adresse || '',
+        centreEtatCivil: details.centreEtatCivil || data.centreEtatCivil || data.mairie || '',
         // Informations des parents
-        pere: details.pere || data.pere || 'NON DÉCLARÉ',
-        mere: details.mere || data.mere || 'NON DÉCLARÉE',
+        pere: details.pere || data.pere || null,
+        mere: details.mere || data.mere || null,
         // Informations du déclarant
         declarant: {
           nom: details.nomDeclarant || (data.declarant?.nom || ''),
@@ -201,9 +203,7 @@ const generateDecesPdf = async (data) => {
         // Date d'établissement avec valeur par défaut
         dateEtablissement: data.dateEtablissement || new Date().toISOString(),
         // Informations de la mairie
-        mairie: data.mairie || 'N\'Djaména',
-        // Médecin certificateur
-        medecin: details.medecinCertificateur || data.medecinCertificateur || 'NON SPÉCIFIÉ'
+        mairie: data.mairie || details.centreEtatCivil || 'N\'Djaména'
       };
 
       // Configuration des gestionnaires d'événements pour le buffer
@@ -223,11 +223,11 @@ const generateDecesPdf = async (data) => {
       const infoDefunt = [
         { label: 'Nom', value: pdfData.nom },
         { label: 'Prénom(s)', value: pdfData.prenoms },
-        { label: 'Date de naissance', value: formatDate(pdfData.dateNaissance) },
-        { label: 'Lieu de naissance', value: pdfData.lieuNaissance },
         { label: 'Sexe', value: pdfData.sexe === 'M' ? 'Masculin' : pdfData.sexe === 'F' ? 'Féminin' : 'Non spécifié' },
+        { label: 'Date de décès', value: formatDate(pdfData.dateDeces) },
+        { label: 'Lieu de décès', value: pdfData.lieuDeces || 'Non spécifié' },
+        { label: 'Âge au décès', value: pdfData.age ? `${pdfData.age} ans` : 'Non spécifié' },
         { label: 'Nationalité', value: pdfData.nationalite || 'Tchadienne' },
-        { label: 'Profession', value: pdfData.profession || 'Non spécifiée' },
         { label: 'Dernier domicile', value: pdfData.adresse || 'Non spécifié' }
       ];
 
@@ -253,11 +253,9 @@ const generateDecesPdf = async (data) => {
 
       // Tableau des informations du décès
       const infoDeces = [
-        { label: 'Date du décès', value: formatDate(pdfData.dateDeces) },
         { label: 'Heure du décès', value: pdfData.heureDeces || 'Non spécifiée' },
-        { label: 'Lieu du décès', value: pdfData.lieuDeces || 'Non spécifié' },
         { label: 'Cause du décès', value: pdfData.causeDeces || 'Non spécifiée' },
-        { label: 'Médecin certificateur', value: pdfData.medecin }
+        { label: 'Centre d\'état civil', value: pdfData.centreEtatCivil || pdfData.mairie || 'Non spécifié' }
       ];
 
       // Afficher les informations du décès
@@ -277,31 +275,38 @@ const generateDecesPdf = async (data) => {
 
       y += 10;
 
-      // Section des informations des parents
-      y = drawSectionTitle(doc, 'Informations des parents', y);
+      // Section des informations des parents (seulement si renseignés)
+      if (pdfData.pere || pdfData.mere) {
+        y = drawSectionTitle(doc, 'Informations des parents', y);
 
-      // Tableau des informations des parents
-      const infoParents = [
-        { label: 'Père', value: pdfData.pere },
-        { label: 'Mère', value: pdfData.mere }
-      ];
+        // Tableau des informations des parents
+        const infoParents = [];
+        if (pdfData.pere) {
+          infoParents.push({ label: 'Père', value: pdfData.pere });
+        }
+        if (pdfData.mere) {
+          infoParents.push({ label: 'Mère', value: pdfData.mere });
+        }
 
-      // Afficher les informations des parents
-      infoParents.forEach(item => {
-        doc.font(fonts.bold)
-          .fontSize(10)
-          .fillColor(colors.primary)
-          .text(`${item.label} :`, 60, y);
+        // Afficher les informations des parents
+        if (infoParents.length > 0) {
+          infoParents.forEach(item => {
+            doc.font(fonts.bold)
+              .fontSize(10)
+              .fillColor(colors.primary)
+              .text(`${item.label} :`, 60, y);
 
-        doc.font(fonts.normal)
-          .fontSize(10)
-          .fillColor(colors.text)
-          .text(item.value, 200, y);
+            doc.font(fonts.normal)
+              .fontSize(10)
+              .fillColor(colors.text)
+              .text(item.value, 200, y);
 
-        y += 15;
-      });
+            y += 15;
+          });
 
-      y += 10;
+          y += 10;
+        }
+      }
 
       // Section des informations du déclarant
       y = drawSectionTitle(doc, 'Informations du déclarant', y);
