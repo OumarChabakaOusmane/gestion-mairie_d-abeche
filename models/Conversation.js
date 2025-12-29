@@ -4,15 +4,7 @@ const conversationSchema = new mongoose.Schema({
   participants: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    validate: [
-      {
-        validator: function(participants) {
-          return participants.length >= 2 && new Set(participants).size === participants.length;
-        },
-        message: 'Une conversation doit avoir au moins 2 participants uniques'
-      }
-    ]
+    required: true
   }],
   lastMessage: {
     type: mongoose.Schema.Types.ObjectId,
@@ -46,11 +38,46 @@ const conversationSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Empêche les doublons de conversations entre les mêmes participants
-conversationSchema.index({ participants: 1 }, { 
-  unique: true,
-  partialFilterExpression: { isGroup: false }
+// Validation au niveau du schéma pour s'assurer qu'il y a au moins 2 participants uniques
+conversationSchema.pre('save', function(next) {
+  // Vérifier que les participants existent et sont valides
+  if (!this.participants || !Array.isArray(this.participants)) {
+    return next(new Error('Les participants doivent être un tableau'));
+  }
+  
+  if (this.participants.length < 2) {
+    return next(new Error('Une conversation doit avoir au moins 2 participants'));
+  }
+  
+  // Filtrer les participants null/undefined
+  const validParticipants = this.participants.filter(p => p != null);
+  if (validParticipants.length < 2) {
+    return next(new Error('Une conversation doit avoir au moins 2 participants valides'));
+  }
+  
+  // Vérifier que tous les participants sont uniques
+  const participantStrings = validParticipants.map(p => {
+    if (p instanceof mongoose.Types.ObjectId) {
+      return p.toString();
+    }
+    if (typeof p === 'string' && mongoose.Types.ObjectId.isValid(p)) {
+      return p;
+    }
+    return String(p);
+  });
+  
+  const uniqueParticipants = new Set(participantStrings);
+  if (uniqueParticipants.size !== validParticipants.length) {
+    return next(new Error('Une conversation doit avoir des participants uniques'));
+  }
+  
+  next();
 });
+
+// Empêche les doublons de conversations entre les mêmes participants
+// Utiliser un index composé pour éviter les problèmes avec les transactions
+// Note: L'index unique sur un tableau peut être problématique, donc on gère l'unicité dans le code
+conversationSchema.index({ participants: 1, isGroup: 1 });
 
 // Méthode pour ajouter un message à la conversation
 conversationSchema.methods.addMessage = async function(messageId) {

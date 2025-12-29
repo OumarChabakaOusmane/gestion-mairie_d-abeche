@@ -215,6 +215,65 @@
       min-width: 18px;
       text-align: center;
     }
+    
+    .message-content {
+      position: relative;
+    }
+    
+    .message-actions {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      display: flex;
+      gap: 5px;
+      background: white;
+      border-radius: 20px;
+      padding: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+    
+    .message-item.own .message-actions {
+      background: #007bff;
+    }
+    
+    .btn-edit-message,
+    .btn-delete-message {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #007bff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 0.8rem;
+    }
+    
+    .message-item.own .btn-edit-message,
+    .message-item.own .btn-delete-message {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    
+    .btn-edit-message:hover {
+      background: #28a745;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .btn-delete-message:hover {
+      background: #dc3545;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .message-item.own:hover .message-actions {
+      display: flex !important;
+    }
   </style>
 </head>
 <body>

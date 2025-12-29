@@ -215,14 +215,16 @@ const rapportsRoutes = require('./routes/rapports');
 const settingsRoutes = require('./routes/settings');
 const demandeActeRoutes = require('./routes/demandeActeRoutes');
 const apiActesRoutes = require('./routes/api/actes');
-try {
-  console.log('Tentative de chargement de la route des conversations...');
-  conversationRoutes = require('./routes/conversations');
-  console.log('9. Route conversations chargée avec succès!');
-} catch (error) {
-  console.error('ERREUR lors du chargement de la route des conversations:', error);
-  process.exit(1);
-}
+// Route conversations désactivée - on utilise maintenant messagerieRoutes
+// try {
+//   console.log('Tentative de chargement de la route des conversations...');
+//   conversationRoutes = require('./routes/conversations');
+//   console.log('9. Route conversations chargée avec succès!');
+// } catch (error) {
+//   console.error('ERREUR lors du chargement de la route des conversations:', error);
+//   process.exit(1);
+// }
+conversationRoutes = null; // Désactivé - on utilise messagerieRoutes
 
 // Chargement des routes de test (optionnel, non bloquant)
 const testRoutes = express.Router();
@@ -333,9 +335,11 @@ console.log('Route /api/dashboard configurée');
 
 
 // Configuration de la route des conversations (montage unique)
-console.log('Configuration de la route /api/conversations...');
-app.use('/api/conversations', conversationRoutes);
-console.log('Route /api/conversations configurée avec succès!');
+// NOTE: Cette route est maintenant gérée par messagerieRoutes ci-dessous
+// Si conversationRoutes existe et est différent, il faudra le gérer séparément
+// console.log('Configuration de la route /api/conversations...');
+// app.use('/api/conversations', conversationRoutes);
+// console.log('Route /api/conversations configurée avec succès!');
 
 app.use('/api/calendrier', calendrierRoutes);
 console.log('Route /api/calendrier configurée');
@@ -349,8 +353,19 @@ app.use('/api/demandes-actes', authMiddleware, demandeActeRoutes);
 console.log('Route /api/demandes-actes configurée');
 
 // Ces routeurs utilisent req.user -> protéger avec authMiddleware
-app.use('/api/messagerie', authMiddleware, messagerieRoutes);
+// Middleware pour passer io aux routes de messagerie
+app.use('/api/messagerie', authMiddleware, (req, res, next) => {
+  req.io = io;
+  next();
+}, messagerieRoutes);
 console.log('Route /api/messagerie configurée');
+
+// Routes de conversations (utilisées par le frontend)
+app.use('/api/conversations', authMiddleware, (req, res, next) => {
+  req.io = io;
+  next();
+}, messagerieRoutes);
+console.log('Route /api/conversations configurée (alias de /api/messagerie)');
 
 app.use('/api/rapports', authMiddleware, rapportsRoutes);
 console.log('Route /api/rapports configurée');

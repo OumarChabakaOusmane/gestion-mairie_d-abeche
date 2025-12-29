@@ -6,6 +6,7 @@ class MessageSystem {
     this.conversations = [];
     this.users = [];
     this.typingTimeout = null;
+    this.messageRefreshInterval = null; // Intervalle pour recharger les messages périodiquement
 
     this.init();
   }
@@ -39,6 +40,9 @@ class MessageSystem {
 
       // Configurer les écouteurs d'événements
       this.setupEventListeners();
+      
+      // Configurer les écouteurs Socket.IO pour les modifications/suppressions
+      this.setupMessageUpdateListeners();
 
     } catch (error) {
       console.error('Erreur lors de l\'initialisation du système de messagerie:', error);
@@ -53,28 +57,17 @@ class MessageSystem {
     }
 
     try {
-      console.log('=== INITIALISATION SOCKET.IO ===');
-      console.log('ID utilisateur actuel:', this.currentUser.id);
-
       // Rejoindre la salle de l'utilisateur
       this.socket.emit('join', this.currentUser.id);
-      console.log('Événement \'join\' émis avec l\'ID:', this.currentUser.id);
-
-      // Vérifier l'état de la connexion
-      console.log('État de la connexion Socket.IO:', this.socket.connected ? 'Connecté' : 'Déconnecté');
-      console.log('ID de la socket:', this.socket.id);
 
       // Écouter les événements de connexion
       this.socket.on('connect', () => {
-        console.log('Connecté au serveur Socket.IO avec l\'ID:', this.socket.id);
-        console.log('Envoi de l\'événement \'join\' avec l\'ID utilisateur:', this.currentUser.id);
         this.socket.emit('join', this.currentUser.id);
       });
 
       // Écouter les nouveaux messages
       this.socket.on('newMessage', (message) => {
-        console.log('=== NOUVEAU MESSAGE RECU VIA SOCKET.IO ===');
-        console.log('Message brut reçu:', message);
+        // Nouveau message reçu via Socket.IO
 
         // Vérifier si le message est valide
         if (!message) {
@@ -83,9 +76,6 @@ class MessageSystem {
         }
 
         console.log('Détails du message reçu:');
-        console.log('- ID:', message._id);
-        console.log('- Contenu:', message.content);
-        console.log('- Conversation ID:', message.conversationId || (message.conversation && message.conversation._id));
         console.log('- Expéditeur:', message.sender ?
           `${message.sender.name || 'Inconnu'} (${message.sender._id || message.sender})` : 'Inconnu');
 
@@ -96,8 +86,18 @@ class MessageSystem {
 
         // Mettre à jour l'interface utilisateur
         if (isForCurrentConversation) {
-          this.addMessageToChat(message);
-          this.scrollToBottom();
+          // Vérifier si le message existe déjà (éviter les doublons)
+          const messagesList = document.getElementById('messagesList');
+          if (messagesList) {
+            const existingMessage = messagesList.querySelector(`[data-message-id="${message._id}"]`);
+            if (!existingMessage) {
+              this.addMessageToChat(message);
+              this.scrollToBottom();
+            }
+          } else {
+            // Si la liste n'existe pas, recharger tous les messages
+            this.loadMessages(message.conversationId || message.conversation?._id);
+          }
         }
 
         // Mettre à jour la liste des conversations
@@ -116,7 +116,6 @@ class MessageSystem {
 
       // Écouter les notifications de nouveaux messages
       this.socket.on('newMessageNotification', (data) => {
-        console.log('=== NOTIFICATION DE NOUVEAU MESSAGE ===', data);
 
         // Mettre à jour le compteur de messages non lus
         if (data.conversationId) {
@@ -132,6 +131,20 @@ class MessageSystem {
             'Nouveau message',
             `De: ${data.message.sender.name || 'Expéditeur inconnu'}`
           );
+        }
+      });
+      
+      // Écouter les mises à jour de messages
+      this.socket.on('messageUpdated', (data) => {
+        if (data && data._id) {
+          this.handleMessageUpdate(data);
+        }
+      });
+      
+      // Écouter les suppressions de messages
+      this.socket.on('messageDeleted', (data) => {
+        if (data && data.messageId) {
+          this.handleMessageDelete(data.messageId);
         }
       });
 
@@ -266,6 +279,19 @@ class MessageSystem {
       if (response && response.success) {
         this.conversations = response.data;
         this.displayConversations(this.conversations);
+        
+        // Si une conversation est déjà sélectionnée, recharger ses messages
+        // pour afficher les nouveaux messages qui pourraient être arrivés
+        if (this.currentConversation && this.currentConversation._id) {
+          const conversationId = this.currentConversation._id;
+          // Mettre à jour la conversation courante avec les nouvelles données
+          const updatedConversation = this.conversations.find(c => c._id === conversationId);
+          if (updatedConversation) {
+            this.currentConversation = updatedConversation;
+            // Recharger les messages pour afficher les nouveaux
+            await this.loadMessages(conversationId);
+          }
+        }
       } else {
         console.error('Invalid response format:', response);
         this.showAlert('Format de réponse invalide du serveur', 'danger');
@@ -376,9 +402,14 @@ class MessageSystem {
 
   async selectConversation(conversationId, event = null) {
     try {
-      console.log('=== SÉLECTION DE CONVERSATION ===');
-      console.log('ID de conversation:', conversationId);
-
+      // Toujours recharger les messages, même si c'est la même conversation
+      // Cela garantit que les nouveaux messages sont affichés
+      
+      // Si c'est la même conversation, forcer le rechargement quand même
+      const isSameConversation = this.currentConversation && 
+        (this.currentConversation._id === conversationId || 
+         this.currentConversation.id === conversationId);
+      
       // Trouver la conversation dans la liste
       const conversation = this.conversations.find(c => c._id === conversationId);
       if (!conversation) {
@@ -386,10 +417,16 @@ class MessageSystem {
         return;
       }
 
-      console.log('Conversation trouvée:', conversation);
-
       // Mettre à jour la conversation courante
       this.currentConversation = conversation;
+      
+      // Si c'est la même conversation, vider d'abord les messages pour forcer le rechargement
+      if (isSameConversation) {
+        const messagesList = document.getElementById('messagesList');
+        if (messagesList) {
+          messagesList.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Rechargement des messages...</div>';
+        }
+      }
 
       // Mettre à jour l'interface utilisateur
       document.querySelectorAll('.conversation-item').forEach(item => {
@@ -429,8 +466,10 @@ class MessageSystem {
       // Marquer la conversation comme lue
       console.log(`Marquage de la conversation comme lue: ${conversationId}`);
       await this.markConversationAsRead(conversationId);
+      
+      // Démarrer le rechargement périodique des messages (toutes les 30 secondes)
+      this.startMessageRefresh(conversationId);
 
-      console.log('Conversation sélectionnée avec succès');
     } catch (error) {
       console.error('Erreur lors de la sélection de la conversation:', error);
     }
@@ -442,31 +481,45 @@ class MessageSystem {
       return [];
     }
     try {
-      const response = await fetch(`/api/messages/${conversationId}`);
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des messages');
+      // Vider d'abord la liste des messages pour éviter les doublons
+      const messagesList = document.getElementById('messagesList');
+      if (messagesList) {
+        messagesList.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Chargement des messages...</div>';
       }
-      const messages = await response.json();
-      if (messages && messages.length > 0) {
-        this.displayMessages(messages);
-      }
+      
+      const result = await apiRequest(`/api/conversations/${conversationId}/messages`, 'GET');
+      // La réponse est au format { success: true, data: messages }
+      const messages = result.data || result || [];
+      
+      // Toujours afficher les messages, même si la liste est vide
+      this.displayMessages(messages);
+      
       return messages;
     } catch (error) {
       console.error('Erreur lors du chargement des messages:', error);
       this.showAlert('Impossible de charger les messages', 'error');
+      
+      // Afficher un message d'erreur dans la liste
+      const messagesList = document.getElementById('messagesList');
+      if (messagesList) {
+        messagesList.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Erreur lors du chargement des messages</p>
+          </div>
+        `;
+      }
+      
       return [];
     }
 }
 
   displayMessages(messages) {
     try {
-      console.log('=== AFFICHAGE DES MESSAGES ===');
-      console.log('Messages à afficher:', messages);
 
       const messagesList = document.getElementById('messagesList');
       if (!messagesList) {
         console.error('ERREUR: Conteneur de messages (messagesList) introuvable dans le DOM');
-        console.log('Éléments avec ID messagesList:', document.querySelectorAll('#messagesList'));
         return;
       }
 
@@ -496,7 +549,6 @@ class MessageSystem {
       // Faire défiler vers le bas
       this.scrollToBottom();
 
-      console.log('Messages affichés avec succès');
     } catch (error) {
       console.error('Erreur lors de l\'affichage des messages:', error);
     }
@@ -545,119 +597,109 @@ class MessageSystem {
   }
 }
 
-  async sendMessage() {
-  if (!this.currentConversation) {
-    console.error('Aucune conversation sélectionnée pour l\'envoi du message');
-    this.showAlert('Aucune conversation sélectionnée', 'warning');
-    return;
-  }
-
-  const messageInput = document.getElementById('messageInput');
-  if (!messageInput || !messageInput.value.trim()) {
-    return;
-  }
-
-  const content = messageInput.value.trim();
-
-  if (!content) {
-    console.log('Tentative d\'envoi d\'un message vide, ignoré');
-    return;
-  }
-
-  try {
-    // Créer un message temporaire pour l'affichage immédiat
-    const tempMessage = {
-      _id: 'temp-' + Date.now(),
-      content: content,
-      sender: {
-        _id: this.currentUser.id,
-        name: this.currentUser.name || 'Utilisateur'
-      },
-      conversation: this.currentConversation._id,
-      conversationId: this.currentConversation._id,
-      createdAt: new Date().toISOString(),
-      status: 'sending'
-    };
-
-    // Afficher le message immédiatement
-    this.addMessageToChat(tempMessage);
-    this.scrollToBottom();
-
-    // Réinitialiser le champ de saisie
-    messageInput.value = '';
-
-    // Vérifier si le socket est disponible
-    if (this.socket) {
-      // Envoyer le message via Socket.IO
-      this.socket.emit('sendMessage', {
-        conversationId: this.currentConversation._id,
-        content: content,
-        senderId: this.currentUser.id,
-        recipientId: this.getOtherParticipantId()
-      });
-    } else {
-      console.warn('Socket.IO non initialisé, envoi du message via HTTP uniquement');
+  async sendMessage(e) {
+    // Empêcher le comportement par défaut du formulaire
+    if (e) {
+      e.preventDefault();
     }
 
-    // Envoyer également via HTTP pour assurer la persistance
+    if (!this.currentConversation) {
+      console.error('Aucune conversation sélectionnée pour l\'envoi du message');
+      this.showAlert('Aucune conversation sélectionnée', 'warning');
+      return;
+    }
+
+    const messageInput = document.getElementById('messageInput');
+    if (!messageInput || !messageInput.value.trim()) {
+      return;
+    }
+
+    const content = messageInput.value.trim();
+
+    if (!content) {
+      console.log('Tentative d\'envoi d\'un message vide, ignoré');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Token d\'authentification manquant');
-      }
-
-      const response = await fetch('/api/conversations/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      // Créer un message temporaire pour l'affichage immédiat
+      const tempMessageId = 'temp-' + Date.now();
+      const tempMessage = {
+        _id: tempMessageId,
+        content: content,
+        sender: {
+          _id: this.currentUser.id,
+          name: this.currentUser.name || 'Utilisateur'
         },
-        body: JSON.stringify({
-          conversationId: this.currentConversation._id,
-          content: content
-        })
-      });
+        conversation: this.currentConversation._id,
+        conversationId: this.currentConversation._id,
+        createdAt: new Date().toISOString(),
+        status: 'sending'
+      };
 
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+      // Afficher le message immédiatement
+      this.addMessageToChat(tempMessage);
+      this.scrollToBottom();
+
+      // Réinitialiser le champ de saisie
+      messageInput.value = '';
+
+      // Vérifier si le socket est disponible et connecté
+      if (this.socket && this.socket.connected) {
+        // Envoyer le message via Socket.IO
+        this.socket.emit('sendMessage', {
+          conversationId: this.currentConversation._id,
+          content: content,
+          senderId: this.currentUser.id,
+          recipientId: this.getOtherParticipantId()
+        });
+      } else {
+        console.warn('Socket.IO non initialisé ou non connecté, envoi du message via HTTP uniquement');
       }
 
-      const data = await response.json();
+      // Envoyer également via HTTP pour assurer la persistance
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token d\'authentification manquant');
+        }
 
-      if (data.success && data.data) {
-        // Mettre à jour le message avec la réponse du serveur
-        this.updateMessageStatus(tempMessage._id, {
-          _id: data.data._id,
-          status: 'sent',
-          ...data.data
+        // Utiliser la bonne route API
+        const conversationId = this.currentConversation._id;
+        // apiRequest retourne déjà le résultat parsé et gère les erreurs
+        const data = await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
+          content: content
         });
 
-        // Mettre à jour la liste des conversations si la méthode existe
-        if (typeof this.updateConversationList === 'function') {
-          this.updateConversationList({
-            ...data.data,
-            conversation: this.currentConversation
+        if (data.success && data.data) {
+          // Mettre à jour le message avec la réponse du serveur
+          this.updateMessageStatus(tempMessageId, {
+            _id: data.data._id,
+            status: 'sent',
+            ...data.data
+          });
+
+          // Mettre à jour la liste des conversations
+          await this.loadConversations();
+        } else {
+          // Marquer le message comme erreur
+          this.updateMessageStatus(tempMessageId, {
+            status: 'error',
+            error: data.error || 'Erreur lors de l\'envoi du message'
           });
         }
-      } else {
-        // Marquer le message comme erreur
-        this.updateMessageStatus(tempMessage._id, {
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi du message:', error);
+        this.updateMessageStatus(tempMessageId, {
           status: 'error',
-          error: data.error || 'Erreur lors de l\'envoi du message'
+          error: 'Erreur de connexion au serveur: ' + error.message
         });
       }
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);
-      this.updateMessageStatus(tempMessage._id, {
-        status: 'error',
-        error: 'Erreur de connexion au serveur: ' + error.message
-      });
+      this.showAlert('Une erreur est survenue lors de l\'envoi du message: ' + error.message, 'error');
     }
-  } catch (error) {
-    console.error('Erreur lors de l\'envoi du message:', error);
-    this.showAlert('Une erreur est survenue lors de l\'envoi du message: ' + error.message, 'error');
   }
-}
 
 createMessageElement(message) {
   try {
@@ -714,7 +756,7 @@ createMessageElement(message) {
         <div class="message-content">
           ${!isCurrentUser ?
         `<div class="message-sender">${this.escapeHtml(senderName)}</div>` : ''}
-          <div class="message-text">${this.escapeHtml(message.content || '')}</div>
+          <div class="message-text" data-message-content="${message._id}">${this.escapeHtml(message.content || '')}</div>
           <div class="message-time">
             ${messageTime}
             ${isCurrentUser ?
@@ -722,6 +764,15 @@ createMessageElement(message) {
                 ${message.status === 'sent' ? '✓✓' : message.status === 'error' ? '!' : '↻'}
               </span>` : ''}
           </div>
+          ${isCurrentUser && message._id && !message._id.startsWith('temp-') ?
+        `<div class="message-actions" style="display: none;">
+              <button class="btn-edit-message" data-message-id="${message._id}" title="Modifier">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-delete-message" data-message-id="${message._id}" title="Supprimer">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>` : ''}
         </div>
       `;;
 
@@ -744,8 +795,6 @@ createMessageElement(message) {
 
 addMessageToChat(message) {
   try {
-    console.log('=== ADD MESSAGE TO CHAT ===');
-    console.log('Message reçu:', message);
 
     if (!message) {
       console.error('Erreur: Message non défini');
@@ -822,7 +871,7 @@ addMessageToChat(message) {
           ${!isOwn ?
         `<div class="message-sender">${this.escapeHtml(senderName)}</div>` :
         ''}
-          <div class="message-text">${this.escapeHtml(message.content || '')}</div>
+          <div class="message-text" data-message-content="${message._id || message.id || ''}">${this.escapeHtml(message.content || '')}</div>
           <div class="message-time">
             ${messageTime}
             ${isOwn ?
@@ -831,6 +880,15 @@ addMessageToChat(message) {
               </span>` :
         ''}
           </div>
+          ${isOwn && (message._id || message.id) && !(message._id || message.id).toString().startsWith('temp-') ?
+        `<div class="message-actions" style="display: none;">
+              <button class="btn-edit-message" data-message-id="${message._id || message.id}" title="Modifier" onclick="messageSystem.editMessage('${message._id || message.id}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-delete-message" data-message-id="${message._id || message.id}" title="Supprimer" onclick="messageSystem.deleteMessage('${message._id || message.id}')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>` : ''}
         </div>
       `;
 
@@ -840,9 +898,29 @@ addMessageToChat(message) {
     if (message.status === 'error') {
       messageElement.title = message.error || 'Erreur lors de l\'envoi';
     }
+    
+    // Ajouter les gestionnaires d'événements pour les boutons modifier/supprimer
+    if (isOwn && (message._id || message.id) && !(message._id || message.id).toString().startsWith('temp-')) {
+      const editBtn = messageElement.querySelector('.btn-edit-message');
+      const deleteBtn = messageElement.querySelector('.btn-delete-message');
+      
+      if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.editMessage(message._id || message.id);
+        });
+      }
+      
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.deleteMessage(message._id || message.id);
+        });
+      }
+    }
 
     // Vérifier si le message existe déjà
-    const existingMessage = messagesList.querySelector(`[data-message-id="${message._id}"]`);
+    const existingMessage = messagesList.querySelector(`[data-message-id="${message._id || message.id}"]`);
     if (existingMessage) {
       // Mettre à jour le message existant
       existingMessage.replaceWith(messageElement);
@@ -945,7 +1023,6 @@ updateMessageStatus(messageId, updates) {
     // Mettre à jour l'ID du message si nécessaire (pour les messages temporaires)
     if (updates._id && updates._id !== messageId) {
       messageElement.dataset.messageId = updates._id;
-      console.log(`Mise à jour de l'ID du message de ${messageId} à ${updates._id}`);
     }
 
     // Mettre à jour l'horodatage si fourni
@@ -966,7 +1043,6 @@ updateMessageStatus(messageId, updates) {
       }
     }
 
-    console.log(`Statut du message ${messageId} mis à jour:`, updates);
   } catch (error) {
     console.error('Erreur dans updateMessageStatus:', error);
   }
@@ -1051,13 +1127,17 @@ showDesktopNotification(title, body) {
   const subject = document.getElementById('messageSubject').value;
   const content = document.getElementById('messageContent').value;
 
-  if (!recipientId || !content) return;
+  if (!recipientId || !content) {
+    this.showAlert('Veuillez sélectionner un destinataire et saisir un message', 'warning');
+    return;
+  }
 
   try {
     const response = await apiRequest('/api/conversations', 'POST', {
-      participantId: recipientId,
-      subject: subject,
-      initialMessage: content
+      recipient: recipientId,
+      subject: subject || 'Nouvelle conversation',
+      content: content,
+      attachments: []
     });
 
     if (response.success) {
@@ -1134,8 +1214,6 @@ showDesktopNotification(title, body) {
       updatedAt: message.updatedAt || new Date().toISOString()
     };
 
-    console.log('Message normalisé:', normalizedMessage);
-
     // Vérifier si le message est pour la conversation actuelle
     const isForCurrentConversation = this.currentConversation &&
       (normalizedMessage.conversationId === this.currentConversation._id ||
@@ -1145,16 +1223,11 @@ showDesktopNotification(title, body) {
         (typeof this.currentConversation.id === 'string' &&
           this.currentConversation.id === normalizedMessage.conversationId));
 
-    console.log('Conversation actuelle:', this.currentConversation?._id || this.currentConversation?.id);
-    console.log('Message pour cette conversation?', isForCurrentConversation);
-
     // Si c'est pour la conversation actuelle, ajouter le message immédiatement
     if (isForCurrentConversation) {
-      console.log('Ajout du message à la conversation actuelle');
       this.addMessageToChat(normalizedMessage);
     } else {
       console.log('Le message est pour une autre conversation ou aucune conversation n\'est sélectionnée');
-      console.log('ID de la conversation du message:', messageConversationId);
 
       // Mettre à jour le compteur de messages non lus
       const conversation = this.conversations.find(c =>
@@ -1172,7 +1245,6 @@ showDesktopNotification(title, body) {
 
     // Afficher une notification si l'utilisateur n'est pas sur la conversation
     if (!isForCurrentConversation && !isOwnMessage) {
-      console.log('Affichage d\'une notification pour le nouveau message');
 
       // Préparer le contenu de la notification
       const notificationTitle = 'Nouveau message';
@@ -1342,7 +1414,7 @@ searchConversations(query) {
 
   async markConversationAsRead(conversationId) {
   try {
-    await apiRequest(`/api/conversations/${conversationId}/read`, 'POST');
+    await apiRequest(`/api/conversations/${conversationId}/read-all`, 'POST');
   } catch (error) {
     console.error('Error marking conversation as read:', error);
   }
@@ -1385,6 +1457,35 @@ isUserOnline(userId) {
   return onlineUsers.includes(userId);
 }
 
+  // Démarrer le rechargement périodique des messages
+  startMessageRefresh(conversationId) {
+    // Arrêter l'intervalle précédent s'il existe
+    this.stopMessageRefresh();
+    
+    // Recharger les messages toutes les 30 secondes
+    this.messageRefreshInterval = setInterval(async () => {
+      if (this.currentConversation && 
+          (this.currentConversation._id === conversationId || this.currentConversation.id === conversationId)) {
+        try {
+          await this.loadMessages(conversationId);
+        } catch (error) {
+          console.error('Erreur lors du rechargement périodique des messages:', error);
+        }
+      } else {
+        // Si la conversation a changé, arrêter le rechargement
+        this.stopMessageRefresh();
+      }
+    }, 30000); // 30 secondes
+  }
+  
+  // Arrêter le rechargement périodique des messages
+  stopMessageRefresh() {
+    if (this.messageRefreshInterval) {
+      clearInterval(this.messageRefreshInterval);
+      this.messageRefreshInterval = null;
+    }
+  }
+
   async joinConversation(conversationId) {
   if (!this.socket || !this.socket.connected) {
     console.error('Impossible de rejoindre la conversation: Socket.IO non initialisé ou non connecté');
@@ -1400,6 +1501,8 @@ isUserOnline(userId) {
     // Quitter la conversation précédente si nécessaire
     if (this.currentConversation && this.currentConversation._id !== conversationId) {
       this.socket.emit('leave-conversation', this.currentConversation._id);
+      // Arrêter le rechargement de l'ancienne conversation
+      this.stopMessageRefresh();
     }
 
     // Rejoindre la nouvelle conversation
@@ -1551,9 +1654,214 @@ normalizeSender(sender) {
   };
 }
 
+  // Configurer les écouteurs pour les mises à jour de messages
+  setupMessageUpdateListeners() {
+    // Ajouter les gestionnaires d'événements pour afficher/masquer les boutons au survol
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.closest('.message-item.own')) {
+        const messageItem = e.target.closest('.message-item');
+        const actions = messageItem.querySelector('.message-actions');
+        if (actions) {
+          actions.style.display = 'flex';
+        }
+      }
+    });
+    
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest('.message-item.own')) {
+        const messageItem = e.target.closest('.message-item');
+        const actions = messageItem.querySelector('.message-actions');
+        if (actions && !messageItem.querySelector('.message-actions:hover')) {
+          actions.style.display = 'none';
+        }
+      }
+    });
+  }
+  
+  // Modifier un message
+  async editMessage(messageId) {
+    try {
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (!messageElement) {
+        this.showAlert('Message non trouvé', 'error');
+        return;
+      }
+      
+      const messageTextElement = messageElement.querySelector('[data-message-content]');
+      if (!messageTextElement) {
+        this.showAlert('Impossible de trouver le contenu du message', 'error');
+        return;
+      }
+      
+      const currentContent = messageTextElement.textContent.trim();
+      const newContent = prompt('Modifier le message:', currentContent);
+      
+      if (newContent === null || newContent.trim() === currentContent) {
+        return; // L'utilisateur a annulé ou n'a rien changé
+      }
+      
+      if (!newContent.trim()) {
+        this.showAlert('Le message ne peut pas être vide', 'warning');
+        return;
+      }
+      
+      // Afficher un indicateur de chargement
+      messageTextElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Modification...';
+      
+      try {
+        const result = await apiRequest(`/api/conversations/messages/${messageId}`, 'PUT', {
+          content: newContent.trim()
+        });
+        
+        if (result.success) {
+          // Mettre à jour le contenu du message
+          messageTextElement.textContent = newContent.trim();
+          messageTextElement.setAttribute('data-message-content', messageId);
+          
+          // Ajouter un indicateur "modifié"
+          const timeElement = messageElement.querySelector('.message-time');
+          if (timeElement && !timeElement.textContent.includes('modifié')) {
+            timeElement.innerHTML += ' <span class="text-muted small">(modifié)</span>';
+          }
+          
+          this.showAlert('Message modifié avec succès', 'success');
+        } else {
+          throw new Error(result.error || 'Erreur lors de la modification');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la modification du message:', error);
+        messageTextElement.textContent = currentContent; // Restaurer le contenu original
+        this.showAlert(error.message || 'Erreur lors de la modification du message', 'error');
+      }
+    } catch (error) {
+      console.error('Erreur dans editMessage:', error);
+      this.showAlert('Une erreur est survenue', 'error');
+    }
+  }
+  
+  // Supprimer un message
+  async deleteMessage(messageId) {
+    try {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+        return;
+      }
+      
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (!messageElement) {
+        this.showAlert('Message non trouvé', 'error');
+        return;
+      }
+      
+      // Afficher un indicateur de chargement
+      messageElement.style.opacity = '0.5';
+      const originalContent = messageElement.innerHTML;
+      messageElement.innerHTML = '<div class="text-center p-2"><i class="fas fa-spinner fa-spin"></i> Suppression...</div>';
+      
+      try {
+        const result = await apiRequest(`/api/conversations/messages/${messageId}`, 'DELETE');
+        
+        if (result.success) {
+          // Animation de suppression
+          messageElement.style.transition = 'opacity 0.3s ease, height 0.3s ease';
+          messageElement.style.opacity = '0';
+          messageElement.style.height = '0';
+          messageElement.style.overflow = 'hidden';
+          
+          setTimeout(() => {
+            messageElement.remove();
+          }, 300);
+          
+          this.showAlert('Message supprimé avec succès', 'success');
+        } else {
+          throw new Error(result.error || 'Erreur lors de la suppression');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression du message:', error);
+        messageElement.innerHTML = originalContent;
+        messageElement.style.opacity = '1';
+        this.showAlert(error.message || 'Erreur lors de la suppression du message', 'error');
+      }
+    } catch (error) {
+      console.error('Erreur dans deleteMessage:', error);
+      this.showAlert('Une erreur est survenue', 'error');
+    }
+  }
+  
+  // Gérer la mise à jour d'un message reçu via Socket.IO
+  handleMessageUpdate(updatedMessage) {
+    try {
+      const messageElement = document.querySelector(`[data-message-id="${updatedMessage._id}"]`);
+      if (messageElement) {
+        const messageTextElement = messageElement.querySelector('[data-message-content]');
+        if (messageTextElement) {
+          messageTextElement.textContent = updatedMessage.content;
+          
+          // Ajouter un indicateur "modifié"
+          const timeElement = messageElement.querySelector('.message-time');
+          if (timeElement && !timeElement.textContent.includes('modifié')) {
+            timeElement.innerHTML += ' <span class="text-muted small">(modifié)</span>';
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erreur dans handleMessageUpdate:', error);
+    }
+  }
+  
+  // Gérer la suppression d'un message reçu via Socket.IO
+  handleMessageDelete(messageId) {
+    try {
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (messageElement) {
+        // Animation de suppression
+        messageElement.style.transition = 'opacity 0.3s ease, height 0.3s ease';
+        messageElement.style.opacity = '0';
+        messageElement.style.height = '0';
+        messageElement.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+          messageElement.remove();
+        }, 300);
+      }
+    } catch (error) {
+      console.error('Erreur dans handleMessageDelete:', error);
+    }
+  }
+
 } // Fermeture de la classe MessageSystem
+
+// Fonction utilitaire pour les requêtes API
+async function apiRequest(url, method = 'GET', data = null) {
+  try {
+    const token = localStorage.getItem('token');
+    const options = {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(url, options);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Erreur HTTP: ${response.status}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Erreur API:', error);
+    throw error;
+  }
+}
 
 // Export global de la classe
 if (typeof window !== 'undefined') {
   window.MessageSystem = MessageSystem;
+  window.apiRequest = apiRequest;
 }
