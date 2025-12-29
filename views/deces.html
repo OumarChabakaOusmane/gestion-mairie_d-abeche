@@ -6,222 +6,24 @@
   <title>Actes de Décès - État Civil Tchad</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- jQuery (chargé en haut pour éviter les FOUC) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/sidebar-template.js"></script>
   
-  <!-- Chargement différé des scripts non critiques -->
-  <script>
-    // Chargement différé des scripts
-    function loadScript(src, callback) {
-      const script = document.createElement('script');
-      script.src = src;
-      script.defer = true;
-      if (callback) script.onload = callback;
-      document.head.appendChild(script);
-    }
-    
-    // Charger les scripts non critiques après le chargement de la page
-    window.addEventListener('load', function() {
-      // Charger uniquement ce qui est nécessaire
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js', function() {
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/i18n/fr.js');
-      });
-      
-      // Moment.js n'est chargé que si nécessaire
-      if (document.querySelector('[data-requires-moment]')) {
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js', function() {
-          loadScript('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/fr.js');
-        });
-      }
-    });
-  </script>
   <style id="common-styles">
-    /* Styles de base */
+    /* Styles de base - seront remplacés par commonCSS */
+  </style>
+  <style>
     body {
       min-height: 100vh;
       background-color: #f8f9fa;
     }
     
-    /* Style pour le conteneur principal */
-    .page-container {
-      background-color: #ffffff;
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
     }
     
-    /* Styles pour les cartes */
-    .card {
-      background-color: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.125);
-    }
-    
-    .card-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-    }
-    
-    /* Styles pour les champs de formulaire */
-    .form-control, 
-    .form-select,
-    .form-control:disabled,
-    .form-control[readonly] {
-      background-color: #ffffff;
-      border: 1px solid #ced4da;
-      color: #212529;
-      border-radius: 0.375rem;
-      padding: 0.5rem 0.75rem;
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .form-control:focus, 
-    .form-select:focus {
-      background-color: #ffffff;
-      border-color: #0d6efd;
-      color: #212529;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    }
-    
-    /* Style pour les champs requis */
-    .required .form-label::after {
-      content: " *";
-      color: #dc3545;
-    }
-    
-    /* Style pour les labels */
-    .form-label {
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #495057;
-    }
-    
-    /* Style pour les champs désactivés */
-    .form-control:disabled,
-    .form-control[readonly] {
-      background-color: #e9ecef;
-      opacity: 1;
-    }
-    
-    .form-text {
-      color: #6c757d;
-    }
-  </style>
-  <style>
-    /* Styles améliorés pour le formulaire */
-    .form-label.required:after {
-      content: ' *';
-      color: #dc3545;
-    }
-    
-    .form-section {
-      display: none;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    .form-actions {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 2rem;
-      padding: 1.5rem 0;
-      border-top: 1px solid #dee2e6;
-    }
-    
-    .btn-next, .btn-previous {
-      min-width: 120px;
-    }
-    
-    .form-section.active {
-      display: block;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .card {
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(0,0,0,.125);
-      border-radius: 0.5rem;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    
-    .card-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid rgba(0,0,0,.125);
-      font-weight: 600;
-    }
-    
-    .form-actions {
-      margin-top: 2rem;
-      padding: 1.5rem;
-      background-color: #f8f9fa;
-      border-radius: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    
-    /* Styles pour les messages d'aide */
-    .form-text {
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-top: 0.25rem;
-    }
-    
-    /* Amélioration de l'expérience mobile */
-    @media (max-width: 768px) {
-      .form-actions {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-      
-      .form-actions > div {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      
-      .btn {
-        width: 100%;
-        margin: 0.25rem 0;
-      }
-    }
-    
-    /* Amélioration des champs de formulaire */
-    .form-control:focus, .form-select:focus {
-      border-color: #86b7fe;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    }
-    
-    /* Style pour les champs en lecture seule */
-    .form-control[readonly] {
-      background-color: #e9ecef;
-      opacity: 1;
-    }
-    
-    /* Style pour les icônes d'aide */
-    .help-icon {
-      color: #0d6efd;
-      margin-left: 0.25rem;
-      cursor: help;
-    }
-    
-    .invalid-feedback {
-      display: none;
-      width: 100%;
-      margin-top: 0.25rem;
-      font-size: 0.875em;
-      color: #dc3545;
-    }
-    
-    .is-invalid {
-      border-color: #dc3545;
-    }
-    
-    .is-invalid ~ .invalid-feedback {
-      display: block;
-    }
     .page-container {
       background: white;
       border-radius: 10px;
@@ -233,11 +35,11 @@
     
     .form-section {
       display: none;
+      animation: fadeIn 0.3s ease-in-out;
     }
     
     .form-section.active {
       display: block;
-      animation: fadeIn 0.3s ease-in-out;
     }
     
     @keyframes fadeIn {
@@ -245,83 +47,11 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .nav-tabs .nav-link {
-      border: none;
-      color: #6c757d;
-      font-weight: 500;
-      padding: 12px 20px;
-      border-bottom: 3px solid transparent;
-    }
-    
-    .nav-tabs .nav-link.active {
-      color: #0d6efd;
-      background: none;
-      border-color: #0d6efd;
-    }
-    
-    .form-label.required:after {
-      content: ' *';
-      color: #dc3545;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: #86b7fe;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    }
-    
-    .btn-primary {
-      background-color: #0d6efd;
-      border-color: #0d6efd;
-      padding: 8px 20px;
-      font-weight: 500;
-    }
-    
-    .btn-outline-secondary {
-      padding: 8px 20px;
-    }
-    
-    .card {
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      margin-bottom: 25px;
-      transition: transform 0.2s;
-    }
-    
-    .card:hover {
-      transform: translateY(-2px);
-    }
-    
-    .card-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      padding: 15px 20px;
-      border-radius: 10px 10px 0 0 !important;
-    }
-    
-    .card-header h5 {
-      color: #2c3e50;
-      font-weight: 600;
-    }
-    
-    .card-body {
-      padding: 25px;
-    }
-    
-    .progress {
-      height: 8px;
-      border-radius: 4px;
-      margin-bottom: 30px;
-    }
-    
-    .progress-bar {
-      background-color: #0d6efd;
-    }
-    
     .step-indicator {
       display: flex;
       justify-content: space-between;
       margin-bottom: 30px;
+      position: relative;
     }
     
     .step {
@@ -331,8 +61,8 @@
     }
     
     .step-number {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: #e9ecef;
       color: #6c757d;
@@ -360,19 +90,16 @@
     .step-text {
       font-size: 14px;
       color: #6c757d;
+      font-weight: 500;
     }
     
     .step.active .step-text {
       color: #0d6efd;
-      font-weight: 500;
     }
     
-    .step.completed .step-text {
-      color: #198754;
-    }
-    
-    .btn-next, .btn-previous {
-      min-width: 120px;
+    .form-label.required:after {
+      content: ' *';
+      color: #dc3545;
     }
     
     .form-actions {
@@ -383,21 +110,43 @@
       border-top: 1px solid #eee;
     }
     
-    .form-check-input:checked {
-      background-color: #0d6efd;
-      border-color: #0d6efd;
+    .summary-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
     }
     
-    .btn-print {
-      background-color: #6c757d;
-      border-color: #6c757d;
-      color: white;
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #dee2e6;
     }
     
-    .btn-print:hover {
-      background-color: #5c636a;
-      border-color: #565e64;
-      color: white;
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-label {
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .summary-value {
+      color: #212529;
+    }
+    
+    .invalid-feedback {
+      display: block;
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875em;
+      color: #dc3545;
+    }
+    
+    .is-invalid {
+      border-color: #dc3545;
     }
   </style>
 </head>
@@ -406,1602 +155,591 @@
   
   <div class="main-content">
     <div class="page-container">
-      <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h1 class="h3 mb-1"><i class="fas fa-skull me-2 text-primary"></i> Enregistrement d'un Acte de Décès</h1>
-            <p class="text-muted mb-0">Remplissez les informations requises pour enregistrer un nouvel acte de décès</p>
-          </div>
-          <div class="btn-group" role="group">
-            <button type="button" id="btnSaveDraft" class="btn btn-outline-secondary">
-              <i class="far fa-save me-2"></i>Enregistrer le brouillon
-            </button>
-            <button type="button" id="btnPreview" class="btn btn-outline-primary">
-              <i class="far fa-eye me-2"></i>Aperçu
-            </button>
-            <button type="button" id="btnPrint" class="btn btn-print">
-              <i class="fas fa-print me-2"></i>Imprimer
-            </button>
-          </div>
-        </div>
-        
-        <!-- Indicateur de progression -->
-        <div class="progress">
-          <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        
-        <!-- Étapes du formulaire -->
-        <div class="step-indicator">
-          <div class="step active" data-step="1">
-            <div class="step-number">1</div>
-            <div class="step-text">Défunt</div>
-          </div>
-          <div class="step" data-step="2">
-            <div class="step-number">2</div>
-            <div class="step-text">Décès</div>
-          </div>
-          <div class="step" data-step="3">
-            <div class="step-number">3</div>
-            <div class="step-text">Famille</div>
-          </div>
-          <div class="step" data-step="4">
-            <div class="step-number">4</div>
-            <div class="step-text">Validation</div>
-          </div>
-        </div>
-    <form id="formDeces" class="needs-validation" novalidate>
-  <input type="hidden" name="_token" value="{{ csrf_token() }}">
-      <!-- Étape 1: Informations du défunt -->
-      <div class="form-section active" id="section-1">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-user me-2 text-primary"></i>Informations personnelles du défunt</h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="fas fa-user me-2"></i>Nom complet
-                    <i class="fas fa-info-circle help-icon" data-toggle="tooltip" title="Entrez le nom complet du défunt tel qu'il apparaît sur la pièce d'identité"></i>
-                  </label>
-                  <input type="text" name="nom" class="form-control" required 
-                         data-parsley-pattern="^[a-zA-ZÀ-ÿ\s\'-]+" 
-                         data-parsley-trigger="change" />
-                  <div class="form-text">Format: NOM Prénom</div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="fas fa-signature me-1"></i> Prénom(s)
-                  </label>
-                  <input type="text" name="prenom" class="form-control" required 
-                         data-parsley-pattern="^[a-zA-ZÀ-ÿ\s\'-]+" 
-                         data-parsley-trigger="change" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Autres noms (si applicable)</label>
-                  <input type="text" name="autresNoms" class="form-control" 
-                         placeholder="Surnoms, noms d'usage..." />
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-3">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="far fa-calendar-alt me-1"></i> Date de naissance
-                    <i class="fas fa-info-circle help-icon" data-toggle="tooltip" 
-                       title="La date de naissance est utilisée pour calculer automatiquement l'âge"></i>
-                  </label>
-                  <input type="date" name="dateNaissance" class="form-control" required 
-                         data-parsley-trigger="change" onchange="calculerAgeDeces()" />
-                  <div class="form-text">Format: JJ/MM/AAAA</div>
-                </div>
-              </div>
-              <div class="col-md-2">
-                <div class="mb-3">
-                  <label class="form-label">Âge au décès</label>
-                  <div class="input-group">
-                    <input type="number" name="ageDeces" class="form-control" readonly />
-                    <span class="input-group-text">ans</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="fas fa-map-marker-alt me-1"></i> Lieu de naissance
-                    <i class="fas fa-info-circle help-icon" data-toggle="tooltip" 
-                       title="Veuillez indiquer la ville et le pays de naissance"></i>
-                  </label>
-                  <input type="text" name="lieuNaissance" class="form-control" 
-                         placeholder="Ex: N'Djamena, Tchad" required 
-                         data-parsley-trigger="change" />
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="mb-3">
-                  <label class="form-label required">Sexe</label>
-                  <select name="sexe" class="form-select" required>
-                    <option value="">Sélectionner</option>
-                    <option value="M">Masculin</option>
-                    <option value="F">Féminin</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Nationalité</label>
-                  <select name="nationalite" class="form-select">
-                    <option value="Tchadienne" selected>Tchadienne</option>
-                    <option value="Étrangère">Étrangère</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Profession</label>
-                  <input type="text" name="profession" class="form-control" 
-                         placeholder="Dernière profession exercée" />
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-8">
-                <div class="mb-3">
-                  <label class="form-label">Dernière adresse connue</label>
-                  <input type="text" name="adresse" class="form-control" 
-                         placeholder="N° de rue, avenue, quartier" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Téléphone</label>
-                  <div class="input-group">
-                    <span class="input-group-text">+235</span>
-                    <input type="tel" name="telephone" class="form-control" 
-                           placeholder="Numéro de téléphone" 
-                           data-parsley-pattern="^[0-9]{8,15}$" 
-                           data-parsley-trigger="change" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-12">
-                <div class="form-check mb-3">
-                  <input class="form-check-input" type="checkbox" id="sansDomicileFixe" name="sansDomicileFixe">
-                  <label class="form-check-label" for="sansDomicileFixe">
-                    Personne sans domicile fixe
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-actions">
-          <div></div>
-          <div>
-            <button type="button" class="btn btn-primary btn-next" data-next="2" id="btnNextStep1">
-              Suivant <i class="fas fa-arrow-right ms-2"></i>
-            </button>
-            <script>
-              document.getElementById('btnNextStep1').addEventListener('click', function(e) {
-                console.log('Bouton Suivant (étape 1) cliqué directement');
-                const isValid = validateStep(1);
-                console.log('Validation étape 1:', isValid);
-                if (isValid) {
-                  showStep(2);
-                }
-              });
-            </script>
-          </div>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-1"><i class="fas fa-skull me-2 text-primary"></i> Enregistrement d'un Acte de Décès</h1>
+          <p class="text-muted mb-0">Remplissez les informations requises pour enregistrer un nouvel acte de décès</p>
         </div>
       </div>
-
-      <!-- Étape 2: Informations du décès -->
-      <div class="form-section" id="section-2">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-calendar-times me-2 text-primary"></i>Circonstances du décès</h5>
+      
+      <!-- Indicateur de progression -->
+      <div class="step-indicator">
+        <div class="step active" data-step="1">
+          <div class="step-number">1</div>
+          <div class="step-text">Défunt</div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-number">2</div>
+          <div class="step-text">Décès</div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-number">3</div>
+          <div class="step-text">Déclarant / Famille</div>
+        </div>
+        <div class="step" data-step="4">
+          <div class="step-number">4</div>
+          <div class="step-text">Validation</div>
+        </div>
+      </div>
+      
+      <form id="formDeces">
+        <!-- PAGE 1: DÉFUNT -->
+        <div class="form-section active" id="section-1">
+          <h4 class="mb-4"><i class="fas fa-user me-2 text-primary"></i>Informations du défunt</h4>
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label required">Nom</label>
+              <input type="text" name="nom" class="form-control" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label required">Prénom</label>
+              <input type="text" name="prenom" class="form-control" required>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label required">Sexe</label>
+              <select name="sexe" class="form-select" required>
+                <option value="">Sélectionner</option>
+                <option value="M">Masculin</option>
+                <option value="F">Féminin</option>
+              </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label required">Date de décès</label>
+              <input type="date" name="dateDeces" class="form-control" required onchange="calculerAge()">
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label required">Lieu de décès</label>
+              <input type="text" name="lieuDeces" class="form-control" placeholder="Ex: N'Djamena, Tchad" required>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label">Âge</label>
+              <div class="input-group">
+                <input type="number" name="age" class="form-control" readonly>
+                <span class="input-group-text">ans</span>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label">Nationalité</label>
+              <select name="nationalite" class="form-select">
+                <option value="Tchadienne" selected>Tchadienne</option>
+                <option value="Étrangère">Étrangère</option>
+              </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label">Adresse</label>
+              <input type="text" name="adresse" class="form-control" placeholder="Dernière adresse connue">
+            </div>
           </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="far fa-calendar-times me-1"></i> Date du décès
-                  </label>
-                  <input type="date" name="dateDeces" class="form-control" required 
-                         data-parsley-trigger="change" onchange="calculerAgeDeces()" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label required">Heure du décès</label>
-                  <input type="time" name="heureDeces" class="form-control" required 
-                         data-parsley-trigger="change" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Heure de constatation</label>
-                  <input type="time" name="heureConstatation" class="form-control" />
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label required">
-                    <i class="fas fa-map-marker-alt me-1"></i> Lieu du décès
-                  </label>
-                  <select name="typeLieuDeces" class="form-select mb-2" required>
-                    <option value="">Type de lieu</option>
-                    <option value="domicile">Domicile</option>
-                    <option value="hopital">Hôpital/Clinique</option>
-                    <option value="voie_publique">Voie publique</option>
-                    <option value="autre">Autre lieu</option>
-                  </select>
-                  <input type="text" name="lieuDeces" class="form-control" 
-                         placeholder="Nom de l'établissement ou adresse précise" required 
-                         data-parsley-trigger="change" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label required">Commune/Arrondissement</label>
-                  <input type="text" name="communeDeces" class="form-control" 
-                         placeholder="Commune ou arrondissement du décès" required 
-                         data-parsley-trigger="change" />
-                </div>
-              </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label required">Cause du décès</label>
-                  <select name="typeCauseDeces" class="form-select" required>
-                    <option value="">Sélectionner une cause</option>
-                    <option value="maladie">Maladie naturelle</option>
-                    <option value="accident">Accident</option>
-                    <option value="homicide">Homicide</option>
-                    <option value="suicide">Suicide</option>
-                    <option value="autre">Autre</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Médecin déclarant</label>
-                  <input type="text" name="medecinDeclarant" class="form-control" 
-                         placeholder="Nom du médecin ayant constaté le décès" />
-                </div>
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label">Circonstances détaillées</label>
-              <textarea name="circonstances" class="form-control" rows="3" 
-                        placeholder="Détails sur les circonstances du décès"></textarea>
-            </div>
-            
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="mortViolente" name="mortViolente">
-              <label class="form-check-label" for="mortViolente">
-                Décès de cause violente (accident, homicide, suicide)
-              </label>
-            </div>
-            
-            <div id="detailsMortViolente" style="display: none;">
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Lieu des faits</label>
-                    <input type="text" name="lieuFaits" class="form-control" 
-                           placeholder="Lieu où les faits se sont produits" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Date et heure des faits</label>
-                    <input type="datetime-local" name="dateHeureFaits" class="form-control" />
-                  </div>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Détails des circonstances</label>
-                <textarea name="detailsFaits" class="form-control" rows="3" 
-                          placeholder="Rapport détaillé des circonstances"></textarea>
-              </div>
-            </div>
+          
+          <div class="form-actions">
+            <div></div>
+            <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+              Suivant <i class="fas fa-arrow-right ms-2"></i>
+            </button>
           </div>
         </div>
         
-        <div class="form-actions">
-          <div>
-            <button type="button" class="btn btn-outline-secondary btn-previous" data-previous="1">
+        <!-- PAGE 2: DÉCÈS -->
+        <div class="form-section" id="section-2">
+          <h4 class="mb-4"><i class="fas fa-calendar-times me-2 text-primary"></i>Informations du décès</h4>
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label required">Date du décès</label>
+              <input type="date" name="dateDeces2" class="form-control" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label required">Heure du décès</label>
+              <input type="time" name="heureDeces" class="form-control" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label required">Lieu du décès</label>
+              <input type="text" name="lieuDeces2" class="form-control" placeholder="Adresse ou établissement" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Cause du décès</label>
+              <input type="text" name="causeDeces" class="form-control" placeholder="Cause (optionnel)">
+            </div>
+            
+            <div class="col-md-12">
+              <label class="form-label required">Centre d'état civil</label>
+              <input type="text" name="centreEtatCivil" class="form-control" placeholder="Ex: Mairie de N'Djamena 1er Arrondissement" required>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="previousStep(1)">
               <i class="fas fa-arrow-left me-2"></i> Précédent
             </button>
-          </div>
-          <div>
-            <button type="button" class="btn btn-primary btn-next" data-next="3" id="btnNextStep2">
+            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
               Suivant <i class="fas fa-arrow-right ms-2"></i>
             </button>
-            <script>
-              document.getElementById('btnNextStep2').addEventListener('click', function(e) {
-                console.log('Bouton Suivant (étape 2) cliqué directement');
-                const isValid = validateStep(2);
-                console.log('Validation étape 2:', isValid);
-                if (isValid) {
-                  showStep(3);
-                }
-              });
-            </script>
           </div>
         </div>
-      </div>
-
-      <!-- Étape 3: Informations familiales -->
-      <div class="form-section" id="section-3">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-users me-2 text-primary"></i>Situation familiale</h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label required">Situation matrimoniale</label>
-                  <select name="situationMatrimoniale" class="form-select" required data-parsley-required-message="La situation matrimoniale est requise">
-                    <option value="">Sélectionner</option>
-                    <option value="Célibataire">Célibataire</option>
-                    <option value="Marié(e)">Marié(e)</option>
-                    <option value="Veuf/Veuve">Veuf/Veuve</option>
-                    <option value="Séparé(e)">Séparé(e)</option>
-                  </select>
-                  <div class="invalid-feedback">Veuillez sélectionner une situation matrimoniale</div>
-                </div>
-              </div>
-              <div class="col-md-6" id="conjointField">
-                <div class="mb-3">
-                  <label class="form-label">Nom du conjoint</label>
-                  <input type="text" name="nomConjoint" class="form-control" 
-                         placeholder="Nom et prénom du conjoint" />
-                </div>
-              </div>
+        
+        <!-- PAGE 3: DÉCLARANT / FAMILLE -->
+        <div class="form-section" id="section-3">
+          <h4 class="mb-4"><i class="fas fa-users me-2 text-primary"></i>Déclarant et famille</h4>
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label required">Nom du déclarant</label>
+              <input type="text" name="nomDeclarant" class="form-control" required>
             </div>
             
-            <!-- Boutons de navigation -->
-            <div class="form-actions mt-4">
-              <div>
-                <button type="button" class="btn btn-outline-secondary btn-previous" data-previous="2">
-                  <i class="fas fa-arrow-left me-2"></i> Précédent
-                </button>
-              </div>
-              <div>
-                <button type="button" class="btn btn-primary" id="btnValiderSituation">
-                  Valider <i class="fas fa-check ms-2"></i>
-                </button>
-                <button type="button" class="btn btn-primary d-none" id="btnNextStep3" data-next="4">
-                  Suivant <i class="fas fa-arrow-right ms-2"></i>
-                </button>
-                <script>
-                  // Gestion de la validation de la situation matrimoniale
-                  document.addEventListener('DOMContentLoaded', function() {
-                    const btnValider = document.getElementById('btnValiderSituation');
-                    const btnNext = document.getElementById('btnNextStep3');
-                    const situationSelect = document.querySelector('select[name="situationMatrimoniale"]');
-                    
-                    if (btnValider && btnNext && situationSelect) {
-                      btnValider.addEventListener('click', function() {
-                        console.log('Validation de la situation matrimoniale');
-                        
-                        // Réinitialiser les états d'erreur
-                        situationSelect.classList.remove('is-invalid');
-                        
-                        // Valider le champ obligatoire
-                        if (!situationSelect.value) {
-                          situationSelect.classList.add('is-invalid');
-                          showError('Veuillez sélectionner une situation matrimoniale');
-                          return;
-                        }
-                        
-                        // Si la validation est réussie, masquer le bouton Valider et afficher Suivant
-                        btnValider.classList.add('d-none');
-                        btnNext.classList.remove('d-none');
-                        
-                        // Afficher un message de succès
-                        showSuccess('Situation matrimoniale enregistrée');
-                      });
-                      
-                      // Gérer le clic sur Suivant
-                      btnNext.addEventListener('click', function() {
-                        console.log('Passage à l\'étape suivante');
-                        showStep(4);
-                      });
-                      
-                      // Réinitialiser l'état si l'utilisateur change la sélection
-                      situationSelect.addEventListener('change', function() {
-                        if (btnNext.classList.contains('d-none') === false) {
-                          btnValider.classList.remove('d-none');
-                          btnNext.classList.add('d-none');
-                        }
-                      });
-                    }
-                  });
-                </script>
-              </div>
+            <div class="col-md-6">
+              <label class="form-label required">Lien avec le défunt</label>
+              <select name="lienDeclarant" class="form-select" required>
+                <option value="">Sélectionner</option>
+                <option value="Conjoint(e)">Conjoint(e)</option>
+                <option value="Enfant">Enfant</option>
+                <option value="Parent">Parent</option>
+                <option value="Frère/Sœur">Frère/Sœur</option>
+                <option value="Autre membre de la famille">Autre membre de la famille</option>
+                <option value="Autre">Autre</option>
+              </select>
             </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Situation matrimoniale</label>
+              <select name="situationMatrimoniale" class="form-select">
+                <option value="">Sélectionner</option>
+                <option value="Célibataire">Célibataire</option>
+                <option value="Marié(e)">Marié(e)</option>
+                <option value="Veuf/Veuve">Veuf/Veuve</option>
+                <option value="Séparé(e)">Séparé(e)</option>
+              </select>
+            </div>
+            
+            <div class="col-md-6" id="conjointField" style="display: none;">
+              <label class="form-label">Nom du conjoint</label>
+              <input type="text" name="nomConjoint" class="form-control" placeholder="Nom et prénom du conjoint">
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Nom du père</label>
+              <input type="text" name="nomPere" class="form-control" placeholder="Nom et prénom du père">
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Nom de la mère</label>
+              <input type="text" name="nomMere" class="form-control" placeholder="Nom et prénom de la mère">
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="previousStep(2)">
+              <i class="fas fa-arrow-left me-2"></i> Précédent
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(4)">
+              Suivant <i class="fas fa-arrow-right ms-2"></i>
+            </button>
           </div>
         </div>
-      </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-  <!-- SweetAlert2 (chargé en bas de page) -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
-  <!-- Sidebar (chargé en bas de page) -->
-  <script src="/js/sidebar-template.js" defer></script>
-  <script>
-    // Initialisation optimisée du thème (mode clair uniquement)
-    document.documentElement.setAttribute('data-bs-theme', 'light');
-    
-    // Initialisation immédiate des éléments visuels critiques
-    document.addEventListener('DOMContentLoaded', function() {
-      // Afficher immédiatement le contenu principal
-      document.body.style.opacity = '1';
-    });
-    
-    // Cache des sélecteurs fréquemment utilisés
-    const cache = {
-      form: document.getElementById('formDeces'),
-      dateFields: document.querySelectorAll('input[type="date"]')
-    };
-    
-    // Fonction optimisée pour initialiser les champs de date
-    function initDateFields() {
-      if (!cache.dateFields.length) return;
-      
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Utiliser du JavaScript natif pour de meilleures performances
-      cache.dateFields.forEach(function(input) {
-        // Configurer les attributs directement
-        input.type = 'date';
-        input.max = today;
         
-        // Ajouter un placeholder personnalisé pour les navigateurs qui ne supportent pas type="date"
-        if (input.type !== 'date') {
-          input.placeholder = 'AAAA-MM-JJ';
-          input.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9-]/g, '');
-          });
-        }
-      });
-    }
-    
-    // Déclaration de la variable form au niveau global
-    let form = null;
-    
-    // Fonction pour calculer l'âge au moment du décès
-    function calculerAgeDeces() {
-      const dateNaissance = new Date(document.querySelector('input[name="dateNaissance"]').value);
-      const dateDeces = new Date(document.querySelector('input[name="dateDeces"]').value);
-      
-      if (isNaN(dateNaissance.getTime())) return; // Date de naissance invalide
-      
-      // Si la date de décès n'est pas définie, utiliser la date du jour
-      const dateReference = isNaN(dateDeces.getTime()) ? new Date() : dateDeces;
-      
-      // Calcul de l'âge
-      let age = dateReference.getFullYear() - dateNaissance.getFullYear();
-      const m = dateReference.getMonth() - dateNaissance.getMonth();
-      
-      // Ajustement si l'anniversaire n'est pas encore passé cette année
-      if (m < 0 || (m === 0 && dateReference.getDate() < dateNaissance.getDate())) {
-        age--;
-      }
-      
-      // Mise à jour du champ âge
-      if (age >= 0) {
-        document.querySelector('input[name="ageDeces"]').value = age;
-      }
-    }
-    
-    // Fonction pour afficher les erreurs de formulaire
-    function showError(message) {
-      // Vérifier si une alerte est déjà affichée
-      if (document.querySelector('.swal2-container')) {
-        return; // Ne pas afficher une nouvelle alerte si une est déjà présente
-      }
-      
-      console.log('Affichage du message d\'erreur:', message);
-      
-      // Utiliser SweetAlert2 pour afficher l'erreur
-      Swal.fire({
-        icon: 'error',
-        title: 'Erreur',
-        text: message,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#0d6efd',
-        customClass: {
-          confirmButton: 'btn btn-primary'
-        },
-        buttonsStyling: false,
-        allowOutsideClick: false,
-        allowEscapeKey: false
-      });
-      
-      // Faire défiler vers le haut pour voir le message
-      $('html, body').animate({
-        scrollTop: $('.page-container').offset().top - 20
-      }, 500);
-    }
-    
-    // Fonction pour afficher un message de succès
-    function showSuccess(message) {
-      // Vérifier si une alerte est déjà affichée
-      if (document.querySelector('.swal2-container')) {
-        return; // Ne pas afficher une nouvelle alerte si une est déjà présente
-      }
-      
-      // Utiliser SweetAlert2 pour afficher un toast de succès
-      const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.addEventListener('mouseenter', Swal.stopTimer);
-          toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-      });
-      
-      Toast.fire({
-        icon: 'success',
-        title: message
-      });
-    }
-    
-    // Fonction pour afficher une alerte
-    function showAlert(message, type = 'info') {
-      return Swal.fire({
-        icon: type,
-        title: 'Information',
-        text: message,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#0d6efd'
-      });
-    }
-    
-    // Gestion des champs conditionnels
-    function toggleConditionalFields() {
-      // Afficher/masquer les détails de mort violente
-      if ($('input[name="mortViolente"]').is(':checked')) {
-        $('#detailsMortViolente').slideDown(300);
-        $('input[name="lieuFaits"], input[name="dateHeureFaits"], textarea[name="circonstancesViolentes"]').prop('required', true);
-      } else {
-        $('#detailsMortViolente').slideUp(300);
-        $('input[name="lieuFaits"], input[name="dateHeureFaits"], textarea[name="circonstancesViolentes"]').prop('required', false);
-      }
-      
-      // Gestion des champs du conjoint
-      const situationMatrimoniale = $('select[name="situationMatrimoniale"]').val();
-      if (situationMatrimoniale === 'Marié(e)') {
-        $('#conjointField').slideDown(300);
-        $('input[name="nomConjoint"]').prop('required', true);
-      } else {
-        $('#conjointField').slideUp(300);
-        $('input[name="nomConjoint"]').prop('required', false);
-      }
-      
-      // Gestion du type de pièce d'identité
-      const typePiece = $('select[name="typePiece"]').val();
-      $('input[name="numeroPiece"]').attr('placeholder', 
-        typePiece === 'CNI' ? 'Numéro de CNI (12 chiffres)' : 
-        typePiece === 'Passeport' ? 'Numéro de passeport' : 'Numéro de la pièce'
-      );
-    }
-    
-    // La variable age est maintenant gérée directement dans la fonction calculerAgeDeces
+        <!-- PAGE 4: VALIDATION -->
+        <div class="form-section" id="section-4">
+          <h4 class="mb-4"><i class="fas fa-check-circle me-2 text-primary"></i>Récapitulatif et validation</h4>
+          
+          <div id="summaryContent">
+            <!-- Le récapitulatif sera généré dynamiquement -->
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="previousStep(3)">
+              <i class="fas fa-arrow-left me-2"></i> Précédent
+            </button>
+            <button type="button" class="btn btn-success btn-lg" onclick="submitForm()">
+              <i class="fas fa-save me-2"></i> ENREGISTRER
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   
-  // Fonction pour valider une étape du formulaire
-  function validateStep(step) {
-    console.log('Début de la validation de l\'étape', step);
-    const currentSection = $(`#section-${step}`);
-    console.log('Validation de la section:', currentSection.attr('id'));
-    
-    // Masquer les messages d'erreur précédents
-    $('.alert-danger').remove();
-    currentSection.find('.is-invalid').removeClass('is-invalid');
-    currentSection.find('.parsley-error').removeClass('parsley-error');
-    currentSection.find('.parsley-errors-list').remove();
-    currentSection.find('.invalid-feedback').remove();
-    
-    // Récupérer l'instance Parsley
-    const parsleyForm = $('#formDeces').parsley();
-    
-    // Valider uniquement les champs visibles et requis de l'étape actuelle
-    let isValid = true;
-    const requiredFields = currentSection.find('[required]:visible');
-    
-    // Vérifier d'abord les champs requis
-    requiredFields.each(function() {
-      const field = $(this);
-      const value = field.val();
-      const fieldName = field.attr('name');
-      
-      // Nettoyer les messages d'erreur précédents
-      field.removeClass('is-invalid');
-      field.next('.invalid-feedback').remove();
-      
-      // Vérifier si le champ est vide
-      if (!value || (typeof value === 'string' && value.trim() === '')) {
-        field.addClass('is-invalid');
-        isValid = false;
-        
-        // Messages d'erreur personnalisés par champ
-        let errorMessage = 'Ce champ est obligatoire';
-        
-        // Définir des messages d'erreur plus descriptifs pour chaque champ
-        const errorMessages = {
-          'dateDeces': 'La date du décès est obligatoire',
-          'heureDeces': 'L\'heure du décès est obligatoire',
-          'typeLieuDeces': 'Veuillez sélectionner un type de lieu',
-          'communeDeces': 'Veuillez spécifier la commune ou l\'arrondissement',
-          'adresseDeces': 'Veuillez préciser l\'adresse ou le nom de l\'établissement',
-          'cause': 'La cause du décès est obligatoire'
-        };
-        
-        // Utiliser le message personnalisé s'il existe, sinon utiliser le nom du champ
-        errorMessage = errorMessages[fieldName] || 
-                     (fieldName ? `Le champ ${fieldName} est obligatoire` : 'Ce champ est obligatoire');
-        
-        // Afficher le message d'erreur sous le champ
-        field.after(`<div class="invalid-feedback">${errorMessage}</div>`);
-      }
-    });
-    
-    // Si les champs requis sont valides, valider les autres contraintes
-    if (isValid) {
-      // Valider uniquement les champs visibles de l'étape courante
-      const fieldsToValidate = currentSection.find('[data-parsley-pattern], [data-parsley-type], [data-parsley-minlength], [data-parsley-maxlength], [data-parsley-min], [data-parsley-max]');
-      
-      fieldsToValidate.each(function() {
-        const field = $(this);
-        if (field.is(':visible')) {
-          const fieldInstance = field.parsley();
-          if (fieldInstance && !fieldInstance.isValid()) {
-            field.addClass('is-invalid');
-            isValid = false;
-            
-            // Afficher les messages d'erreur de Parsley
-            const errors = fieldInstance.getErrorsMessages();
-            if (errors.length > 0 && field.next('.invalid-feedback').length === 0) {
-              field.after(`<div class="invalid-feedback">${errors[0]}</div>`);
-            }
-          }
-        }
-      });
-    }
-    
-    // Afficher les erreurs si nécessaire
-    if (!isValid) {
-      const firstError = currentSection.find('.is-invalid, .parsley-error').first();
-      if (firstError.length) {
-        $('html, body').animate({
-          scrollTop: firstError.offset().top - 100
-        }, 500);
-        
-        // Afficher un message d'erreur général seulement s'il n'y a pas déjà de message spécifique
-        if (currentSection.find('.invalid-feedback:visible').length === 0) {
-          showError('Veuillez corriger les erreurs dans le formulaire');
-        }
-      }
-    }
-    
-    return isValid;
-  }
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
-  // Fonction pour afficher une étape spécifique
-  function showStep(step) {
-    console.log('showStep appelée avec step =', step);
-    
-    // Vérifier si l'étape demandée est valide
-    const $targetSection = $(`#section-${step}`);
-    if (!$targetSection.length) {
-      console.error('Impossible de trouver la section', step);
-      return false;
-    }
-    
-    // Masquer tous les messages d'erreur
-    $('.alert-danger').remove();
-    
-    // Masquer toutes les sections
-    $('.form-section').removeClass('active');
-    
-    // Afficher la section demandée
-    $targetSection.addClass('active');
-    console.log('Section activée:', $targetSection.attr('id'));
-    
-    // Mettre à jour les indicateurs d'étape
-    $('.step').removeClass('active');
-    $(`.step[data-step="${step}"]`).addClass('active');
-    
-    // Réinitialiser les erreurs de validation pour tous les champs
-    $('.is-invalid').removeClass('is-invalid');
-    $('.parsley-error').removeClass('parsley-error');
-    $('.parsley-errors-list').remove();
-    $('.invalid-feedback').remove();
-    
-    // Désactiver temporairement la validation automatique
-    const parsleyForm = $('#formDeces').parsley();
-    if (parsleyForm) {
-      parsleyForm.reset();
-      parsleyForm.options.trigger = 'none';
-      parsleyForm.options.triggerAfterFailure = 'none';
-      parsleyForm.options.uiEnabled = false;
-    }
-    
-    // Faire défiler vers le haut de la section en douceur
-    $('html, body').animate({
-      scrollTop: $targetSection.offset().top - 20
-    }, 300);
-    
-    // Mettre à jour l'URL avec l'étape actuelle
-    if (history.pushState) {
-      const newUrl = window.location.pathname + '?etape=' + step;
-      window.history.pushState({ path: newUrl }, '', newUrl);
-    }
-    
-    return true;
-  }
-  
-  // Fonction pour initialiser les gestionnaires d'événements du formulaire
-  function initializeFormHandler() {
-    console.log('Initialisation des gestionnaires de formulaire...');
-    
-    if (form) {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (form.checkValidity()) {
-          console.log('Formulaire valide, soumission...');
-          // Logique de soumission du formulaire
-        } else {
-          console.log('Veuillez remplir tous les champs obligatoires');
-          form.classList.add('was-validated');
-        }
-      });
-    }
-  }
-
-  // Initialisation optimisée de l'application
-  document.addEventListener('DOMContentLoaded', function() {
-    // Désactiver les animations inutiles si jQuery est chargé
-    if (window.jQuery) {
-      $.fx.off = true;
-    }
-    
-    // Initialiser les champs de date immédiatement
-    initDateFields();
-    
-    // Initialiser les gestionnaires d'événements de manière différée
-    setTimeout(initializeFormHandler, 100);
-    
-    // Initialisation différée des gestionnaires d'événements
-    if (cache.form) {
-      console.log('Formulaire trouvé, initialisation des gestionnaires...');
-      
-      // Utiliser requestIdleCallback pour différer l'initialisation non critique
-      requestIdleCallback(() => {
-        initializeFormHandler();
-        
-        // Délégation d'événements pour les éléments dynamiques
-        $(document)
-          .off('click', '.btn-previous, .btn-next') // Nettoyer d'abord pour éviter les doublons
-          .on('click', '.btn-previous, .btn-next', function(e) {
-            e.preventDefault();
-            const targetStep = $(this).data('previous') || $(this).data('next');
-            if (targetStep) validateStep(parseInt(targetStep));
-          });
-      }, { timeout: 2000 }); // Délai max de 2 secondes avant exécution forcée
-    } else {
-      console.warn('Le formulaire avec l\'ID "formDeces" n\'a pas été trouvé dans le DOM');
-    }
-    
-    // Désactiver la validation HTML5 native
-    if (form) {
-      form.setAttribute('novalidate', '');
-    }
-    
-    // Initialiser les boutons de navigation
-    initNavigationButtons();
-    
-    // Configuration de Parsley
-    window.ParsleyConfig = {
-      errorsWrapper: '<div class="invalid-feedback"></div>',
-      errorTemplate: '<div></div>',
-      errorClass: 'is-invalid',
-      successClass: '',
-      classHandler: function(ParsleyField) {
-        return ParsleyField.$element.closest('.mb-3');
-      },
-      errorsContainer: function(ParsleyField) {
-        return ParsleyField.$element.closest('.mb-3');
-      },
-      trigger: 'none',
-      triggerAfterFailure: 'none',
-      uiEnabled: false
-    };
-    
-    // Initialiser Parsley avec la configuration
-    const parsleyForm = $('#formDeces').parsley({
-      // Désactiver la validation automatique
-      trigger: 'none',
-      triggerAfterFailure: 'none',
-      uiEnabled: false,
-      // Désactiver la validation des champs cachés
-      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
-      // Personnaliser les messages d'erreur
-      messages: {
-        required: 'Ce champ est obligatoire',
-        email: 'Veuillez entrer une adresse email valide',
-        number: 'Veuillez entrer un nombre valide',
-        integer: 'Veuillez entrer un nombre entier',
-        digits: 'Veuillez entrer uniquement des chiffres',
-        alphanum: 'Veuillez entrer uniquement des lettres et des chiffres'
-      },
-      // Désactiver la validation sur les champs désactivés ou en lecture seule
-      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
-      // Désactiver la validation sur les champs non visibles
-      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden',
-      // Désactiver la validation sur les champs désactivés
-      excluded: 'input[type=button], input[type=submit], input[type=reset], input[type=hidden], [disabled], :hidden'
-    });
-    
-    // Désactiver la validation automatique sur tous les champs
-    $('input, select, textarea').each(function() {
-      $(this).attr('data-parsley-validate-if-empty', 'false');
-      $(this).attr('data-parsley-validate-if-unchecked', 'false');
-      $(this).attr('data-parsley-validate-if-empty', 'false');
-    });
-    
-    // Réinitialiser l'état de validation
-    parsleyForm.reset();
-    
-    // Activer/désactiver le champ autreQualiteDeclarant
-    $('select[name="qualiteDeclarant"]').on('change', function() {
-      const autreField = $('input[name="autreQualiteDeclarant"]');
-      if ($(this).val() === 'Autre') {
-          autreField.prop('disabled', false).prop('required', true);
-        } else {
-          autreField.prop('disabled', true).prop('required', false).val('');
-        }
-      });
-      
-      // Initialiser l'état du champ autreQualiteDeclarant
-      $('select[name="qualiteDeclarant"]').trigger('change');
-      
-      // Initialiser les champs conditionnels
-  toggleConditionalFields();
-  
-  // Écouter les changements sur les champs qui affectent les champs conditionnels
-  $('input[name="mortViolente"]').on('change', toggleConditionalFields);
-  $('select[name="situationMatrimoniale"]').on('change', toggleConditionalFields);
-  $('select[name="typePiece"]').on('change', toggleConditionalFields);
-  
-  // Initialiser le sélecteur de date
-  $('.datepicker').datepicker({
-    format: 'dd/mm/yyyy',
-    autoclose: true,
-    todayHighlight: true,
-    language: 'fr',
-    orientation: 'bottom auto'
-  });
-  
-  // Initialiser le sélecteur d'heure
-  $('.timepicker').timepicker({
-    showMeridian: false,
-    minuteStep: 5
-  });
-  
-  console.log('Initialisation terminée');
-      toggleConditionalFields();
-      
-      // Écouteurs d'événements pour les champs conditionnels
-      $('input[name="mortViolente"]').on('change', toggleConditionalFields);
-      $('select[name="situationMatrimoniale"]').on('change', toggleConditionalFields);
-      $('select[name="typePiece"]').on('change', toggleConditionalFields);
-      
-      // Validation personnalisée pour les numéros de téléphone
-      window.Parsley.addValidator('phone', {
-        validateString: function(value) {
-          return /^[0-9]{8,15}$/.test(value);
-        },
-        messages: {
-          fr: 'Veuillez entrer un numéro de téléphone valide (8 à 15 chiffres)'
-        }
-      });
-      
-      // Gestion des boutons suivant/précédent
-      $(document).on('click', '.btn-next', function(e) {
-        console.log('Bouton Suivant cliqué');
-        e.preventDefault();
-        
-        const $activeSection = $('.form-section.active');
-        console.log('Section active:', $activeSection.attr('id'));
-        
-        const currentStep = parseInt($activeSection.attr('id').split('-')[1]);
-        const nextStep = parseInt($(this).data('next'));
-        
-        console.log('Étape actuelle:', currentStep, 'Prochaine étape:', nextStep);
-        
-        const isValid = validateStep(currentStep);
-        console.log('Validation de l\'étape', currentStep, ':', isValid ? 'valide' : 'invalide');
-        
-        if (isValid) {
-          console.log('Passage à l\'étape', nextStep);
-          showStep(nextStep);
-        }
-      });
-      
-      $(document).on('click', '.btn-previous', function(e) {
-        e.preventDefault();
-        const previousStep = parseInt($(this).data('previous'));
-        showStep(previousStep);
-      });
-      
-      // Validation personnalisée pour les dates
-      window.Parsley.addValidator('dateNotFuture', {
-        validateString: function(value) {
-          if (!value) return true;
-          const inputDate = new Date(value);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return inputDate <= today;
-        },
-        messages: {
-          fr: 'La date ne peut pas être dans le futur'
-        }
-      });
-      
-      // Gestion de la soumission du formulaire
-      $('#formDeces').on('submit', function(e) {
-        e.preventDefault();
-        
-        // Valider le formulaire avec Parsley
-        const $form = $(this);
-        const isValid = $form.parsley().validate();
-        
-        if (isValid) {
-          // Afficher une confirmation avant soumission
-          if (confirm('Voulez-vous vraiment soumettre ce formulaire ?')) {
-            // Soumettre le formulaire
-            $form.off('submit').submit();
-          }
-        } else {
-          // Afficher les erreurs de validation
-          showError('Veuillez corriger les erreurs dans le formulaire avant de continuer.');
-        }
-      });
-      
-      // Fonction pour afficher le message de succès après soumission
-      function showSuccessMessage(data) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Formulaire soumis',
-          html: '<div class="text-start">' +
-                '<p>Le formulaire a été soumis avec succès.</p>' +
-                '</div>',
-          showCancelButton: true,
-          confirmButtonColor: '#198754',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: '<i class="fas fa-print me-1"></i>Imprimer',
-          cancelButtonText: '<i class="fas fa-home me-1"></i>Retour à l\'accueil',
-          showDenyButton: true,
-          denyButtonText: '<i class="fas fa-plus-circle me-1"></i>Nouveau formulaire',
-          confirmButtonColor: '#0d6efd',
-          cancelButtonColor: '#6c757d',
-          denyButtonColor: '#198754',
-          allowOutsideClick: false
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Rediriger vers l'impression
-            window.location.href = '/deces/imprimer';
-          } else if (result.dismiss === Swal.DismissReason.cancel) {
-            // Retour à l'accueil
-            window.location.href = '/';
-          } else if (result.isDenied) {
-            // Réinitialiser le formulaire pour un nouveau formulaire
-            document.getElementById('formDeces').reset();
-            showStep(1);
-            $('.form-section').removeClass('was-validated');
-            $('.is-invalid').removeClass('is-invalid');
-            $('.is-valid').removeClass('is-valid');
-            toggleConditionalFields();
-            
-            // Faire défiler vers le haut
-            $('html, body').animate({ scrollTop: 0 }, 'smooth');
-            
-            // Afficher un message de confirmation
-            showAlert('Le formulaire a été réinitialisé.');
-          }
-        });
-      }
-      
-      // Fonction pour afficher les erreurs du formulaire
-      function showFormErrors(data) {
-        let errorMessage = '<div class="text-start"><p class="fw-bold">Veuillez corriger les erreurs suivantes :</p><ul class="mb-0">';
-        
-        if (data.errors) {
-          Object.values(data.errors).forEach(error => {
-            errorMessage += `<li>${error}</li>`;
-          });
-        } else {
-          errorMessage += `<li>${data.message || 'Une erreur inconnue est survenue'}</li>`;
-        }
-        
-        errorMessage += '</ul></div>';
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          html: errorMessage,
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
-        });
-        
-        // Mettre en surbrillance les champs en erreur
-        if (data.errors) {
-          Object.keys(data.errors).forEach(fieldName => {
-            const $field = $(`[name="${fieldName}"]`);
-            if ($field.length) {
-              $field.addClass('is-invalid');
-              
-              // Faire défiler jusqu'au premier champ en erreur
-              if ($('.is-invalid').length === 1) {
-                $('html, body').animate({
-                  scrollTop: $field.offset().top - 100
-                }, 500);
-                $field.focus();
-              }
-            }
-          });
-        }
-      }
-
-    console.timeEnd('Initialisation du document');
-    }); // Fin du document.ready
-  </script>
-  
-  <!-- Chargement différé de pdfUtils.js -->
-  <script>
-    // Charger pdfUtils.js après le chargement de la page
-    window.addEventListener('load', function() {
-      const script = document.createElement('script');
-      script.src = '/js/pdfUtils.js';
-      document.body.appendChild(script);
-    });
-  </script>
   <script>
     // Variables globales
-    let formHandler = null;
-    let isEditMode = false;
-    let editActeId = null;
+    let currentStep = 1;
+    const totalSteps = 4;
     
-    document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Vérifier l'authentification
       const token = checkAuth();
-      if (!token) return;
-      
-      document.getElementById('common-styles').textContent = commonCSS;
-      document.getElementById('sidebar-container').innerHTML = createSidebar('deces');
-      
-      // Vérifier si on est en mode édition
-      const urlParams = new URLSearchParams(window.location.search);
-      editActeId = urlParams.get('edit');
-      
-      if (editActeId) {
-        isEditMode = true;
-        document.getElementById('pageTitle').innerHTML = '<i class="fas fa-edit me-2"></i> Modification d\'un Acte de Décès';
-        loadActeForEdit(editActeId);
+      if (!token) {
+        window.location.href = '/login';
+        return;
       }
       
-      // Initialiser le gestionnaire de formulaire
-      initializeFormHandler();
+      // Injecter le CSS commun
+      if (typeof commonCSS !== 'undefined') {
+        document.getElementById('common-styles').textContent = commonCSS;
+      }
       
-      // Définir la date d'enregistrement par défaut à aujourd'hui
-      const dateEnregistrement = document.querySelector('input[name="dateEnregistrement"]');
-      if (dateEnregistrement && !isEditMode) {
-        dateEnregistrement.value = new Date().toISOString().split('T')[0];
+      // Initialiser la sidebar
+      if (typeof createSidebar === 'function') {
+        document.getElementById('sidebar-container').innerHTML = createSidebar('deces');
+      } else {
+        // Attendre que le script soit chargé
+        setTimeout(() => {
+          if (typeof createSidebar === 'function') {
+            document.getElementById('sidebar-container').innerHTML = createSidebar('deces');
+            if (typeof commonCSS !== 'undefined') {
+              document.getElementById('common-styles').textContent = commonCSS;
+            }
+          }
+        }, 100);
+      }
+      
+      // Gérer l'affichage du champ conjoint
+      const situationSelect = document.querySelector('select[name="situationMatrimoniale"]');
+      const conjointField = document.getElementById('conjointField');
+      
+      if (situationSelect && conjointField) {
+        situationSelect.addEventListener('change', function() {
+          if (this.value === 'Marié(e)') {
+            conjointField.style.display = 'block';
+          } else {
+            conjointField.style.display = 'none';
+            document.querySelector('input[name="nomConjoint"]').value = '';
+          }
+        });
+      }
+      
+      // Synchroniser les champs dateDeces
+      const dateDeces1 = document.querySelector('input[name="dateDeces"]');
+      const dateDeces2 = document.querySelector('input[name="dateDeces2"]');
+      const lieuDeces1 = document.querySelector('input[name="lieuDeces"]');
+      const lieuDeces2 = document.querySelector('input[name="lieuDeces2"]');
+      
+      if (dateDeces1 && dateDeces2) {
+        dateDeces1.addEventListener('change', function() {
+          dateDeces2.value = this.value;
+        });
+        dateDeces2.addEventListener('change', function() {
+          dateDeces1.value = this.value;
+        });
+      }
+      
+      if (lieuDeces1 && lieuDeces2) {
+        lieuDeces1.addEventListener('change', function() {
+          lieuDeces2.value = this.value;
+        });
+        lieuDeces2.addEventListener('change', function() {
+          lieuDeces1.value = this.value;
+        });
       }
     });
     
-    async function loadActeForEdit(acteId) {
-      try {
-        const response = await fetch(`/api/actes/${acteId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+    // Fonction pour calculer l'âge
+    function calculerAge() {
+      const dateDeces = document.querySelector('input[name="dateDeces"]').value;
+      const dateNaissance = document.querySelector('input[name="dateNaissance"]');
+      
+      if (!dateDeces) return;
+      
+      // Si on a une date de naissance, calculer l'âge
+      if (dateNaissance && dateNaissance.value) {
+        const naissance = new Date(dateNaissance.value);
+        const deces = new Date(dateDeces);
+        let age = deces.getFullYear() - naissance.getFullYear();
+        const m = deces.getMonth() - naissance.getMonth();
+        if (m < 0 || (m === 0 && deces.getDate() < naissance.getDate())) {
+          age--;
+        }
+        document.querySelector('input[name="age"]').value = age >= 0 ? age : '';
+      }
+    }
+    
+    // Fonction pour valider une étape
+    function validateStep(step) {
+      const section = document.getElementById(`section-${step}`);
+      const requiredFields = section.querySelectorAll('[required]');
+      let isValid = true;
+      
+      // Nettoyer les erreurs précédentes
+      section.querySelectorAll('.is-invalid').forEach(field => {
+        field.classList.remove('is-invalid');
+      });
+      section.querySelectorAll('.invalid-feedback').forEach(feedback => {
+        feedback.remove();
+      });
+      
+      // Valider les champs requis
+      requiredFields.forEach(field => {
+        if (!field.value || (field.value.trim && field.value.trim() === '')) {
+          isValid = false;
+          field.classList.add('is-invalid');
+          const feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          feedback.textContent = 'Ce champ est obligatoire';
+          field.parentNode.appendChild(feedback);
+        }
+      });
+      
+      // Validation spécifique pour la date de décès
+      if (step === 1 || step === 2) {
+        const dateDeces = document.querySelector('input[name="dateDeces"]').value || 
+                         document.querySelector('input[name="dateDeces2"]').value;
+        if (dateDeces) {
+          const date = new Date(dateDeces);
+          const today = new Date();
+          if (date > today) {
+            isValid = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Erreur',
+              text: 'La date de décès ne peut pas être dans le futur'
+            });
           }
+        }
+      }
+      
+      if (!isValid) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Champs manquants',
+          text: 'Veuillez remplir tous les champs obligatoires'
+        });
+      }
+      
+      return isValid;
+    }
+    
+    // Fonction pour passer à l'étape suivante
+    function nextStep(step) {
+      if (step > 1 && !validateStep(step - 1)) {
+        return;
+      }
+      
+      // Si on passe à l'étape 4, générer le récapitulatif
+      if (step === 4) {
+        generateSummary();
+      }
+      
+      // Masquer toutes les sections
+      document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      // Afficher la section demandée
+      document.getElementById(`section-${step}`).classList.add('active');
+      
+      // Mettre à jour les indicateurs d'étape
+      document.querySelectorAll('.step').forEach((stepEl, index) => {
+        stepEl.classList.remove('active', 'completed');
+        if (index + 1 < step) {
+          stepEl.classList.add('completed');
+        } else if (index + 1 === step) {
+          stepEl.classList.add('active');
+        }
+      });
+      
+      currentStep = step;
+      
+      // Faire défiler vers le haut
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Fonction pour revenir à l'étape précédente
+    function previousStep(step) {
+      nextStep(step);
+    }
+    
+    // Fonction pour générer le récapitulatif
+    function generateSummary() {
+      const form = document.getElementById('formDeces');
+      const formData = new FormData(form);
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        if (key !== 'dateDeces2' && key !== 'lieuDeces2') {
+          data[key] = value;
+        }
+      }
+      
+      const summary = document.getElementById('summaryContent');
+      summary.innerHTML = `
+        <div class="summary-card">
+          <h5 class="mb-3"><i class="fas fa-user me-2"></i>Informations du défunt</h5>
+          <div class="summary-row">
+            <span class="summary-label">Nom :</span>
+            <span class="summary-value">${data.nom || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Prénom :</span>
+            <span class="summary-value">${data.prenom || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Sexe :</span>
+            <span class="summary-value">${data.sexe === 'M' ? 'Masculin' : data.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Date de décès :</span>
+            <span class="summary-value">${data.dateDeces ? new Date(data.dateDeces).toLocaleDateString('fr-FR') : 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Lieu de décès :</span>
+            <span class="summary-value">${data.lieuDeces || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Âge :</span>
+            <span class="summary-value">${data.age ? data.age + ' ans' : 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Nationalité :</span>
+            <span class="summary-value">${data.nationalite || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Adresse :</span>
+            <span class="summary-value">${data.adresse || 'Non renseigné'}</span>
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <h5 class="mb-3"><i class="fas fa-calendar-times me-2"></i>Informations du décès</h5>
+          <div class="summary-row">
+            <span class="summary-label">Heure du décès :</span>
+            <span class="summary-value">${data.heureDeces || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Cause :</span>
+            <span class="summary-value">${data.causeDeces || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Centre d'état civil :</span>
+            <span class="summary-value">${data.centreEtatCivil || 'Non renseigné'}</span>
+          </div>
+        </div>
+        
+        <div class="summary-card">
+          <h5 class="mb-3"><i class="fas fa-users me-2"></i>Déclarant et famille</h5>
+          <div class="summary-row">
+            <span class="summary-label">Nom du déclarant :</span>
+            <span class="summary-value">${data.nomDeclarant || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Lien avec le défunt :</span>
+            <span class="summary-value">${data.lienDeclarant || 'Non renseigné'}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Situation matrimoniale :</span>
+            <span class="summary-value">${data.situationMatrimoniale || 'Non renseigné'}</span>
+          </div>
+          ${data.nomConjoint ? `
+          <div class="summary-row">
+            <span class="summary-label">Conjoint :</span>
+            <span class="summary-value">${data.nomConjoint}</span>
+          </div>
+          ` : ''}
+          ${data.nomPere ? `
+          <div class="summary-row">
+            <span class="summary-label">Père :</span>
+            <span class="summary-value">${data.nomPere}</span>
+          </div>
+          ` : ''}
+          ${data.nomMere ? `
+          <div class="summary-row">
+            <span class="summary-label">Mère :</span>
+            <span class="summary-value">${data.nomMere}</span>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+    
+    // Fonction pour soumettre le formulaire
+    async function submitForm() {
+      // Valider l'étape 4
+      if (!validateStep(4)) {
+        return;
+      }
+      
+      // Récupérer les données du formulaire
+      const form = document.getElementById('formDeces');
+      const formData = new FormData(form);
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        // Ignorer les champs dupliqués
+        if (key !== 'dateDeces2' && key !== 'lieuDeces2') {
+          data[key] = value;
+        }
+      }
+      
+      // Préparer les données pour l'API
+      const acteData = {
+        type: 'deces',
+        details: {
+          nom: data.nom,
+          prenom: data.prenom,
+          sexe: data.sexe,
+          dateDeces: data.dateDeces,
+          heureDeces: data.heureDeces,
+          lieuDeces: data.lieuDeces,
+          age: data.age ? parseInt(data.age) : null,
+          nationalite: data.nationalite,
+          adresse: data.adresse,
+          causeDeces: data.causeDeces || null,
+          centreEtatCivil: data.centreEtatCivil,
+          nomDeclarant: data.nomDeclarant,
+          lienDeclarant: data.lienDeclarant,
+          situationMatrimoniale: data.situationMatrimoniale,
+          nomConjoint: data.nomConjoint || null,
+          pere: data.nomPere || null,
+          mere: data.nomMere || null
+        },
+        mairie: data.centreEtatCivil
+      };
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/actes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(acteData)
         });
         
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement de l\'acte');
-        }
-        
         const result = await response.json();
-        if (result.success && result.data) {
-          populateForm(result.data);
+        
+        if (response.ok && result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Succès !',
+            text: 'L\'acte de décès a été enregistré avec succès',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            window.location.href = '/deces';
+          });
+        } else {
+          throw new Error(result.error || 'Erreur lors de l\'enregistrement');
         }
       } catch (error) {
         console.error('Erreur:', error);
-        showError('Erreur lors du chargement des données de l\'acte');
-      }
-    }
-    
-    function populateForm(acte) {
-      const details = acte.details;
-      
-      // Informations du défunt
-      if (details.nom) document.querySelector('input[name="nom"]').value = details.nom;
-      if (details.prenom) document.querySelector('input[name="prenom"]').value = details.prenom;
-      if (details.dateNaissance) document.querySelector('input[name="dateNaissance"]').value = details.dateNaissance.split('T')[0];
-      if (details.lieuNaissance) document.querySelector('input[name="lieuNaissance"]').value = details.lieuNaissance;
-      if (details.sexe) document.querySelector('select[name="sexe"]').value = details.sexe;
-      if (details.nationalite) document.querySelector('input[name="nationalite"]').value = details.nationalite;
-      if (details.profession) document.querySelector('input[name="profession"]').value = details.profession;
-      if (details.adresse) document.querySelector('textarea[name="adresse"]').value = details.adresse;
-      
-      // Informations du décès
-      if (details.dateDeces) document.querySelector('input[name="dateDeces"]').value = details.dateDeces.split('T')[0];
-      if (details.heureDeces) document.querySelector('input[name="heureDeces"]').value = details.heureDeces;
-      if (details.lieuDeces) document.querySelector('input[name="lieuDeces"]').value = details.lieuDeces;
-      if (details.age) document.querySelector('input[name="age"]').value = details.age;
-      if (details.cause) document.querySelector('textarea[name="cause"]').value = details.cause;
-      
-      // Informations familiales
-      if (details.nomPere) document.querySelector('input[name="nomPere"]').value = details.nomPere;
-      if (details.nomMere) document.querySelector('input[name="nomMere"]').value = details.nomMere;
-      if (details.situationMatrimoniale) document.querySelector('select[name="situationMatrimoniale"]').value = details.situationMatrimoniale;
-      if (details.nomConjoint) document.querySelector('input[name="nomConjoint"]').value = details.nomConjoint;
-      
-      // Informations du déclarant
-      if (details.nomDeclarant) document.querySelector('input[name="nomDeclarant"]').value = details.nomDeclarant;
-      if (details.prenomDeclarant) document.querySelector('input[name="prenomDeclarant"]').value = details.prenomDeclarant;
-      if (details.lienDeclarant) document.querySelector('select[name="lienDeclarant"]').value = details.lienDeclarant;
-      if (details.telephoneDeclarant) document.querySelector('input[name="telephoneDeclarant"]').value = details.telephoneDeclarant;
-      
-      // Informations administratives
-      if (acte.mairie) document.querySelector('input[name="mairie"]').value = acte.mairie;
-      if (acte.dateEnregistrement) document.querySelector('input[name="dateEnregistrement"]').value = acte.dateEnregistrement.split('T')[0];
-      if (details.numeroCertificat) document.querySelector('input[name="numeroCertificat"]').value = details.numeroCertificat;
-      if (details.medecinCertificateur) document.querySelector('input[name="medecinCertificateur"]').value = details.medecinCertificateur;
-      if (details.observations) document.querySelector('textarea[name="observations"]').value = details.observations;
-    }
-    
-    // Fonction showError unique
-    function showError(message) {
-      console.error('Erreur:', message);
-      
-      // Créer un conteneur pour les messages d'erreur s'il n'existe pas
-      let errorContainer = document.getElementById('error-messages');
-      if (!errorContainer) {
-        errorContainer = document.createElement('div');
-        errorContainer.id = 'error-messages';
-        document.querySelector('.main-content').insertBefore(errorContainer, document.querySelector('.main-content').firstChild);
-      }
-      
-      // Afficher le message d'erreur
-      errorContainer.innerHTML = `
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          <strong>Erreur !</strong> ${message}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      `;
-      
-      // Faire défiler jusqu'au message d'erreur
-      errorContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    
-    // Déclarer formHandler s'il n'existe pas
-    if (typeof formHandler === 'function' && form) {
-      form.addEventListener('submit', formHandler);
-    }
-    
-    function validateDecesForm(data) {
-      const errors = [];
-      
-      // Champs obligatoires
-      const requiredFields = {
-        'nom': 'le nom du défunt',
-        'prenom': 'le prénom du défunt',
-        'sexe': 'le sexe du défunt',
-        'dateNaissance': 'la date de naissance',
-        'lieuNaissance': 'le lieu de naissance',
-        'dateDeces': 'la date du décès',
-        'heureDeces': "l'heure du décès",
-        'typeLieuDeces': 'le type de lieu du décès',
-        'lieuDeces': 'le lieu du décès',
-        'communeDeces': 'la commune du décès',
-        'typeCauseDeces': 'le type de cause du décès',
-        'nomDeclarant': 'le nom du déclarant',
-        'prenomDeclarant': 'le prénom du déclarant',
-        'lienDeclarant': 'le lien avec le défunt',
-        'mairie': 'la mairie d\'enregistrement'
-      };
-      
-      // Vérification des champs obligatoires
-      for (const [field, label] of Object.entries(requiredFields)) {
-        if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
-          errors.push(`Le champ "${label}" est obligatoire`);
-        }
-      }
-      
-      // Validation conditionnelle selon le type de lieu de décès
-      if (data.typeLieuDeces === 'domicile' && !data.adresseDeces) {
-        errors.push("L'adresse du domicile est requise");
-      } else if (data.typeLieuDeces === 'hopital' && !data.hopitalDeces) {
-        errors.push("Le nom de l'hôpital est requis");
-      } else if (data.typeLieuDeces === 'autre' && !data.detailsAutreLieu) {
-        errors.push("Veuillez préciser le lieu du décès");
-      }
-      
-      // Validation des dates
-      if (data.dateDeces) {
-        const dateDeces = new Date(data.dateDeces);
-        const today = new Date();
-        if (dateDeces > today) {
-          errors.push("La date de décès ne peut pas être dans le futur");
-        }
-      }
-      
-      if (data.dateNaissance && data.dateDeces) {
-        const dateNaissance = new Date(data.dateNaissance);
-        const dateDeces = new Date(data.dateDeces);
-        if (dateNaissance > dateDeces) {
-          errors.push("La date de naissance ne peut pas être postérieure à la date de décès");
-        }
-      }
-      
-      // Validation du format de l'heure
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (data.heureDeces && !timeRegex.test(data.heureDeces)) {
-        errors.push("Format d'heure invalide (utilisez le format HH:MM)");
-      }
-      
-      if (errors.length > 0) {
-        console.error('Erreurs de validation :', errors);
-        throw new Error(errors.join('\n'));
-      }
-      
-      return true;
-    }
-    
-    // Fonction pour télécharger le PDF d'un acte de décès
-    async function downloadPdf(acteId) {
-      if (!acteId) {
-        showAlert('error', 'Erreur', 'Aucun acte à télécharger');
-        return Promise.reject(new Error('ID d\'acte manquant'));
-      }
-      
-      // Utiliser la fonction utilitaire pour télécharger le PDF
-      return downloadActePdf('deces', acteId, 'downloadPdfBtn')
-        .catch(error => {
-          console.error('Erreur lors du téléchargement du PDF:', error);
-          showAlert('error', 'Erreur', error.message || 'Échec du téléchargement du PDF');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erreur',
+          text: error.message || 'Une erreur est survenue lors de l\'enregistrement'
         });
-    }
-    
-    // Nettoyage lors du déchargement de la page
-    window.addEventListener('beforeunload', () => {
-      if (form && formHandler) {
-        form.removeEventListener('submit', formHandler);
-        formHandler = null;
-      }
-    });
-  </script>
-  
-  <!-- Bootstrap JS Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Initialisation des tooltips -->
-  <script>
-    // Fonction pour initialiser les boutons de navigation
-    function initNavigationButtons() {
-      console.log('Initialisation des boutons de navigation...');
-      
-      // Gestion du bouton Suivant
-      $('.btn-next').off('click').on('click', function(e) {
-        e.preventDefault();
-        console.log('Clic sur le bouton Suivant');
-        
-        const currentStep = parseInt($('.form-section.active').attr('id').split('-')[1]);
-        console.log('Étape actuelle:', currentStep);
-        
-        // Nettoyer les erreurs précédentes
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').remove();
-        $('.alert-danger').remove();
-        
-        // Valider uniquement l'étape actuelle
-        if (validateStep(currentStep)) {
-          console.log('Validation réussie, passage à l\'étape', currentStep + 1);
-          showStep(currentStep + 1);
-        } else {
-          console.log('Échec de la validation de l\'étape', currentStep);
-        }
-      });
-
-      // Gestion du bouton Précédent
-      $('.btn-previous').off('click').on('click', function(e) {
-        e.preventDefault();
-        console.log('Clic sur le bouton Précédent');
-        
-        const currentStep = parseInt($('.form-section.active').attr('id').split('-')[1]);
-        showStep(currentStep - 1);
-      });
-      
-      // Mise à jour initiale de l'état des boutons
-      updateNavigationButtons(1);
-    }
-
-    // Fonction pour mettre à jour l'état des boutons de navigation
-    function updateNavigationButtons(currentStep) {
-      // Désactiver le bouton Précédent sur la première étape
-      if (currentStep === 1) {
-        $('.btn-previous').prop('disabled', true);
-      } else {
-        $('.btn-previous').prop('disabled', false);
-      }
-      
-      // Désactiver le bouton Suivant sur la dernière étape
-      if (currentStep === 3) { // Remplacez 3 par le nombre total d'étapes
-        $('.btn-next').html('Soumettre <i class="fas fa-paper-plane ms-2"></i>');
-      } else {
-        $('.btn-next').html('Suivant <i class="fas fa-arrow-right ms-2"></i>');
       }
     }
-
-    // Fonction pour valider une étape du formulaire
-    function validateStep(step) {
-      console.log('Validation de l\'étape', step);
-      const currentSection = $(`#section-${step}`);
-      
-      // Si ce n'est pas l'étape active, on ne valide pas
-      if (!currentSection.hasClass('active')) {
-        console.log('Étape non active, pas de validation');
-        return true;
-      }
-      
-      let isValid = true;
-      let hasValidated = false;
-
-      // Masquer les erreurs précédentes
-      currentSection.find('.is-invalid').removeClass('is-invalid');
-      currentSection.find('.invalid-feedback').remove();
-      $('.alert-danger').remove();
-
-      // Valider uniquement les champs visibles et requis
-      currentSection.find('[required]:visible').each(function() {
-        const field = $(this);
-        // Ne pas valider les champs désactivés
-        if (field.prop('disabled')) {
-          return true; // continue
-        }
-        
-        hasValidated = true;
-        const value = field.val();
-        
-        if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
-          // Validation des champs conditionnels
-          const typeLieu = $('input[name="typeLieuDeces"]:checked').val();
-          
-          if (typeLieu === 'hopital' && !$('input[name="nomHopital"]').val()) {
-            $('input[name="nomHopital"]').addClass('is-invalid');
-            $('input[name="nomHopital"]').after('<div class="invalid-feedback">Veuillez spécifier le nom de l\'hôpital</div>');
-            isValid = false;
-          }
-          
-          // Validation de la date de décès (ne peut pas être dans le futur)
-          const dateDeces = $('input[name="dateDeces"]').val();
-          if (dateDeces) {
-            const today = new Date();
-            const selectedDate = new Date(dateDeces);
-            if (selectedDate > today) {
-              $('input[name="dateDeces"]').addClass('is-invalid');
-              $('input[name="dateDeces"]').after('<div class="invalid-feedback">La date du décès ne peut pas être dans le futur</div>');
-              isValid = false;
-            }
-          }
-          
-          // Validation de l'heure
-          const heureDeces = $('input[name="heureDeces"]').val();
-          if (heureDeces && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(heureDeces)) {
-            $('input[name="heureDeces"]').addClass('is-invalid');
-            $('input[name="heureDeces"]').after('<div class="invalid-feedback">Format d\'heure invalide (HH:MM)</div>');
-            isValid = false;
-          }
-        }
-      });
-
-      // Si des validations ont été effectuées et qu'il y a des erreurs
-      if (hasValidated && !isValid) {
-        const firstError = currentSection.find('.is-invalid').first();
-        if (firstError.length) {
-          $('html, body').animate({
-            scrollTop: firstError.offset().top - 100
-          }, 500);
-          showError('Veuillez remplir correctement tous les champs obligatoires marqués d\'un astérisque (*)');
-        }
-      }
-
-      return hasValidated ? isValid : true;
-    }
-
-    // Fonction pour afficher une étape spécifique
-    function showStep(step) {
-      console.log('Affichage de l\'étape', step);
-      
-      // Masquer tous les messages d'erreur
-      $('.alert-danger').remove();
-      $('.is-invalid').removeClass('is-invalid');
-      $('.invalid-feedback').remove();
-      
-      // Masquer toutes les sections
-      $('.form-section').removeClass('active');
-      
-      // Afficher la section demandée
-      const targetSection = $(`#section-${step}`);
-      targetSection.addClass('active');
-      
-      // Mettre à jour les indicateurs d'étape
-      $('.step').removeClass('active');
-      $(`.step[data-step="${step}"]`).addClass('active');
-      
-      // Mettre à jour les boutons de navigation
-      updateNavigationButtons(step);
-      
-      // Faire défiler vers le haut
-      $('html, body').animate({
-        scrollTop: targetSection.offset().top - 20
-      }, 300);
-      
-      console.log('Affichage de l\'étape terminé');
-    }
-
-    // Fonction pour afficher les erreurs
-    function showError(message) {
-      // Supprimer les messages d'erreur existants
-      $('.alert-danger').remove();
-      
-      // Créer et afficher le nouveau message d'erreur
-      const alertDiv = $(`
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          ${message}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-        </div>
-      `);
-      
-      // Ajouter le message en haut du formulaire
-      $('#formDeces').prepend(alertDiv);
-      
-      // Faire défiler jusqu'au message d'erreur
-      $('html, body').animate({
-        scrollTop: 0
-      }, 500);
-    }
-
-    // Fonction pour valider un champ individuel
-    function validateField(field) {
-      const $field = $(field);
-      const value = $field.val();
-      const fieldName = $field.attr('name');
-      
-      // Nettoyer les messages d'erreur précédents
-      $field.removeClass('is-invalid');
-      $field.next('.invalid-feedback').remove();
-      
-      // Si le champ est requis et vide
-      if ($field.prop('required') && (!value || (typeof value === 'string' && value.trim() === ''))) {
-        // Messages d'erreur personnalisés
-        const errorMessages = {
-          'dateDeces': 'La date du décès est obligatoire',
-          'heureDeces': 'L\'heure du décès est obligatoire',
-          'typeLieuDeces': 'Veuillez sélectionner un type de lieu',
-          'communeDeces': 'Veuillez spécifier la commune ou l\'arrondissement',
-          'adresseDeces': 'Veuillez préciser l\'adresse ou le nom de l\'établissement',
-          'cause': 'La cause du décès est obligatoire'
-        };
-        
-        const errorMessage = errorMessages[fieldName] || 'Ce champ est obligatoire';
-        
-        $field.addClass('is-invalid');
-        $field.after(`<div class="invalid-feedback">${errorMessage}</div>`);
-        return false;
-      }
-      
-      // Validation spécifique pour la date de décès
-      if (fieldName === 'dateDeces' && value) {
-        const today = new Date();
-        const selectedDate = new Date(value);
-        if (selectedDate > today) {
-          $field.addClass('is-invalid');
-          $field.after('<div class="invalid-feedback">La date du décès ne peut pas être dans le futur</div>');
-          return false;
-        }
-      }
-      
-      // Validation spécifique pour l'heure
-      if (fieldName === 'heureDeces' && value && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
-        $field.addClass('is-invalid');
-        $field.after('<div class="invalid-feedback">Format d\'heure invalide (HH:MM)</div>');
-        return false;
-      }
-      
-      return true;
-    }
-    
-    // Validation en temps réel lors de la sortie du champ
-    $(document).on('blur', 'input[required], select[required], textarea[required]', function() {
-      validateField(this);
-    });
-    
-    // Validation des champs radio et checkbox
-    $(document).on('change', 'input[type="radio"][required], input[type="checkbox"][required]', function() {
-      const name = $(this).attr('name');
-      const $group = $(`input[name="${name}"]`);
-      const $formGroup = $group.closest('.form-group, .mb-3');
-      
-      // Nettoyer les messages d'erreur précédents
-      $formGroup.find('.invalid-feedback').remove();
-      $group.removeClass('is-invalid');
-      
-      // Vérifier si au moins un est coché
-      if ($group.filter(':checked').length === 0) {
-        $group.addClass('is-invalid');
-        $formGroup.append('<div class="invalid-feedback d-block">Veuillez sélectionner une option</div>');
-      }
-    });
-
-    // Initialisation des tooltips Bootstrap
-    document.addEventListener('DOMContentLoaded', function() {
-      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-      });
-      
-      // Initialisation de Parsley
-      $('#formDeces').parsley({
-        errorClass: 'is-invalid',
-        successClass: 'is-valid',
-        errorsWrapper: '<div class="invalid-feedback"></div>',
-        errorTemplate: '<span></span>',
-        trigger: 'change',
-        focus: 'first',
-        errorsContainer: function(ParsleyField) {
-          return ParsleyField.$element.closest('.mb-3');
-        }
-      });
-      
-      // Initialisation des boutons de navigation
-      initNavigationButtons();
-    });
   </script>
 </body>
 </html>
-</form>

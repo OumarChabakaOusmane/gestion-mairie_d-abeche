@@ -17,12 +17,23 @@ let transporter = null;
 if (emailConfig.isValid()) {
   try {
     transporter = nodemailer.createTransport(emailConfig.getTransporterConfig());
-    console.log('Transporteur email configuré avec succès');
+    // Vérification asynchrone non-bloquante
+    transporter.verify((error, success) => {
+      if (error) {
+        console.warn('⚠️  Configuration email non valide. Les fonctionnalités d\'email seront désactivées.');
+        console.warn('   Erreur:', error.message);
+        transporter = null; // Désactiver le transporteur en cas d'erreur
+      } else {
+        console.log('✓ Transporteur email configuré avec succès');
+      }
+    });
   } catch (error) {
-    console.error('Erreur lors de la configuration du transporteur email:', error);
+    console.warn('⚠️  Erreur lors de la configuration du transporteur email:', error.message);
+    transporter = null;
   }
 } else {
-  console.warn('Configuration email non valide. Les fonctionnalités d\'email seront désactivées.');
+  console.warn('⚠️  Configuration email non valide. Les fonctionnalités d\'email seront désactivées.');
+  console.warn('   Configurez SMTP_USER et SMTP_PASS dans votre fichier .env pour activer l\'envoi d\'emails');
 }
 
 router.get('/current', async (req, res) => {
@@ -95,6 +106,14 @@ router.post(
     await pendingUser.save();
 
     // Envoyer l'email avec le code OTP
+    if (!transporter) {
+      console.warn('[REGISTER] Transporteur email non disponible. Le code OTP ne peut pas être envoyé.');
+      return res.status(500).json({
+        success: false,
+        error: 'Service d\'envoi d\'email non disponible. Veuillez contacter l\'administrateur.'
+      });
+    }
+
     try {
       await transporter.sendMail({
         from: process.env.SMTP_FROM || 'noreply@example.com',
@@ -250,8 +269,17 @@ router.post(
     pendingUser.otpExpires = otpExpires;
     await pendingUser.save();
 
+    // Vérifier si le transporteur email est disponible
+    if (!transporter) {
+      return res.status(503).json({
+        success: false,
+        error: 'Service d\'envoi d\'email non disponible. Veuillez contacter l\'administrateur.'
+      });
+    }
+
     // Envoyer le nouveau code
-    await transporter.sendMail({
+    try {
+      await transporter.sendMail({
       from: process.env.SMTP_FROM || 'noreply@example.com',
       to: email,
       subject: 'Nouveau code de vérification - État Civil Tchad',
@@ -266,12 +294,19 @@ router.post(
           <p><strong>Ce code expire dans 10 minutes.</strong></p>
         </div>
       `
-    });
+      });
 
-    res.json({
-      success: true,
-      message: 'Nouveau code OTP envoyé.'
-    });
+      res.json({
+        success: true,
+        message: 'Nouveau code OTP envoyé.'
+      });
+    } catch (emailError) {
+      console.error('[RESEND_OTP] Erreur envoi email:', emailError);
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur lors de l\'envoi du code de vérification'
+      });
+    }
 
   } catch (error) {
     console.error('[RESEND_OTP] Erreur:', error);
@@ -294,9 +329,13 @@ router.post(
   try {
     const { email, password } = req.body;
 
+    // Normaliser l'email
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Trouver l'utilisateur avec le mot de passe
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
+      console.log(`[LOGIN] Tentative de connexion avec email inexistant: ${normalizedEmail}`);
       return res.status(401).json({
         success: false,
         error: 'Email ou mot de passe incorrect'
@@ -305,6 +344,7 @@ router.post(
 
     // Vérifier si le compte est verrouillé
     if (user.isLocked) {
+      console.log(`[LOGIN] Tentative de connexion à un compte verrouillé: ${user._id}`);
       return res.status(423).json({
         success: false,
         error: 'Compte temporairement verrouillé en raison de trop nombreuses tentatives de connexion'
@@ -314,6 +354,7 @@ router.post(
     // Vérifier le mot de passe
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      console.log(`[LOGIN] Mot de passe incorrect pour l'utilisateur: ${user._id}`);
       await user.incLoginAttempts();
       return res.status(401).json({
         success: false,
@@ -321,8 +362,14 @@ router.post(
       });
     }
 
-    // Supprimer la vérification d'email confirmé pour simplifier la connexion
-    // Les comptes créés via OTP sont automatiquement confirmés
+    // Vérifier si l'email est confirmé (sauf pour les comptes créés via OTP qui sont automatiquement confirmés)
+    if (!user.isEmailConfirmed) {
+      console.log(`[LOGIN] Tentative de connexion avec email non confirmé: ${user._id}`);
+      return res.status(401).json({
+        success: false,
+        error: 'Veuillez confirmer votre adresse email avant de vous connecter'
+      });
+    }
 
     // Réinitialiser les tentatives de connexion et mettre à jour la dernière connexion
     await user.resetLoginAttempts();
@@ -331,6 +378,8 @@ router.post(
 
     // Générer le token JWT
     const token = user.generateAuthToken();
+
+    console.log(`[LOGIN] Connexion réussie pour l'utilisateur: ${user._id} (${user.email})`);
 
     res.json({
       success: true,

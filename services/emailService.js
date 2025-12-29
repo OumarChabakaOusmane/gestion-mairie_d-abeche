@@ -4,12 +4,14 @@ const emailConfig = require('../config/email');
 // Créer un transporteur SMTP réutilisable
 const transporter = nodemailer.createTransport(emailConfig.getTransporterConfig());
 
-// Vérifier la configuration du transporteur
+// Vérifier la configuration du transporteur (non-bloquant)
 transporter.verify((error, success) => {
   if (error) {
-    console.error('Erreur de configuration du transporteur email:', error);
+    console.warn('⚠️  Configuration email non valide. Les fonctionnalités d\'email seront désactivées.');
+    console.warn('   Pour activer l\'envoi d\'emails, configurez SMTP_USER et SMTP_PASS dans votre fichier .env');
+    console.warn('   Erreur:', error.message);
   } else {
-    console.log('Serveur SMTP prêt à envoyer des emails');
+    console.log('✓ Serveur SMTP prêt à envoyer des emails');
   }
 });
 
