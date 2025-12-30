@@ -601,9 +601,7 @@ class CalendrierManager {
     // Configuration des notifications
     setupNotifications() {
         // Vérifier les notifications autorisées
-        if (!('Notification' in window)) {
-            console.log('Ce navigateur ne supporte pas les notifications de bureau');
-            return;
+        if (!('Notification' in window)) {            return;
         }
         
         // Vérifier si les notifications sont déjà autorisées
@@ -721,7 +719,7 @@ class CalendrierManager {
         // Supprimer la notification après 5 secondes
         setTimeout(() => {
             alert.classList.remove('show');
-            setTimeout(() => alert.remove(), 150);
+            setTimeout(() => { if (alert && alert.parentNode) alert.remove(); }, 150);
         }, 5000);
     }
 
@@ -822,3 +820,10 @@ window.addEventListener('resize', () => {
         window.calendrierManager.calendar.updateSize();
     }
 });
+
+
+
+
+
+
+

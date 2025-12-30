@@ -12594,3 +12594,218 @@
 2025-12-30 08:41:40 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
 2025-12-30 08:41:40 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
 2025-12-30 08:41:40 [info]: 433ca810-249f-4a36-954c-89c4998292ba ::1 - - [30/Dec/2025:07:41:40 +0000] "GET /api/users HTTP/1.1" 200 767 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:44 [info]: MongoDB Connected: localhost 
+2025-12-30 08:43:47 [info]: 941d0350-effb-4980-a439-667c5b5662db ::ffff:127.0.0.1 - - [30/Dec/2025:07:43:47 +0000] "GET /messagerie HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:48 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 08:43:48 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 08:43:48 [info]: 7d94a983-9782-46a7-930f-6e43e24b4434 ::ffff:127.0.0.1 - - [30/Dec/2025:07:43:48 +0000] "GET /api/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:50 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 08:43:50 [info]: 3f959124-a775-409d-adbb-7a81c07a71da ::ffff:127.0.0.1 - - [30/Dec/2025:07:43:50 +0000] "GET /api/conversations HTTP/1.1" 200 552 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:50 [info]: 7d9c028f-cded-4312-96b4-0804f3ed50e0 ::1 - - [30/Dec/2025:07:43:50 +0000] "GET /rapports HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:54 [info]: 94672b09-bd8c-4945-bcbb-390ba36ff957 ::1 - - [30/Dec/2025:07:43:54 +0000] "GET /documents HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:55 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 08:43:55 [info]: 6d37fceb-e054-4b2f-90c9-18e3a0b3a87e ::1 - - [30/Dec/2025:07:43:55 +0000] "GET /api/documents HTTP/1.1" 200 26 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:59 [info]: c862394e-2b31-496b-aa0d-e6b8ccaa35ac ::1 - - [30/Dec/2025:07:43:59 +0000] "GET /calendrier HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:43:59 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:43:59 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:43:59 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:43:59 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:43:59 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:43:59 [info]: 298437f5-57b7-4f8c-b26b-e346cb3fe64e ::1 - - [30/Dec/2025:07:43:59 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:44:00 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:44:00 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:00 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:00 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:00 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:44:00 [info]: 1bf7f99e-2747-43b8-825b-903ab5f5f4b7 ::1 - - [30/Dec/2025:07:44:00 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:44:07 [info]: ad9e7fcf-c384-4bb9-ae2b-e726c970a464 ::1 - - [30/Dec/2025:07:44:07 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:44:40 [info]: 4d5aca00-ad4e-4df7-993e-9efca6ae4db5 ::1 - - [30/Dec/2025:07:44:40 +0000] "POST /api/calendrier HTTP/1.1" 201 204 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:44:40 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:44:40 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:40 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:40 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:44:40 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:44:40 [info]: ea314b75-a548-44b2-98a4-c3b68c1c9bcd ::1 - - [30/Dec/2025:07:44:40 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:44:48 [info]: daac0baf-ef6e-4feb-ac80-2e87f26ef7b6 ::1 - - [30/Dec/2025:07:44:48 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:49:00 [info]: Récupération des événements du Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:49:00 [info]: Requête Naissance: dateNaissance entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Requête Mariage: dateMariage entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Requête Décès: dateDeces entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:49:00 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:49:00 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:49:00 [info]: 80d227e6-c788-45b3-b142-85c520db2ddd ::1 - - [30/Dec/2025:07:49:00 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:49:00 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:49:00 [info]: 1d38efbb-66c4-42c9-9310-1c6ebd618cde ::1 - - [30/Dec/2025:07:49:00 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:54:00 [info]: Récupération des événements du Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:54:00 [info]: Requête Naissance: dateNaissance entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Requête Mariage: dateMariage entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Requête Décès: dateDeces entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:54:00 [info]: 281a7cb1-ff99-4e2c-afba-0db21136668d ::1 - - [30/Dec/2025:07:54:00 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 08:54:00 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 08:54:00 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 08:54:00 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 08:54:00 [info]: d2f91ae1-bed1-407d-8f27-a282b15052b2 ::1 - - [30/Dec/2025:07:54:00 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:00:40 [info]: Récupération des événements du Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 09:00:40 [info]: Requête Naissance: dateNaissance entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Requête Mariage: dateMariage entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Requête Décès: dateDeces entre Mon Dec 01 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 12 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Récupération des événements du Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) au Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest) 
+2025-12-30 09:00:41 [info]: Requête Naissance: dateNaissance entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Requête Mariage: dateMariage entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Requête Décès: dateDeces entre Mon Dec 29 2025 01:00:00 GMT+0100 (heure normale d’Afrique de l’Ouest) et Mon Jan 05 2026 23:59:59 GMT+0100 (heure normale d’Afrique de l’Ouest), statut: validé 
+2025-12-30 09:00:41 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 09:00:41 [info]: 89d8571d-9ac2-4f61-88d0-165d237cfb6a ::1 - - [30/Dec/2025:08:00:41 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:00:41 [info]: Résultats bruts - Naissances: 0, Mariages: 0, Décès: 0 
+2025-12-30 09:00:41 [info]: 38160b76-da06-4e43-abe3-93e594a09e5e ::1 - - [30/Dec/2025:08:00:41 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:50:36 [info]: MongoDB Connected: localhost 
+2025-12-30 09:50:43 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:50:43 [info]: 5e1a5d61-b264-4ddd-af75-d194513cf2e0 ::1 - - [30/Dec/2025:08:50:43 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:50:43 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:50:43 [info]: dc02f9c9-012e-4fb5-b423-439d1d1bd312 ::1 - - [30/Dec/2025:08:50:43 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:50:43 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:50:43 [info]: d4aec8e2-1cc3-4eb9-abc0-e15eba2ed016 ::1 - - [30/Dec/2025:08:50:43 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:50:43 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:50:43 [info]: 7dd26bd9-a11b-41db-9e3a-6ac5bd2a1878 ::1 - - [30/Dec/2025:08:50:43 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:48 [info]: 636fd468-7451-4631-8f12-38ffe6c01196 ::1 - - [30/Dec/2025:08:54:48 +0000] "POST /api/auth/login HTTP/1.1" 200 466 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:50 [info]: cdb6e104-84d9-482c-99d5-850e8fe5a30e ::1 - - [30/Dec/2025:08:54:50 +0000] "GET /dashboard HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:50 [info]: d3c502ca-5a8f-4aab-9c42-5512fef2b2cd ::1 - - [30/Dec/2025:08:54:50 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:50 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:54:50 [info]: 89a0dd72-820b-4d5f-ad96-fd54189e0d31 ::1 - - [30/Dec/2025:08:54:50 +0000] "GET /api/actes?limit=100 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:50 [info]: f18a67db-a577-4d16-bcc7-ece846976844 ::1 - - [30/Dec/2025:08:54:50 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 114 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:50 [info]: 34797ca1-e0ce-4c80-ba4c-a9209fd8265e ::1 - - [30/Dec/2025:08:54:50 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:54:52 [info]: d0196967-00bc-45d6-b718-212f7cd35383 ::1 - - [30/Dec/2025:08:54:52 +0000] "GET /api/actes?limit=10&sort=-dateEnregistrement HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:00 [info]: e343a67e-326a-4a0c-bb47-2950a29154a2 ::1 - - [30/Dec/2025:08:55:00 +0000] "GET /naissance HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:01 [info]: 5e775ac4-e14a-40fc-9a02-18bc8f8d667a ::1 - - [30/Dec/2025:08:55:01 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:02 [info]: 11d4c978-68df-4dad-9c51-383c1109ffa3 ::1 - - [30/Dec/2025:08:55:02 +0000] "GET /mariage HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:03 [info]: 8e3826e2-1e69-42cc-91e5-a0f558a84772 ::1 - - [30/Dec/2025:08:55:03 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:05 [info]: 947fe00b-7f78-484a-8cb8-45b81fd7010d ::1 - - [30/Dec/2025:08:55:05 +0000] "GET /deces HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:05 [info]: 7a3dba3b-04ab-4565-8587-b579f88d4954 ::1 - - [30/Dec/2025:08:55:05 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:13 [info]: d87e7467-10b3-42d7-9c2b-cb8d6c543d87 ::1 - - [30/Dec/2025:08:55:13 +0000] "GET /calendrier HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:13 [info]: 1bdb0ecb-fb5c-4e4a-a746-ddc27389793b ::1 - - [30/Dec/2025:08:55:13 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:14 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:55:14 [info]: e67ba826-9c3e-486c-8eb1-ec2961107d5e ::1 - - [30/Dec/2025:08:55:14 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:14 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:55:14 [info]: 37903bf6-4428-4721-bb64-6ead178703b4 ::1 - - [30/Dec/2025:08:55:14 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:36 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:55:36 [info]: Événement créé avec succès {
+  "eventId": "69539388a8753e997253168a",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "bdd",
+  "type": "mariage"
+}
+2025-12-30 09:55:36 [info]: 3d5bc8c5-a1ca-4001-a219-9309d97a2ff3 ::1 - - [30/Dec/2025:08:55:36 +0000] "POST /api/calendrier HTTP/1.1" 201 254 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:55:36 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:55:36 [info]: 3fc6d5a6-14e6-47f4-925f-d01bf71accf1 ::1 - - [30/Dec/2025:08:55:36 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 305 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:56:20 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:56:20 [info]: Événement mis à jour avec succès {
+  "eventId": "69539388a8753e997253168a",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "bdd",
+  "type": "mariage"
+}
+2025-12-30 09:56:20 [info]: 5cc05269-70bd-452d-9559-17faa8a3037c ::1 - - [30/Dec/2025:08:56:20 +0000] "PUT /api/calendrier/custom-69539388a8753e997253168a HTTP/1.1" 200 254 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:56:20 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:56:20 [info]: 5ad9d043-eba9-4131-8973-0c86380481f2 ::1 - - [30/Dec/2025:08:56:20 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 200 305 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 09:56:28 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 09:56:28 [info]: 386c7130-e773-4218-9785-575a89df5e1c ::1 - - [30/Dec/2025:08:56:28 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:00:04 [info]: MongoDB Connected: localhost 
+2025-12-30 10:00:09 [info]: 9fece7f1-3058-4b54-8bd1-b5c0594b15d5 ::1 - - [30/Dec/2025:09:00:09 +0000] "GET /calendrier HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:00:09 [info]: 98eb1223-23b6-491a-9ccf-91fd2ff4d069 ::1 - - [30/Dec/2025:09:00:09 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:00:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:00:10 [info]: e6ce9102-ee81-403a-b20c-9afa84cc9054 ::1 - - [30/Dec/2025:09:00:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 305 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:00:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:00:10 [info]: b62ee9d1-ef67-41dc-bdc9-ed1824a348ef ::1 - - [30/Dec/2025:09:00:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:02:08 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:02:08 [info]: Événement créé avec succès {
+  "eventId": "69539510e0c3237561dfaa29",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "ceremonie",
+  "type": "naissance"
+}
+2025-12-30 10:02:08 [info]: 7fa87af9-cb43-4119-ab41-f27cac6fa1cd ::1 - - [30/Dec/2025:09:02:08 +0000] "POST /api/calendrier HTTP/1.1" 201 260 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:02:08 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:02:08 [info]: deb89601-0279-4453-896c-e6b2a4dd0723 ::1 - - [30/Dec/2025:09:02:08 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 589 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:03:44 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:03:44 [info]: Événement mis à jour avec succès {
+  "eventId": "69539510e0c3237561dfaa29",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "ceremonie",
+  "type": "naissance"
+}
+2025-12-30 10:03:44 [info]: 138c07b6-4751-4f91-8be4-7e47467973e2 ::1 - - [30/Dec/2025:09:03:44 +0000] "PUT /api/calendrier/custom-69539510e0c3237561dfaa29 HTTP/1.1" 200 260 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:03:44 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:03:44 [info]: 3feb61fb-42f3-404b-993b-0a92881e0d96 ::1 - - [30/Dec/2025:09:03:44 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 589 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:05:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:05:10 [info]: ed2671a8-066a-4f15-8aa4-ceefd1d99757 ::1 - - [30/Dec/2025:09:05:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:05:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:05:10 [info]: acbe85a8-414a-4258-9edc-4c9b6671bc75 ::1 - - [30/Dec/2025:09:05:10 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 200 589 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:10:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:10:10 [info]: e9837117-669b-4fea-94d2-558f4b025ec3 ::1 - - [30/Dec/2025:09:10:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:10:11 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:10:11 [info]: 04791b06-1f7a-4bf4-be07-801d051d6b21 ::1 - - [30/Dec/2025:09:10:11 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:22:17 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:22:17 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:22:17 [info]: b7b01b72-906c-46e6-ac29-310b6b3f959b ::1 - - [30/Dec/2025:09:22:17 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:22:17 [info]: 1df4f0a1-576d-4dd7-b298-5cfe1e162ac0 ::1 - - [30/Dec/2025:09:22:17 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:22:17 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:22:17 [info]: 565b2e75-ca97-4d6a-be55-a02f7a879775 ::1 - - [30/Dec/2025:09:22:17 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:22:17 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:22:17 [info]: f5c9f3e4-c48a-47a9-a342-f0cde6fd9413 ::1 - - [30/Dec/2025:09:22:17 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:25:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:25:10 [info]: cd5ac98d-a34a-47be-ae30-1f1a3f31728b ::1 - - [30/Dec/2025:09:25:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:25:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:25:10 [info]: f7bb9ea8-8b85-412d-8bd5-52abd78485d6 ::1 - - [30/Dec/2025:09:25:10 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:29:37 [info]: MongoDB Connected: localhost 
+2025-12-30 10:30:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:30:10 [info]: f2e88a2d-4595-4b1d-892c-16e1fb225a93 ::1 - - [30/Dec/2025:09:30:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:30:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:30:10 [info]: cfdb1d89-e660-4ef5-91a6-1058f3caa35d ::1 - - [30/Dec/2025:09:30:10 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:35:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:35:10 [info]: 9aff78d8-2ff2-4b42-b296-d643a8096ac6 ::1 - - [30/Dec/2025:09:35:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:35:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:35:10 [info]: 1c240d68-1acd-42ed-b1f8-a588ee74c14b ::1 - - [30/Dec/2025:09:35:10 +0000] "GET /api/calendrier?start=2025-12-29T00:00:00+01:00&end=2026-01-05T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:09 [info]: 0f4ad6b0-214d-46a3-bdaa-ba37b00955b0 ::1 - - [30/Dec/2025:09:38:09 +0000] "GET /calendrier HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:09 [info]: 2d7f0827-c4c2-4831-88d5-69fabd4c5120 ::1 - - [30/Dec/2025:09:38:09 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 130 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:09 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:38:09 [info]: 9ec69688-f82c-4712-b0d2-c453811a9633 ::1 - - [30/Dec/2025:09:38:09 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:09 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:38:09 [info]: 6b829359-ed71-4ace-a3fa-990b68af9cc8 ::1 - - [30/Dec/2025:09:38:09 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:42 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:38:42 [info]: Événement mis à jour avec succès {
+  "eventId": "69539510e0c3237561dfaa29",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "ceremonie",
+  "type": "naissance"
+}
+2025-12-30 10:38:42 [info]: e4f3c369-a0dd-4e99-bb35-b068239cb9c0 ::1 - - [30/Dec/2025:09:38:42 +0000] "PUT /api/calendrier/custom-69539510e0c3237561dfaa29 HTTP/1.1" 200 260 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:38:42 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:38:42 [info]: 73e9a7bf-c85b-42e0-a185-5496c4df5c80 ::1 - - [30/Dec/2025:09:38:42 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:39:46 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:39:46 [info]: Événement mis à jour avec succès {
+  "eventId": "69539510e0c3237561dfaa29",
+  "userId": "69529995a3b19bde1db7aab6",
+  "title": "vccc",
+  "type": "mariage"
+}
+2025-12-30 10:39:46 [info]: 1fb7f624-ee28-47ce-beab-16037987ed38 ::1 - - [30/Dec/2025:09:39:46 +0000] "PUT /api/calendrier/custom-69539510e0c3237561dfaa29 HTTP/1.1" 200 250 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:39:46 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:39:47 [info]: 9a756d22-8975-4d7d-b5cb-527084c18301 ::1 - - [30/Dec/2025:09:39:47 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 200 579 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:44:29 [info]: MongoDB Connected: localhost 
+2025-12-30 10:48:09 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:48:09 [info]: c6b59970-8516-4e73-a9fa-9b730910387c ::1 - - [30/Dec/2025:09:48:09 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:48:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:48:10 [info]: df07cbaa-f606-468c-9154-890eb48cdcce ::1 - - [30/Dec/2025:09:48:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:53:09 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:53:09 [info]: 76e124bd-b9d3-4472-9908-e399f941bb8d ::1 - - [30/Dec/2025:09:53:09 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:53:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:53:10 [info]: 141820b2-1e93-4c7c-b045-476051281a20 ::1 - - [30/Dec/2025:09:53:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:58:09 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:58:09 [info]: 403b4b75-5574-4d7d-ba6a-c98fbef41a8d ::1 - - [30/Dec/2025:09:58:09 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
+2025-12-30 10:58:10 [info]: Accès autorisé - ID: 69529995a3b19bde1db7aab6, Email: chabakaousmaneo@gmail.com 
+2025-12-30 10:58:10 [info]: 9975903b-6d7a-4b88-bb5a-3e31bf142569 ::1 - - [30/Dec/2025:09:58:10 +0000] "GET /api/calendrier?start=2025-12-01T00:00:00+01:00&end=2026-01-12T00:00:00+01:00 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" 
