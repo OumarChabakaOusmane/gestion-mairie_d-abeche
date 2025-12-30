@@ -671,12 +671,24 @@ class UserManager {
     }
 
     async deleteUser() {
-        if (!this.currentUserId) return;
+        if (!this.currentUserId) {
+            console.error('Aucun ID utilisateur spécifié pour la suppression');
+            alert('Erreur: Aucun utilisateur sélectionné');
+            return;
+        }
+
+        // Confirmation avant suppression
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) {
+            return;
+        }
 
         try {
+            console.log('Tentative de suppression de l\'utilisateur ID:', this.currentUserId);
+            
             const response = await fetch(`/api/users/${this.currentUserId}`, {
                 method: 'DELETE',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
@@ -684,16 +696,47 @@ class UserManager {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || 'Erreur lors de la suppression');
+                const errorMessage = data.error || data.message || 'Erreur inconnue lors de la suppression';
+                console.error('Erreur serveur:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorMessage,
+                    responseData: data
+                });
+                throw new Error(errorMessage);
             }
 
+            console.log('Utilisateur supprimé avec succès:', data);
             this.deleteModal.hide();
-            this.loadUsers();
-            alert('Utilisateur supprimé avec succès!');
+            
+            // Recharger la liste des utilisateurs
+            await this.loadUsers();
+            
+            // Afficher un message de succès
+            const toast = new bootstrap.Toast(document.getElementById('successToast'));
+            const toastMessage = document.getElementById('toastMessage');
+            if (toastMessage) {
+                toastMessage.textContent = 'Utilisateur supprimé avec succès';
+                toast.show();
+            } else {
+                alert('Utilisateur supprimé avec succès!');
+            }
             
         } catch (error) {
-            console.error('Erreur:', error);
-            alert('Erreur lors de la suppression: ' + error.message);
+            console.error('Erreur lors de la suppression de l\'utilisateur:', {
+                error: error,
+                message: error.message,
+                stack: error.stack
+            });
+            
+            // Afficher un message d'erreur détaillé
+            const errorMessage = error.message.includes('NetworkError') 
+                ? 'Erreur de connexion au serveur. Vérifiez votre connexion Internet.'
+                : `Erreur lors de la suppression: ${error.message}`;
+                
+            alert(errorMessage);
+        } finally {
+            this.currentUserId = null;
         }
     }
 }

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middleware/auth');
@@ -449,40 +450,99 @@ router.put('/:id', async (req, res) => {
 // Supprimer un utilisateur (admin seulement)
 router.delete('/:id', async (req, res) => {
   try {
+    console.log(`Tentative de suppression de l'utilisateur avec l'ID: ${req.params.id}`);
+    
     // Vérifier si l'utilisateur est admin
     if (req.user.role !== 'admin') {
+      console.log('Accès refusé: utilisateur non admin');
       return res.status(403).json({
         success: false,
         error: 'Accès non autorisé. Seul un administrateur peut supprimer un utilisateur.'
       });
     }
-    
-    // Empêcher un admin de se supprimer lui-même
-    if (req.params.id === req.user.id || req.params.id === req.user._id.toString()) {
+
+    // Vérifier que l'ID est valide
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.log('ID utilisateur invalide:', req.params.id);
       return res.status(400).json({
         success: false,
-        error: 'Vous ne pouvez pas supprimer votre propre compte'
+        error: 'ID utilisateur invalide'
       });
     }
-    
-    const user = await User.findByIdAndDelete(req.params.id);
-    
-    if (!user) {
+
+    // Vérifier que l'utilisateur existe
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) {
+      console.log('Utilisateur non trouvé avec l\'ID:', req.params.id);
       return res.status(404).json({
         success: false,
         error: 'Utilisateur non trouvé'
       });
     }
     
+    // Empêcher un admin de se supprimer lui-même
+    const userIdToCompare = req.user._id ? req.user._id.toString() : req.user.id;
+    if (req.params.id === req.user.id || req.params.id === userIdToCompare) {
+      console.log('Tentative de suppression de son propre compte');
+      return res.status(400).json({
+        success: false,
+        error: 'Vous ne pouvez pas supprimer votre propre compte'
+      });
+    }
+
+    console.log('Suppression de l\'utilisateur:', {
+      id: userToDelete._id,
+      email: userToDelete.email,
+      role: userToDelete.role
+    });
+
+    // Supprimer l'utilisateur
+    const result = await User.deleteOne({ _id: req.params.id });
+
+    if (result.deletedCount === 0) {
+      console.error('Échec de la suppression: aucun document supprimé');
+      return res.status(404).json({
+        success: false,
+        error: 'Échec de la suppression de l\'utilisateur'
+      });
+    }
+    
+    console.log('Utilisateur supprimé avec succès');
     res.json({
       success: true,
       message: 'Utilisateur supprimé avec succès'
     });
   } catch (err) {
-    console.error('Erreur dans DELETE /:id:', err);
+    console.error('Erreur lors de la suppression de l\'utilisateur:', {
+      error: err,
+      message: err.message,
+      stack: err.stack,
+      params: req.params,
+      user: req.user ? { id: req.user.id, role: req.user.role } : 'Non authentifié'
+    });
+    
+    // Gestion spécifique des erreurs de base de données
+    if (err.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Format d\'ID invalide',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+
+    // Gestion des erreurs de validation
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Erreur de validation',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+
+    // Erreur serveur générique
     res.status(500).json({
       success: false,
-      error: 'Erreur serveur',
+      error: 'Erreur lors de la suppression de l\'utilisateur',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
